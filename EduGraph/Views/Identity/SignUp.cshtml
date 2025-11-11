@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@model EduGraph.Features.Identity.SignUp.SignUpRequest
+
+<div class="text-center">
+    <form asp-controller="Identity" asp-action="LogIn">
+        <div>
+            <label asp-for="Login"></label>
+            <input type="text" asp-for="Login"/>
+        </div>
+        <div>
+            <label asp-for="Password"></label>
+            <input type="text" asp-for="Password"/>
+        </div>
+        <div>
+            <label asp-for="ConfirmPassword"></label>
+            <input type="text" asp-for="ConfirmPassword"/>
+        </div>
+        
+        <button type="submit"></button>
+    </form>
+</div>

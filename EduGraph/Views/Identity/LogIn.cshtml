@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@model EduGraph.Features.Identity.LogIn.LogInRequest
+
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4"> <h2 class="text-center mb-3">Вхід у систему</h2>
+
+        <form asp-controller="Identity" asp-action="LogIn">
+            
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Login" class="form-label"></label>
+                <input type="text" asp-for="Login" class="form-control"/>
+                <span asp-validation-for="Login" class="text-danger"></span>
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input type="password" asp-for="Password" class="form-control"/>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Увійти</button>
+        </form>
+    </div>
+</div>
