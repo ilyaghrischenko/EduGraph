@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EduGraph")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7c29319d1a33d51e7b606006fe189e9c96f6171a")]
 [assembly: System.Reflection.AssemblyProductAttribute("EduGraph")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EduGraph")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

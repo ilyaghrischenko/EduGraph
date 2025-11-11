@@ -7930,11 +7930,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/admin/Documents/University/Диплом/EduGraph/EduGraph/EduGraph.csproj",
+      "projectUniqueName": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/EduGraph.csproj",
       "projectName": "EduGraph",
-      "projectPath": "/Users/admin/Documents/University/Диплом/EduGraph/EduGraph/EduGraph.csproj",
+      "projectPath": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/EduGraph.csproj",
       "packagesPath": "/Users/admin/.nuget/packages/",
-      "outputPath": "/Users/admin/Documents/University/Диплом/EduGraph/EduGraph/obj/",
+      "outputPath": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/admin/.nuget/NuGet/NuGet.Config"

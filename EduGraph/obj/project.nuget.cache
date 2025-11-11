@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "btflgRpT5aA=",
+  "dgSpecHash": "2lcBkq5wrVA=",
   "success": true,
-  "projectFilePath": "/Users/admin/Documents/University/Диплом/EduGraph/EduGraph/EduGraph.csproj",
+  "projectFilePath": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/EduGraph.csproj",
   "expectedPackageFiles": [
     "/Users/admin/.nuget/packages/dotnetenv/3.1.1/dotnetenv.3.1.1.nupkg.sha512",
     "/Users/admin/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
