@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduGraph.Persistence.Migrations
 {
     [DbContext(typeof(EduGraphContext))]
-    [Migration("20251111213324_Initial")]
+    [Migration("20251112155651_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
