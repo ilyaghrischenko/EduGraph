@@ -455,3 +455,4 @@
 /Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/EduGraph.pdb
 /Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/EduGraph.genruntimeconfig.cache
 /Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/ref/EduGraph.dll
+/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/compressed/awlc6p68ug-39cifuvq8i.gz

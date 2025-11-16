@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "UKs2B2XMdM8bcerYMsW0cVB2lQpU6aL77bsspj3B2MM=",
+  "Hash": "h/8BIiFeK5bWWYUG5bM7OVSWoVhoEd/JGDCr8Mnei8o=",
   "Source": "EduGraph",
   "BasePath": "_content/EduGraph",
   "Mode": "Default",
@@ -435,6 +435,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/wwwroot/lib/bootstrap/dist/js/bootstrap.min.js.map"
+    },
+    {
+      "Identity": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/compressed/awlc6p68ug-39cifuvq8i.gz",
+      "SourceId": "EduGraph",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/compressed/",
+      "BasePath": "_content/EduGraph",
+      "RelativePath": "js/changeUserType#[.{fingerprint=39cifuvq8i}]?.js.gz",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/wwwroot/js/changeUserType.js",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "y72cr10d29",
+      "Integrity": "wooJwSnP0iqjRcgVhJntRNMDTGuFfUN3EIzPrMByl3U=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/wwwroot/js/changeUserType.js"
     },
     {
       "Identity": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/compressed/axzmced3il-ilo7uva0vt.gz",
@@ -1443,6 +1464,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/favicon.ico"
+    },
+    {
+      "Identity": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/wwwroot/js/changeUserType.js",
+      "SourceId": "EduGraph",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/wwwroot/",
+      "BasePath": "_content/EduGraph",
+      "RelativePath": "js/changeUserType#[.{fingerprint}]?.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "39cifuvq8i",
+      "Integrity": "hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/js/changeUserType.js"
     },
     {
       "Identity": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/wwwroot/js/site.js",
@@ -3916,6 +3958,304 @@
         {
           "Name": "integrity",
           "Value": "sha256-+/824NtfTA0L7Mr42Fo+86YJP4R5cigdi9S7Fx5VVl4="
+        }
+      ]
+    },
+    {
+      "Route": "js/changeUserType.39cifuvq8i.js",
+      "AssetFile": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/compressed/awlc6p68ug-39cifuvq8i.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.001209189843"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "826"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"wooJwSnP0iqjRcgVhJntRNMDTGuFfUN3EIzPrMByl3U=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 16 Nov 2025 16:13:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "39cifuvq8i"
+        },
+        {
+          "Name": "label",
+          "Value": "js/changeUserType.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw="
+        }
+      ]
+    },
+    {
+      "Route": "js/changeUserType.39cifuvq8i.js",
+      "AssetFile": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/wwwroot/js/changeUserType.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1851"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 16 Nov 2025 16:13:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "39cifuvq8i"
+        },
+        {
+          "Name": "label",
+          "Value": "js/changeUserType.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw="
+        }
+      ]
+    },
+    {
+      "Route": "js/changeUserType.39cifuvq8i.js.gz",
+      "AssetFile": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/compressed/awlc6p68ug-39cifuvq8i.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "826"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"wooJwSnP0iqjRcgVhJntRNMDTGuFfUN3EIzPrMByl3U=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 16 Nov 2025 16:13:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "39cifuvq8i"
+        },
+        {
+          "Name": "label",
+          "Value": "js/changeUserType.js.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-wooJwSnP0iqjRcgVhJntRNMDTGuFfUN3EIzPrMByl3U="
+        }
+      ]
+    },
+    {
+      "Route": "js/changeUserType.js",
+      "AssetFile": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/compressed/awlc6p68ug-39cifuvq8i.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.001209189843"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "826"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"wooJwSnP0iqjRcgVhJntRNMDTGuFfUN3EIzPrMByl3U=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 16 Nov 2025 16:13:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw="
+        }
+      ]
+    },
+    {
+      "Route": "js/changeUserType.js",
+      "AssetFile": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/wwwroot/js/changeUserType.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1851"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 16 Nov 2025 16:13:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-hyWCtD/hLJBfPt5yM7FWBlqiWFxHOaKtKxHtzVpImcw="
+        }
+      ]
+    },
+    {
+      "Route": "js/changeUserType.js.gz",
+      "AssetFile": "/Users/admin/Documents/GitHub/EduGraph/EduGraph/obj/Debug/net9.0/compressed/awlc6p68ug-39cifuvq8i.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "826"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"wooJwSnP0iqjRcgVhJntRNMDTGuFfUN3EIzPrMByl3U=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sun, 16 Nov 2025 16:13:06 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-wooJwSnP0iqjRcgVhJntRNMDTGuFfUN3EIzPrMByl3U="
         }
       ]
     },

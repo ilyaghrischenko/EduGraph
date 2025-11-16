@@ -1,5 +1,4 @@
 using EduGraph.Features.Shared;
-using EduGraph.Persistence;
 using Microsoft.AspNetCore.Identity;
 
 namespace EduGraph.Features.Identity.LogIn;

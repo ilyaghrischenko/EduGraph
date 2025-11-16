@@ -1,4 +1,5 @@
 using EduGraph.Features.Identity.LogIn;
+using EduGraph.Features.Identity.SignUpApplication;
 using EduGraph.Features.Shared;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,5 +34,28 @@ public class IdentityController : Controller
     }
     
     [HttpGet]
-    public ViewResult SignUp() => View();
+    public ViewResult SignUpApplication() => View();
+
+    [HttpPost]
+    public async Task<ViewResult> SignUpApplication(
+        SignUpApplicationRequest request,
+        [FromServices] IRequestHandler<SignUpApplicationRequest, VoidResult> handler,
+        CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+        {
+            ModelState.AddModelError(string.Empty, "Invalid sign up attempt");
+            return View(request);
+        }
+
+        VoidResult signUpResult = await handler.HandleAsync(request, ct);
+
+        if (signUpResult.IsFailure)
+        {
+            ModelState.AddModelError(signUpResult.ModelStateKey, signUpResult.ErrorMessage!);
+            return View(request);
+        }
+
+        return View("LogIn");
+    } 
 }

@@ -40,8 +40,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSWRlbnRpdHkvTG9nSW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/admin/Documents/GitHub/EduGraph/EduGraph/Views/Identity/SignUp.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSWRlbnRpdHkvU2lnblVwLmNzaHRtbA==
+[/Users/admin/Documents/GitHub/EduGraph/EduGraph/Views/Identity/SignUpApplication.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSWRlbnRpdHkvU2lnblVwQXBwbGljYXRpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/admin/Documents/GitHub/EduGraph/EduGraph/Views/Search/Index.cshtml]

@@ -1,0 +1,70 @@
+﻿@model EduGraph.Features.Identity.SignUpApplication.SignUpApplicationRequest
+
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+        <h2 class="text-center mb-3">Заявка на реєстрацію</h2>
+
+        <form asp-controller="Identity" asp-action="SignUpApplication">
+            
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            
+            <div class="mb-3">
+                <div class="mb-3">
+                    <label asp-for="Login" class="form-label">Логін</label>
+                    <input type="text" asp-for="Login" class="form-control" required/>
+                    <span asp-validation-for="Login" class="text-danger"></span>
+                </div>
+            
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Пароль</label>
+                    <input type="password" asp-for="Password" class="form-control" required/>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+            
+                <div class="mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label">Підтвердіть пароль</label>
+                    <input type="password" asp-for="ConfirmPassword" class="form-control" required/>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="UserType" 
+                               value="Student" id="roleStudent" checked />
+                        <label class="form-check-label" for="roleStudent">
+                            Студент
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="UserType"
+                               value="Teacher" id="roleTeacher" />
+                        <label class="form-check-label" for="roleTeacher">
+                            Викладач
+                        </label>
+                    </div>
+                    <span asp-validation-for="UserType" class="text-danger"></span>
+                </div>
+                
+                <label asp-for="FullName" class="form-label">ПІБ</label>
+                <input type="text" asp-for="FullName" class="form-control" required/>
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3" id="group-container">
+                <label asp-for="Group" class="form-label">Група</label>
+                <input type="text" asp-for="Group" class="form-control" required />
+                <span asp-validation-for="Group" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Надіслати заявку</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial"); 
+    }
+
+    <script src="~/js/changeUserType.js"></script>
+}

@@ -1,5 +1,6 @@
 using DotNetEnv;
 using EduGraph.Extensions;
+using EduGraph.Features.Identity.SignUpApplication;
 using EduGraph.Persistence;
 
 LoadOptions options = new(onlyExactPath: true);
@@ -13,6 +14,7 @@ builder.Services.AddControllersWithViews();
 builder.AddDbContext();
 
 builder.AddIdentitySlice();
+builder.AddSignUpApplicationSlice();
 
 var app = builder.Build();
 
