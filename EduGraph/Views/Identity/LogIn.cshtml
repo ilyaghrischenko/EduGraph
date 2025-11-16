@@ -1,14 +1,15 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Вхід";
 }
 
 @model EduGraph.Features.Identity.LogIn.LogInRequest
 
-<div class="row justify-content-center">
-    <div class="col-md-5 col-lg-4"> <h2 class="text-center mb-3">Вхід у систему</h2>
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-5 col-lg-4">
+        <h2 class="text-center mb-3">Вхід у систему</h2>
 
         <form asp-controller="Identity" asp-action="LogIn">
-            
+
             <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
             <div class="mb-3">
@@ -16,7 +17,7 @@
                 <input type="text" asp-for="Login" class="form-control" required/>
                 <span asp-validation-for="Login" class="text-danger"></span>
             </div>
-            
+
             <div class="mb-3">
                 <label asp-for="Password" class="form-label">Пароль</label>
                 <input type="password" asp-for="Password" class="form-control" required/>

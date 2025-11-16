@@ -1,6 +1,10 @@
-﻿@model EduGraph.Features.Identity.SignUpApplication.SignUpApplicationRequest
+﻿@{
+    ViewData["Title"] = "Заявка на реєстрацію";
+}
 
-<div class="row justify-content-center">
+@model EduGraph.Features.Identity.SignUpApplication.SignUpApplicationRequest
+
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="col-md-5 col-lg-4">
         <h2 class="text-center mb-3">Заявка на реєстрацію</h2>
 
@@ -46,7 +50,7 @@
                 </div>
                 
                 <label asp-for="FullName" class="form-label">ПІБ</label>
-                <input type="text" asp-for="FullName" class="form-control" required/>
+                <input type="text" asp-for="FullName" class="form-control" required />
                 <span asp-validation-for="FullName" class="text-danger"></span>
             </div>
 
