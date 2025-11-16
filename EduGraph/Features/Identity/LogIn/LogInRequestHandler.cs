@@ -4,26 +4,28 @@ using Microsoft.AspNetCore.Identity;
 
 namespace EduGraph.Features.Identity.LogIn;
 
-public sealed class LogInRequestHandler(UserManager<IdentityUser<int>> userManager) : IRequestHandler<LogInRequest, Result<string>>
+public sealed class LogInRequestHandler(SignInManager<IdentityUser<int>> signInManager)
+    : IRequestHandler<LogInRequest, VoidResult>
 {
-    public async Task<Result<string>> HandleAsync(LogInRequest request, CancellationToken ct)
+    public async Task<VoidResult> HandleAsync(LogInRequest request, CancellationToken ct)
     {
-        IdentityUser<int>? user = await userManager.FindByNameAsync(request.Login);
+        SignInResult result = await signInManager.PasswordSignInAsync(
+            request.Login,
+            request.Password, 
+            isPersistent: false, 
+            lockoutOnFailure: true
+        );
 
-        if (user is null)
+        if (result.IsLockedOut)
         {
-            return Result<string>.Failure($"Invalid {nameof(request.Login)}", nameof(request.Login));
+            return VoidResult.Failure("Ваш аккаунт заблоковано, спробуйте пізніше");
         }
-        
-        bool isPasswordValid = await userManager.CheckPasswordAsync(user, request.Password);
 
-        if (isPasswordValid is false)
+        if (result.Succeeded is false)
         {
-            return Result<string>.Failure($"Invalid {nameof(request.Password)}", nameof(request.Password));
+            return VoidResult.Failure($"Неправильний логін чи пароль");
         }
-        
-        string token = await userManager.GenerateUserTokenAsync(user, "EduGraph", "Login");
-        
-        return Result<string>.Success(token);
+
+        return VoidResult.Success();
     }
 }

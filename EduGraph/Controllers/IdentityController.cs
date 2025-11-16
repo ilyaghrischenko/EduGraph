@@ -12,7 +12,7 @@ public class IdentityController : Controller
     [HttpPost]
     public async Task<IActionResult> LogIn(
         LogInRequest request,
-        [FromServices] IRequestHandler<LogInRequest, Result<string>> handler,
+        [FromServices] IRequestHandler<LogInRequest, VoidResult> handler,
         CancellationToken ct)
     {
         if (!ModelState.IsValid)
@@ -21,16 +21,14 @@ public class IdentityController : Controller
             return View(request);
         }
         
-        Result<string> getToken = await handler.HandleAsync(request, ct);
+        VoidResult logInResult = await handler.HandleAsync(request, ct);
 
-        if (getToken.IsFailure)
+        if (logInResult.IsFailure)
         {
-            ModelState.AddModelError("Login", getToken.ErrorMessage!);
+            ModelState.AddModelError(logInResult.ModelStateKey, logInResult.ErrorMessage!);
             return View(request);
         }
         
-        Response.Cookies.Append("Token", getToken.Value!);
-
         return RedirectToAction("Index", "Search");
     }
     

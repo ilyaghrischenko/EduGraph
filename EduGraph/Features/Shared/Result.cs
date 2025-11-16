@@ -13,7 +13,7 @@ public sealed class Result<TValue>
     
     public TValue? Value { get; }
     public string? ErrorMessage { get; }
-    public string? ModelStateKey { get; }
+    public string ModelStateKey { get; } = string.Empty;
     public bool IsSuccess => ErrorMessage == null;
     public bool IsFailure => !IsSuccess;
     public HttpStatusCode StatusCode { get; }
@@ -25,7 +25,7 @@ public sealed class Result<TValue>
         StatusCode = statusCode;
     }
 
-    private Result(string errorMessage, HttpStatusCode statusCode, string? modelStateKey)
+    private Result(string errorMessage, HttpStatusCode statusCode, string modelStateKey = "")
     {
         Value = default;
         ErrorMessage = errorMessage;
@@ -36,7 +36,7 @@ public sealed class Result<TValue>
     public static Result<TValue> Success(TValue value, HttpStatusCode statusCode = HttpStatusCode.OK)
         => new(value, statusCode);
 
-    public static Result<TValue> Failure(string errorMessage, string? modelStateKey, HttpStatusCode statusCode = HttpStatusCode.BadRequest)
+    public static Result<TValue> Failure(string errorMessage, string modelStateKey = "", HttpStatusCode statusCode = HttpStatusCode.BadRequest)
         => new(errorMessage, statusCode, modelStateKey);
     
     public static Result<TValue> Failure<TResult>(Result<TResult> failedResult)

@@ -8,7 +8,7 @@ public static class DependencyInjection
 {
     public static WebApplicationBuilder AddLogInFeature(this WebApplicationBuilder builder)
     {
-        builder.Services.AddScoped<IRequestHandler<LogInRequest, Result<string>>, LogInRequestHandler>();
+        builder.Services.AddScoped<IRequestHandler<LogInRequest, VoidResult>, LogInRequestHandler>();
 
         return builder;
     }
