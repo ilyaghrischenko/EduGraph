@@ -11,7 +11,7 @@ namespace EduGraph.Controllers;
 public class AdminController : Controller
 {
     [HttpGet]
-    public async Task<ViewResult> SignUpApplications([FromServices] EduGraphContext context, CancellationToken ct,
+    public async Task<ViewResult> SignUpApplications([FromServices] EduGraphContext context, CancellationToken cancellationToken,
         int page = 1, int pageSize = 15)
     {
         if (page < 1) page = 1;
@@ -20,14 +20,14 @@ public class AdminController : Controller
             .AsNoTracking()
             .Where(app => app.Status == SignUpApplicationStatus.Pending);
         
-        int totalItems = await query.CountAsync(ct);
+        int totalItems = await query.CountAsync(cancellationToken);
         int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
         
         List<SignUpApplication> applications = await query
             .OrderBy(app => app.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
         
         var viewModel = new SignUpApplicationsViewModel
         {
@@ -41,11 +41,11 @@ public class AdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ApproveSignUpApplication(int id, int currentPage, CancellationToken ct,
-        [FromServices] EduGraphContext context, [FromServices] UserManager<IdentityUser<int>> userManager)
+    public async Task<IActionResult> ApproveSignUpApplication(int id, int currentPage, CancellationToken cancellationToken,
+        [FromServices] EduGraphContext context, [FromServices] UserManager<User> userManager)
     {
         SignUpApplication? application = await context.SignUpApplications
-            .FirstOrDefaultAsync(application => application.Id == id, ct);
+            .FirstOrDefaultAsync(application => application.Id == id, cancellationToken);
 
         if (application is null || application.Status != SignUpApplicationStatus.Pending)
         {
@@ -55,7 +55,7 @@ public class AdminController : Controller
 
         application.Status = SignUpApplicationStatus.Approved;
 
-        IdentityUser<int> user = new(application.Login)
+        User user = new(application.Login, application.FullName, application.Type, application.Group)
         {
             PasswordHash = application.PasswordHash
         };
@@ -68,18 +68,18 @@ public class AdminController : Controller
             return RedirectToAction("SignUpApplications", new { page = currentPage });
         }
 
-        await context.SaveChangesAsync(ct);
+        await context.SaveChangesAsync(cancellationToken);
 
         return RedirectToAction("SignUpApplications", new { page = currentPage });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RejectSignUpApplication(int id, int currentPage, CancellationToken ct,
+    public async Task<IActionResult> RejectSignUpApplication(int id, int currentPage, CancellationToken cancellationToken,
         [FromServices] EduGraphContext context)
     {
         SignUpApplication? application = await context.SignUpApplications
-            .FirstOrDefaultAsync(application => application.Id == id, ct);
+            .FirstOrDefaultAsync(application => application.Id == id, cancellationToken);
 
         if (application is null || application.Status != SignUpApplicationStatus.Pending)
         {
@@ -89,11 +89,28 @@ public class AdminController : Controller
 
         application.Status = SignUpApplicationStatus.Rejected;
         
-        await context.SaveChangesAsync(ct);
+        await context.SaveChangesAsync(cancellationToken);
         
         return RedirectToAction("SignUpApplications", new { page = currentPage });
     }
 
     [HttpGet]
-    public ViewResult AddUser() => View();
+    public ViewResult AddUser(SelectedAdditionType type = SelectedAdditionType.Custom)
+        => View(new AddUserViewModel(type));
+
+    // [HttpPost]
+    // [ValidateAntiForgeryToken]
+    // public IActionResult AddUserByCustomInput(AddUserViewModel model, CancellationToken cancellationToken,
+    //     [FromServices] EduGraphContext context)
+    // {
+    //     
+    // }
+    //
+    // [HttpPost]
+    // [ValidateAntiForgeryToken]
+    // public IActionResult AddUserByCsv(AddUserViewModel model, CancellationToken cancellationToken,
+    //     [FromServices] EduGraphContext context)
+    // {
+    //     
+    // }
 }

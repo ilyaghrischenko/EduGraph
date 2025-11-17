@@ -1,3 +1,4 @@
+using EduGraph.Entities;
 using EduGraph.Features.Shared;
 using EduGraph.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -15,7 +16,7 @@ public static class DependencyInjection
 
     public static WebApplicationBuilder AddIdentityCore(this WebApplicationBuilder builder)
     {
-        builder.Services.AddIdentity<IdentityUser<int>, IdentityRole<int>>(options => 
+        builder.Services.AddIdentity<User, IdentityRole<int>>(options => 
         {
             options.SignIn.RequireConfirmedAccount = false;
         })

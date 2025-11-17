@@ -15,7 +15,7 @@ public class IdentityController : Controller
     public async Task<IActionResult> LogIn(
         LogInRequest request,
         [FromServices] IRequestHandler<LogInRequest, VoidResult> handler,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -23,7 +23,7 @@ public class IdentityController : Controller
             return View(request);
         }
         
-        VoidResult logInResult = await handler.HandleAsync(request, ct);
+        VoidResult logInResult = await handler.HandleAsync(request, cancellationToken);
 
         if (logInResult.IsFailure)
         {
@@ -42,7 +42,7 @@ public class IdentityController : Controller
     public async Task<ViewResult> SignUpApplication(
         SignUpApplicationRequest request,
         [FromServices] IRequestHandler<SignUpApplicationRequest, VoidResult> handler,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -50,7 +50,7 @@ public class IdentityController : Controller
             return View(request);
         }
 
-        VoidResult signUpResult = await handler.HandleAsync(request, ct);
+        VoidResult signUpResult = await handler.HandleAsync(request, cancellationToken);
 
         if (signUpResult.IsFailure)
         {

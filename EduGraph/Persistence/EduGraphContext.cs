@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EduGraph.Persistence;
 
-public sealed class EduGraphContext : IdentityDbContext<IdentityUser<int>, IdentityRole<int>, int>
+public sealed class EduGraphContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public EduGraphContext() { }
     

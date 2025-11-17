@@ -1,12 +1,13 @@
+using EduGraph.Entities;
 using EduGraph.Features.Shared;
 using Microsoft.AspNetCore.Identity;
 
 namespace EduGraph.Features.Identity.LogIn;
 
-public sealed class LogInRequestHandler(SignInManager<IdentityUser<int>> signInManager)
+public sealed class LogInRequestHandler(SignInManager<User> signInManager)
     : IRequestHandler<LogInRequest, VoidResult>
 {
-    public async Task<VoidResult> HandleAsync(LogInRequest request, CancellationToken ct)
+    public async Task<VoidResult> HandleAsync(LogInRequest request, CancellationToken cancellationToken)
     {
         SignInResult result = await signInManager.PasswordSignInAsync(
             request.Login,

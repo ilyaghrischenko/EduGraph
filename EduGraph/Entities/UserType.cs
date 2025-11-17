@@ -1,6 +1,6 @@
 namespace EduGraph.Entities;
 
-public enum SignUpApplicationType
+public enum UserType
 {
     Student,
     Teacher

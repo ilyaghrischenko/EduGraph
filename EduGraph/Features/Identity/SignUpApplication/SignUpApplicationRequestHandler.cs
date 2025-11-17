@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace EduGraph.Features.Identity.SignUpApplication;
 
 public sealed class SignUpApplicationRequestHandler(
-    UserManager<IdentityUser<int>> userManager,
+    UserManager<User> userManager,
     EduGraphContext context,
-    IPasswordHasher<IdentityUser<int>> passwordHasher)
+    IPasswordHasher<User> passwordHasher)
     : IRequestHandler<SignUpApplicationRequest, VoidResult>
 {
-    public async Task<VoidResult> HandleAsync(SignUpApplicationRequest request, CancellationToken ct)
+    public async Task<VoidResult> HandleAsync(SignUpApplicationRequest request, CancellationToken cancellationToken)
     {
         //todo: вынести это в отдельную валидацию
         if (request.Password != request.ConfirmPassword)
@@ -25,13 +25,13 @@ public sealed class SignUpApplicationRequestHandler(
             return VoidResult.Failure("Group required for student", nameof(request.Group));
         }
 
-        if (!Enum.TryParse(request.UserType, out SignUpApplicationType signUpApplicationType))
+        if (!Enum.TryParse(request.UserType, out UserType signUpApplicationType))
         {
             return VoidResult.Failure("Invalid user type", nameof(request.UserType));
         }
         //
         
-        IdentityUser<int>? user = await userManager.FindByNameAsync(request.Login);
+        User? user = await userManager.FindByNameAsync(request.Login);
 
         if (user != null)
         {
@@ -40,7 +40,7 @@ public sealed class SignUpApplicationRequestHandler(
 
         bool isApplicationPending = await context.SignUpApplications
             .AsNoTracking()
-            .AnyAsync(x => x.Login == request.Login && x.Status == SignUpApplicationStatus.Pending, ct);
+            .AnyAsync(x => x.Login == request.Login && x.Status == SignUpApplicationStatus.Pending, cancellationToken);
 
         if (isApplicationPending)
         {
@@ -57,8 +57,8 @@ public sealed class SignUpApplicationRequestHandler(
             request.Group
         );
 
-        await context.SignUpApplications.AddAsync(signUpApplication, ct);
-        await context.SaveChangesAsync(ct);
+        await context.SignUpApplications.AddAsync(signUpApplication, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
         
         return VoidResult.Success();
     }

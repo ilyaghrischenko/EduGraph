@@ -6,7 +6,7 @@ public sealed class SignUpApplication
     
     public string FullName { get; set; }
     
-    public SignUpApplicationType Type { get; set; }
+    public UserType Type { get; set; }
     
     public string? Group { get; set; }
     
@@ -18,7 +18,7 @@ public sealed class SignUpApplication
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public SignUpApplication(string fullName, SignUpApplicationType type, string login, string passwordHash, string? group = null)
+    public SignUpApplication(string fullName, UserType type, string login, string passwordHash, string? group = null)
     {
         FullName = fullName;
         Type = type;

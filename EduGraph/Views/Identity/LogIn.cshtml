@@ -17,7 +17,7 @@
 
 <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="col-md-5 col-lg-4">
-        <h2 class="text-center mb-3">Вхід у систему</h2>
+        <h2 class="text-center mb-3">Вхід</h2>
 
         <form asp-controller="Identity" asp-action="LogIn">
 
@@ -37,5 +37,7 @@
 
             <button type="submit" class="btn btn-primary w-100">Увійти</button>
         </form>
+        
+        <span>Немає аккаунту?<a asp-action="SignUpApplication" class="btn btn-link">Зареєструватись</a></span>
     </div>
 </div>
