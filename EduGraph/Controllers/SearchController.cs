@@ -5,5 +5,5 @@ namespace EduGraph.Controllers;
 public class SearchController : Controller
 {
     [HttpGet]
-    public IActionResult Index() => View();
+    public ViewResult Index() => View();
 }

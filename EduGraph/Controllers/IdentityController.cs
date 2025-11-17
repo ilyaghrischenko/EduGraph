@@ -11,6 +11,7 @@ public class IdentityController : Controller
     public ViewResult LogIn() => View();
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> LogIn(
         LogInRequest request,
         [FromServices] IRequestHandler<LogInRequest, VoidResult> handler,
@@ -37,6 +38,7 @@ public class IdentityController : Controller
     public ViewResult SignUpApplication() => View();
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<ViewResult> SignUpApplication(
         SignUpApplicationRequest request,
         [FromServices] IRequestHandler<SignUpApplicationRequest, VoidResult> handler,
