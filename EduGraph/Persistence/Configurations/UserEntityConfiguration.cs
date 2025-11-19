@@ -18,5 +18,8 @@ public sealed class UserEntityConfiguration : IEntityTypeConfiguration<User>
         
         builder.Property(u => u.Group)
             .IsRequired(false);
+        
+        builder.Property(u => u.LastLoginDate)
+            .IsRequired(false);
     }
 }

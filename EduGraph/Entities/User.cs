@@ -9,6 +9,8 @@ public sealed class User : IdentityUser<int>
     public UserType Type { get; set; }
     
     public string? Group { get; set; }
+    
+    public DateOnly? LastLoginDate { get; set; }
 
     public User(string userName, string fullName, UserType type, string? group = null) : base(userName)
     {
@@ -16,4 +18,7 @@ public sealed class User : IdentityUser<int>
         Type = type;
         Group = group;
     }
+    
+    public void MarkAsLoggedIn()
+        => LastLoginDate = DateOnly.FromDateTime(DateTime.UtcNow);
 }
