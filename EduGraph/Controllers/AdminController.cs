@@ -12,7 +12,7 @@ public class AdminController : Controller
 {
     [HttpGet]
     public async Task<ViewResult> SignUpApplications([FromServices] EduGraphContext context, CancellationToken cancellationToken,
-        int page = 1, int pageSize = 15)
+        int page = 1, int pageSize = 15, bool descending = false)
     {
         if (page < 1) page = 1;
 
@@ -23,8 +23,10 @@ public class AdminController : Controller
         int totalItems = await query.CountAsync(cancellationToken);
         int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
         
+        if (descending) query = query.OrderByDescending(app => app.CreatedAt);
+        else query = query.OrderBy(app => app.CreatedAt);
+        
         List<SignUpApplication> applications = await query
-            .OrderBy(app => app.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -33,7 +35,8 @@ public class AdminController : Controller
         {
             Applications = applications,
             CurrentPage = page,
-            TotalPages = totalPages > 0 ? totalPages : 1
+            TotalPages = totalPages > 0 ? totalPages : 1,
+            IsDescending = descending
         };
 
         return View(viewModel);
