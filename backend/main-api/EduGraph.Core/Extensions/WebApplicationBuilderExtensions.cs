@@ -35,7 +35,8 @@ public static class WebApplicationBuilderExtensions
             .AddDbContext()
             .AddAspNetCoreIdentity()
             .AddHandlers()
-            .AddSwagger();
+            .AddSwagger()
+            .AddCors();
         
         string tokenIssuer = builder.Configuration.GetOrThrow("TOKEN_ISSUER");
         string tokenAudience = builder.Configuration.GetOrThrow("TOKEN_AUDIENCE");
@@ -177,5 +178,21 @@ public static class WebApplicationBuilderExtensions
             options.ValidateOnBuild = true;
             options.ValidateScopes = true;
         });
+    }
+
+    private static WebApplicationBuilder AddCors(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowReactClient", corsBuilder =>
+            {
+                corsBuilder.WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+        
+        return builder;
     }
 }

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
+import { api } from "../../../lib/axios";
 
 // Схема валидации
 const loginSchema = z.object({
@@ -18,10 +19,11 @@ export function LoginForm() {
     });
 
     const onSubmit = async (data: LoginSchema) => {
-        // Здесь запрос к API
-        console.log("Login data:", data);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Эмуляция запроса
-        alert("Успешный вход!");
+        const response = await api.post("/users/login", data);
+
+        if (response.status === 200) {
+            sessionStorage.setItem("token", response.data);
+        }
     };
 
     return (

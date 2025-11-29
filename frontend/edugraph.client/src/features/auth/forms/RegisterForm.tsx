@@ -3,6 +3,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
+import {api} from "../../../lib/axios.ts";
+import {Link} from "react-router-dom";
 
 // Схема валидации
 const loginSchema = z.object({
@@ -18,10 +20,14 @@ export default function LoginForm() {
     });
 
     const onSubmit = async (data: LoginSchema) => {
-        // Здесь запрос к API
-        console.log("Login data:", data);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Эмуляция запроса
-        alert("Успешный вход!");
+        const response = await api.post("/users/signup", data);
+
+        if (response.status === 204) {
+            return <Link to={"/login"} />
+        }
+        else {
+            alert(response.data);
+        }
     };
 
     return (

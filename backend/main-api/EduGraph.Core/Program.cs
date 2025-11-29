@@ -34,6 +34,8 @@ app.UseAuthorization();
 
 app.UseResponseCompression();
 
+app.UseCors("AllowReactClient");
+
 var apiGroup = app.MapGroup("api");
 app.MapEndpoints(apiGroup);
 
