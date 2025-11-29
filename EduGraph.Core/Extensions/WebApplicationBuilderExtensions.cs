@@ -1,0 +1,181 @@
+using System.Globalization;
+using System.Reflection;
+using System.Security.Authentication;
+using System.Text;
+using EduGraph.Core.Features.Users.LogIn;
+using EduGraph.Core.Options;
+using EduGraph.Infrastructure.SQLite;
+using EduGraph.Infrastructure.SQLite.Entities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
+namespace EduGraph.Core.Extensions;
+
+public static class WebApplicationBuilderExtensions
+{
+    public static WebApplicationBuilder AddConfiguration(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddAuthentication();
+        builder.Services.AddAuthorization();
+
+        builder.Services.AddOpenApi();
+        builder.Services.AddEndpointsApiExplorer();
+        
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.ValidateDIOnBuild();
+        }
+        
+        builder
+            .AddResponseCompression()
+            .AddDbContext()
+            .AddAspNetCoreIdentity()
+            .AddHandlers()
+            .AddSwagger();
+        
+        string tokenIssuer = builder.Configuration.GetOrThrow("TOKEN_ISSUER");
+        string tokenAudience = builder.Configuration.GetOrThrow("TOKEN_AUDIENCE");
+        string tokenKey = builder.Configuration.GetOrThrow("TOKEN_KEY");
+        string tokenLifetime = builder.Configuration.GetOrThrow("TOKEN_LIFETIME");
+        
+        builder.AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime);
+        
+        return builder;
+    }
+
+    private static WebApplicationBuilder AddAspNetCoreIdentity(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddIdentity<User, IdentityRole<int>>(options => 
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+            })
+            .AddEntityFrameworkStores<EduGraphContext>();
+
+        return builder;
+    }
+    
+    private static WebApplicationBuilder AddDbContext(this WebApplicationBuilder builder)
+    {
+        string? connectionString = builder.Configuration["DB_CONNECTION_STRING"];
+
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidCredentialException("DB_CONNECTION_STRING is not set");
+        }
+        
+        builder.Services.AddDbContext<EduGraphContext>(options =>
+            options.UseSqlite(connectionString));
+
+        return builder;
+    }
+
+    private static WebApplicationBuilder AddHandlers(this WebApplicationBuilder builder, Assembly? handlersAssembly = null)
+    {
+        Assembly assembly = handlersAssembly ?? typeof(WebApplicationBuilderExtensions).Assembly;
+
+        var handlerTypes = assembly.GetTypes()
+            .Where(t => t is { Name: "Handler", IsClass: true, IsAbstract: false, IsInterface: false, IsNested: true });
+
+        foreach (var handlerType in handlerTypes)
+        {
+            builder.Services.AddScoped(handlerType);
+        }
+        
+        return builder;
+    }
+
+    private static WebApplicationBuilder AddJwtBearer(this WebApplicationBuilder builder, string issuer, string audience, string key, string lifetime)
+    {
+        builder.Services.AddScoped<JwtService>();
+        
+        builder.Services.Configure<JwtOptions>(options =>
+        {
+            options.Issuer = issuer;
+            options.Audience = audience;
+            options.Key = key;
+            options.Lifetime = int.Parse(lifetime, CultureInfo.InvariantCulture);
+        });
+        
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                //todo: добавить настройки валидации jwt token
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                    
+                    RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                };
+            });
+
+        //todo
+        //services.AddAuthorizationBuilder()
+        //    .AddPoliciesByRoles();
+        
+        return builder;
+    }
+
+    private static WebApplicationBuilder AddSwagger(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+            {
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                Description =
+                    "Input your JWT token in the 'Authorization' header like this: \"Authorization: Bearer {yourJWT}\""
+            });
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+            
+            options.CustomSchemaIds(type => type.FullName?.Replace("+", ".", StringComparison.Ordinal));
+        });
+
+        return builder;
+    }
+    
+    private static WebApplicationBuilder AddResponseCompression(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+        });
+
+        return builder;
+    }
+    
+    public static void ValidateDIOnBuild(this WebApplicationBuilder builder)
+    {
+        builder.Host.UseDefaultServiceProvider((context, options) =>
+        {
+            options.ValidateOnBuild = true;
+            options.ValidateScopes = true;
+        });
+    }
+}
