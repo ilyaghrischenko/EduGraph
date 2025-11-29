@@ -22,6 +22,10 @@ public sealed class SignUpApplicationEntityConfiguration : IEntityTypeConfigurat
         builder.HasIndex(x => x.Login).IsUnique();
         
         builder.Property(x => x.PasswordHash).IsRequired();
+        
+        builder.Property(x => x.Status)
+            .HasConversion<string>()
+            .IsRequired();
 
         builder.Property(x => x.CreatedAt).IsRequired();
     }
