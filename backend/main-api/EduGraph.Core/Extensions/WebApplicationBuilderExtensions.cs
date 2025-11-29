@@ -170,7 +170,7 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
     
-    public static void ValidateDIOnBuild(this WebApplicationBuilder builder)
+    private static void ValidateDIOnBuild(this WebApplicationBuilder builder)
     {
         builder.Host.UseDefaultServiceProvider((context, options) =>
         {
