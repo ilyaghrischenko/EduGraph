@@ -57,10 +57,9 @@ public static class SignUp
                 .WithRequestValidation<Request>();
         }
 
-        private static async Task<Results<NoContent, ValidationProblem, BadRequest<string>, Conflict<string>>> Handle(
+        private static async Task<Results<NoContent, BadRequest<string>, Conflict<string>>> Handle(
             [FromBody] Request request,
             [FromServices] Handler handler,
-            [FromServices] IValidator<Request> validator,
             CancellationToken cancellationToken)
         {
             VoidResult signUpResult = await handler.HandleAsync(request, cancellationToken);
