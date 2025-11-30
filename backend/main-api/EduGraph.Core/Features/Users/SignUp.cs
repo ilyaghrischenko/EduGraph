@@ -90,7 +90,7 @@ public static class SignUp
                 return VoidResult.Failure("Your application is already in progress", HttpStatusCode.Conflict);
             }
         
-            string passwordHash = passwordHasher.HashPassword(user!, request.Password);
+            string passwordHash = passwordHasher.HashPassword(null!, request.Password);
 
             SignUpApplication signUpApplication = new(
                 request.FullName,
