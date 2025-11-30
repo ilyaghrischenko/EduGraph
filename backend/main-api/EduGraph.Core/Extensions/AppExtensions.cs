@@ -1,5 +1,6 @@
 using System.Reflection;
 using EduGraph.Core.Features.Common;
+using EduGraph.Core.Filters;
 
 namespace EduGraph.Core.Extensions;
 
@@ -24,5 +25,11 @@ public static class AppExtensions
         }
 
         return app;
+    }
+    
+    public static RouteHandlerBuilder WithRequestValidation<TRequest>(this RouteHandlerBuilder builder)
+    {
+        return builder.AddEndpointFilter<ValidationFilter<TRequest>>()
+            .ProducesValidationProblem();
     }
 }

@@ -1,33 +1,50 @@
 using System.Net;
+using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common;
 using EduGraph.Domain.Models;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
-namespace EduGraph.Core.Features.Users.LogIn;
+namespace EduGraph.Core.Features.Users;
 
-public static class LogInFeature
+public static class LogIn
 {
     public sealed record Request(
         string Login,
         string Password);
+
+    public sealed class Validator : AbstractValidator<Request>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Login)
+                .NotEmpty()
+                .MinimumLength(RequestPropertiesRules.LoginMinLength);
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .MinimumLength(RequestPropertiesRules.PasswordMinLength);
+        }
+    }
 
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("users/login", Handle)
-                .WithTags("Users");
+                .WithTags("Users")
+                .WithRequestValidation<Request>();
         }
 
-        private static async Task<Results<Ok<string>, BadRequest<string>, NotFound<string>>> Handle(
+        private static async Task<Results<Ok<string>, ValidationProblem, BadRequest<string>, NotFound<string>>> Handle(
             [FromBody] Request request,
-            Handler handler,
+            [FromServices] Handler handler,
+            [FromServices] IValidator<Request> validator,
             CancellationToken cancellationToken)
         {
             Result<string> logInResult = await handler.HandleAsync(request, cancellationToken);

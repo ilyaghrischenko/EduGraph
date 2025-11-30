@@ -1,10 +1,12 @@
 using System.Net;
+using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common;
 using EduGraph.Domain.Entities;
 using EduGraph.Domain.Enums;
 using EduGraph.Domain.Models;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,17 +24,43 @@ public static class SignUp
         string Password,
         string ConfirmPassword);
 
+    public sealed class Validator : AbstractValidator<Request>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.FullName)
+                .NotEmpty();
+            RuleFor(x => x.UserType)
+                .NotEmpty();
+            RuleFor(x => x.Group)
+                .NotEmpty()
+                .When(x => x.UserType == "Student")
+                .WithMessage("Група обовʼязкова для студентів");
+            RuleFor(x => x.Login)
+                .NotEmpty()
+                .MinimumLength(RequestPropertiesRules.LoginMinLength);
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .MinimumLength(RequestPropertiesRules.PasswordMinLength);
+            RuleFor(x => x.ConfirmPassword)
+                .Equal(x => x.Password)
+                .WithMessage("Паролі не збігаються");
+        }
+    }
+
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("users/signup", Handle)
-                .WithTags("Users");
+                .WithTags("Users")
+                .WithRequestValidation<Request>();
         }
 
-        private static async Task<Results<NoContent, BadRequest<string>, Conflict<string>>> Handle(
+        private static async Task<Results<NoContent, ValidationProblem, BadRequest<string>, Conflict<string>>> Handle(
             [FromBody] Request request,
             [FromServices] Handler handler,
+            [FromServices] IValidator<Request> validator,
             CancellationToken cancellationToken)
         {
             VoidResult signUpResult = await handler.HandleAsync(request, cancellationToken);

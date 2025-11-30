@@ -5,7 +5,7 @@ using EduGraph.Core.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace EduGraph.Core.Features.Users.LogIn;
+namespace EduGraph.Core.Features.Users;
 
 public sealed class JwtService(IOptions<JwtOptions> jwtOptions)
 {

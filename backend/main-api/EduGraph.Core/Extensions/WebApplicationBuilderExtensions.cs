@@ -2,10 +2,11 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Text;
-using EduGraph.Core.Features.Users.LogIn;
+using EduGraph.Core.Features.Users;
 using EduGraph.Core.Options;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -192,6 +193,13 @@ public static class WebApplicationBuilderExtensions
                     .AllowCredentials();
             });
         });
+        
+        return builder;
+    }
+
+    private static WebApplicationBuilder AddFluentValidation(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         
         return builder;
     }
