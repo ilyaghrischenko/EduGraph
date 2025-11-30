@@ -41,7 +41,7 @@ public static class LogIn
                 .WithRequestValidation<Request>();
         }
 
-        private static async Task<Results<Ok<string>, ValidationProblem, BadRequest<string>, NotFound<string>>> Handle(
+        private static async Task<Results<Ok<string>, BadRequest<string>, NotFound<string>>> Handle(
             [FromBody] Request request,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
