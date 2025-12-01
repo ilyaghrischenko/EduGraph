@@ -48,8 +48,9 @@ public static class WebApplicationBuilderExtensions
         
         builder.AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime);
 
-        string searchApiBaseUrl = builder.Configuration.GetOrThrow("SEARCH_API_BASE_URL");
-        builder.Services.AddSearchService(searchApiBaseUrl);
+        //todo
+        // string searchApiBaseUrl = builder.Configuration.GetOrThrow("SEARCH_API_BASE_URL");
+        // builder.Services.AddSearchService(searchApiBaseUrl);
         
         return builder;
     }

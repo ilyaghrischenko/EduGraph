@@ -22,9 +22,9 @@ public sealed class SearchService(HttpClient httpClient)
 
             response.EnsureSuccessStatusCode();
 
-            var documentsTitles = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<ResponseDocument>>(cancellationToken);
+            var documents = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<ResponseDocument>>(cancellationToken);
 
-            return Result<IReadOnlyCollection<ResponseDocument>?>.Success(documentsTitles);
+            return Result<IReadOnlyCollection<ResponseDocument>?>.Success(documents);
         }
         catch (Exception ex)
         {

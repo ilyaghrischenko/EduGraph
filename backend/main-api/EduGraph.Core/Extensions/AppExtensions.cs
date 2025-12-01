@@ -1,12 +1,15 @@
 using System.Reflection;
 using EduGraph.Core.Features.Common;
 using EduGraph.Core.Filters;
+using EduGraph.Infrastructure.SQLite;
+using EduGraph.Infrastructure.SQLite.Extensions;
+using Microsoft.AspNetCore.Identity;
 
 namespace EduGraph.Core.Extensions;
 
 public static class AppExtensions
 {
-    public static void UseConfiguration(this WebApplication app)
+    public static async Task UseConfigurationAsync(this WebApplication app)
     {
         app.UseStaticFiles();
 
@@ -36,6 +39,8 @@ public static class AppExtensions
 
         var apiGroup = app.MapGroup("api");
         app.MapEndpoints(apiGroup);
+
+        await app.EnsureDatabaseIsOk();
     }
     
     private static WebApplication MapEndpoints(this WebApplication app, IEndpointRouteBuilder? routeBuilder = null, Assembly? endpointsAssembly = null)
@@ -57,6 +62,18 @@ public static class AppExtensions
         }
 
         return app;
+    }
+
+    private static async Task EnsureDatabaseIsOk(this WebApplication app)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        
+        var context = services.GetRequiredService<EduGraphContext>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+        await context.EnsureCreatedAndMigrated();
+        await context.EnsureRolesExistAndValid(roleManager);
     }
     
     public static RouteHandlerBuilder WithRequestValidation<TRequest>(this RouteHandlerBuilder builder)

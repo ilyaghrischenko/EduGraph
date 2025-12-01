@@ -41,7 +41,7 @@ public static class LogIn
                 .WithRequestValidation<Request>();
         }
 
-        private static async Task<Results<Ok<string>, BadRequest<string>, NotFound<string>>> Handle(
+        private static async Task<Results<Ok<string>, BadRequest<string>, ForbidHttpResult>> Handle(
             [FromBody] Request request,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
@@ -52,7 +52,7 @@ public static class LogIn
             {
                 return logInResult.StatusCode switch
                 {
-                    HttpStatusCode.NotFound => TypedResults.NotFound(logInResult.ErrorMessage),
+                    HttpStatusCode.Forbidden => TypedResults.Forbid(),
                     HttpStatusCode.BadRequest => TypedResults.BadRequest(logInResult.ErrorMessage),
                     _ => throw new UnknownStatusCodeException(logInResult.StatusCode)
                 };
@@ -65,6 +65,7 @@ public static class LogIn
     public sealed class Handler(
         SignInManager<User> signInManager,
         EduGraphContext context,
+        UserManager<User> userManager,
         JwtService jwtService)
     {
         public async Task<Result<string>> HandleAsync(Request request, CancellationToken cancellationToken)
@@ -74,7 +75,7 @@ public static class LogIn
 
             if (user is null)
             {
-                return Result<string>.Failure("Неправильний логін чи пароль", HttpStatusCode.NotFound);
+                return Result<string>.Failure("Неправильний логін чи пароль");
             }
         
             SignInResult result = await signInManager.CheckPasswordSignInAsync(
@@ -96,8 +97,15 @@ public static class LogIn
             user.MarkAsLoggedIn();
         
             await context.SaveChangesAsync(cancellationToken);
+            
+            var userRoles = await userManager.GetRolesAsync(user);
 
-            string token = jwtService.GenerateToken(user.Id, user.UserName!, Roles.Student);
+            if (userRoles.Count is 0 or > 1)
+            {
+                throw new InvalidOperationException("User must have only one role");
+            }
+
+            string token = jwtService.GenerateToken(user.Id, user.UserName!, userRoles[0]);
 
             return Result<string>.Success(token);
         }
