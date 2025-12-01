@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Domain", "EduGraph
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.SQLite", "EduGraph.Infrastructure.SQLite\EduGraph.Infrastructure.SQLite.csproj", "{2EA9DF9F-5BB6-469A-BB9D-E7B4A7CAB54A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.GoogleDrive", "EduGraph.Infrastructure.GoogleDrive\EduGraph.Infrastructure.GoogleDrive.csproj", "{8A53B9C1-94D6-4FB3-96DD-CFDF1844791A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.SearchModel", "EduGraph.Infrastructure.SearchModel\EduGraph.Infrastructure.SearchModel.csproj", "{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{2EA9DF9F-5BB6-469A-BB9D-E7B4A7CAB54A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EA9DF9F-5BB6-469A-BB9D-E7B4A7CAB54A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EA9DF9F-5BB6-469A-BB9D-E7B4A7CAB54A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A53B9C1-94D6-4FB3-96DD-CFDF1844791A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A53B9C1-94D6-4FB3-96DD-CFDF1844791A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A53B9C1-94D6-4FB3-96DD-CFDF1844791A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A53B9C1-94D6-4FB3-96DD-CFDF1844791A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

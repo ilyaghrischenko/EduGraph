@@ -97,7 +97,7 @@ public static class LogIn
         
             await context.SaveChangesAsync(cancellationToken);
 
-            string token = jwtService.GenerateToken(user.Id, user.UserName!, "Customer");
+            string token = jwtService.GenerateToken(user.Id, user.UserName!, Roles.Student);
 
             return Result<string>.Success(token);
         }

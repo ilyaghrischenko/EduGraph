@@ -34,7 +34,7 @@ public static class SignUp
                 .NotEmpty();
             RuleFor(x => x.Group)
                 .NotEmpty()
-                .When(x => x.UserType == "Student")
+                .When(x => x.UserType == Roles.Student)
                 .WithMessage("Група обовʼязкова для студентів");
             RuleFor(x => x.Login)
                 .NotEmpty()
@@ -85,22 +85,6 @@ public static class SignUp
     {
         public async Task<VoidResult> HandleAsync(Request request, CancellationToken cancellationToken)
         {
-            //todo: вынести это в отдельную валидацию
-            if (request.Password != request.ConfirmPassword)
-            {
-                return VoidResult.Failure("Passwords do not match");
-            }
-
-            if (request.UserType == "Student" && string.IsNullOrEmpty(request.Group))
-            {
-                return VoidResult.Failure("Group required for student");
-            }
-
-            if (!Enum.TryParse(request.UserType, out UserType signUpApplicationType))
-            {
-                return VoidResult.Failure("Invalid user type");
-            }
-        
             User? user = await userManager.FindByNameAsync(request.Login);
 
             if (user != null)
@@ -118,6 +102,11 @@ public static class SignUp
             }
         
             string passwordHash = passwordHasher.HashPassword(null!, request.Password);
+
+            if (!Enum.TryParse(request.UserType, out UserType signUpApplicationType))
+            {
+                return VoidResult.Failure("Invalid user type");
+            }
 
             SignUpApplication signUpApplication = new(
                 request.FullName,

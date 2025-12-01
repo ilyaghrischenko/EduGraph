@@ -4,6 +4,7 @@ using System.Security.Authentication;
 using System.Text;
 using EduGraph.Core.Features.Users;
 using EduGraph.Core.Options;
+using EduGraph.Infrastructure.SearchModel.Extensions;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
 using FluentValidation;
@@ -37,7 +38,8 @@ public static class WebApplicationBuilderExtensions
             .AddAspNetCoreIdentity()
             .AddHandlers()
             .AddSwagger()
-            .AddCors();
+            .AddCors()
+            .AddFluentValidation();
         
         string tokenIssuer = builder.Configuration.GetOrThrow("TOKEN_ISSUER");
         string tokenAudience = builder.Configuration.GetOrThrow("TOKEN_AUDIENCE");
@@ -45,6 +47,9 @@ public static class WebApplicationBuilderExtensions
         string tokenLifetime = builder.Configuration.GetOrThrow("TOKEN_LIFETIME");
         
         builder.AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime);
+
+        string searchApiBaseUrl = builder.Configuration.GetOrThrow("SEARCH_API_BASE_URL");
+        builder.Services.AddSearchService(searchApiBaseUrl);
         
         return builder;
     }
