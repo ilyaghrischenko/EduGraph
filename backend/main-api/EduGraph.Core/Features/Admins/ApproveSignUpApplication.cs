@@ -91,6 +91,7 @@ public static class ApproveSignUpApplication
                 return VoidResult.Failure(addUserToRoleResult.GetErrorMessage(), HttpStatusCode.InternalServerError);
             }
             
+            await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             
             return approveApplicationResult;
