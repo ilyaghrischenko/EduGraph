@@ -41,7 +41,7 @@ public static class LogIn
                 .WithRequestValidation<Request>();
         }
 
-        private static async Task<Results<Ok<string>, BadRequest<string>, ForbidHttpResult>> Handle(
+        private static async Task<Results<Ok<string>, BadRequest<string>>> Handle(
             [FromBody] Request request,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
@@ -50,12 +50,7 @@ public static class LogIn
 
             if (logInResult.IsFailure)
             {
-                return logInResult.StatusCode switch
-                {
-                    HttpStatusCode.Forbidden => TypedResults.Forbid(),
-                    HttpStatusCode.BadRequest => TypedResults.BadRequest(logInResult.ErrorMessage),
-                    _ => throw new UnknownStatusCodeException(logInResult.StatusCode)
-                };
+                return TypedResults.BadRequest(logInResult.ErrorMessage);
             }
             
             return TypedResults.Ok(logInResult.Value);
@@ -86,12 +81,12 @@ public static class LogIn
 
             if (result.IsLockedOut)
             {
-                return Result<string>.Failure("Ваш аккаунт заблоковано, спробуйте пізніше", HttpStatusCode.Forbidden);
+                return Result<string>.Failure("Неправильний логін чи пароль");
             }
 
             if (result.Succeeded is false)
             {
-                return Result<string>.Failure($"Неправильний логін чи пароль");
+                return Result<string>.Failure("Неправильний логін чи пароль");
             }
         
             user.MarkAsLoggedIn();

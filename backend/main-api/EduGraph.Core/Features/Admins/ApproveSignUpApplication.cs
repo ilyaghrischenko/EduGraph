@@ -44,7 +44,9 @@ public static class ApproveSignUpApplication
         }
     }
 
-    public sealed class Handler(UserManager<User> userManager, EduGraphContext context)
+    public sealed class Handler(
+        UserManager<User> userManager,
+        EduGraphContext context)
     {
         public async Task<VoidResult> HandleAsync(int applicationId, CancellationToken cancellationToken)
         {
@@ -70,15 +72,26 @@ public static class ApproveSignUpApplication
             {
                 PasswordHash = application.PasswordHash
             };
+            
+            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-            var result = await userManager.CreateAsync(user);
+            var createUserResult = await userManager.CreateAsync(user);
 
-            if (result.Succeeded is false)
+            if (createUserResult.Succeeded is false)
             {
-                return VoidResult.Failure(result.GetErrorMessage(), HttpStatusCode.InternalServerError);
+                await transaction.RollbackAsync(cancellationToken);
+                return VoidResult.Failure(createUserResult.GetErrorMessage(), HttpStatusCode.InternalServerError);
             }
             
-            await context.SaveChangesAsync(cancellationToken);
+            var addUserToRoleResult = await userManager.AddToRoleAsync(user, application.Type.ToString());
+
+            if (addUserToRoleResult.Succeeded is false)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return VoidResult.Failure(addUserToRoleResult.GetErrorMessage(), HttpStatusCode.InternalServerError);
+            }
+            
+            await transaction.CommitAsync(cancellationToken);
             
             return approveApplicationResult;
         }
