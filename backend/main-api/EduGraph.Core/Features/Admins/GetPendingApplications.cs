@@ -38,7 +38,10 @@ public static class GetPendingApplications
 
     public sealed class Handler(EduGraphContext context)
     {
-        public async Task<Result<Response>> HandleAsync(int page, int pageSize, CancellationToken cancellationToken)
+        public async Task<Result<Response>> HandleAsync(
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken)
         {
             if (page < 1)
             {
