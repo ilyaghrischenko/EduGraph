@@ -18,9 +18,9 @@ public static class DependencyInjectionExtensions
     public static IServiceCollection AddSearchService(this IServiceCollection services, Uri baseUrl)
     {
         services.AddHttpClient<SearchService>(client =>
-            {
-                client.BaseAddress = baseUrl;
-            })
+        {
+            client.BaseAddress = baseUrl;
+        })
             .AddStandardResilienceHandler();
         
         return services;
