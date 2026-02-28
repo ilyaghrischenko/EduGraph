@@ -1,4 +1,5 @@
 using System.Net;
+using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common;
 using EduGraph.Domain.Entities;
 using EduGraph.Infrastructure.SQLite;
@@ -19,7 +20,7 @@ public static class RejectSignUpApplication
                 .WithTags("Admins");
         }
 
-        private static async Task<Results<NoContent, NotFound<string>, BadRequest<string>>> Handle(
+        private static async Task<Results<NoContent, NotFound<ProblemDetails>, BadRequest<ProblemDetails>>> Handle(
             [FromRoute] int applicationId,
             [FromServices] EduGraphContext db,
             CancellationToken cancellationToken)
@@ -29,14 +30,15 @@ public static class RejectSignUpApplication
 
             if (application is null)
             {
-                return TypedResults.NotFound($"Заявки на реєстрацію з id: {applicationId} не існує");
+                var notFoundProblem = ProblemDetailsFactory.NotFound($"Заявки на реєстрацію з id: {applicationId} не існує");
+                return TypedResults.NotFound(notFoundProblem);
             }
 
             Result rejectSignUpApplication = application.Reject();
 
             if (rejectSignUpApplication.IsFailure)
             {
-                return TypedResults.BadRequest(rejectSignUpApplication.ErrorDetails!.ErrorMessage);
+                return TypedResults.BadRequest(rejectSignUpApplication.ToProblemDetails());
             }
             
             await db.SaveChangesAsync(cancellationToken);
