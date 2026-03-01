@@ -1,7 +1,9 @@
 using EduGraph.Core.Features.Common;
+using EduGraph.Core.Features.Common.Dto;
+using EduGraph.Core.Features.Common.Endpoints;
+using EduGraph.Core.Features.Common.Parameters;
 using EduGraph.Domain.Entities;
 using EduGraph.Domain.Enums;
-using EduGraph.Domain.Models;
 using EduGraph.Infrastructure.SQLite;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +14,10 @@ namespace EduGraph.Core.Features.Admins;
 public static class GetPendingApplications
 {
     public sealed record Response(
-        IReadOnlyCollection<SignUpApplication> Applications,
-        int CurrentPage,
-        int TotalPages);
+        string FullName,
+        string UserType,
+        string? Group
+    );
 
     public sealed class Endpoint : IEndpoint
     {
@@ -24,44 +27,32 @@ public static class GetPendingApplications
                 .WithTags("Admins");
         }
 
-        private static async Task<Ok<Response>> Handle(
-            [FromQuery] int page,
-            [FromQuery] int pageSize,
-            [FromServices] Handler handler,
+        private static async Task<Ok<Pagination<Response>>> Handle(
+            [AsParameters] PaginationParams paginationParams,
+            [FromServices] EduGraphContext db,
             CancellationToken cancellationToken)
         {
-            Result<Response> getPendingApplicationsResult = await handler.HandleAsync(page, pageSize, cancellationToken);
-            
-            return TypedResults.Ok(getPendingApplicationsResult.Value);
-        }
-    }
-
-    public sealed class Handler(EduGraphContext context)
-    {
-        public async Task<Result<Response>> HandleAsync(
-            int page,
-            int pageSize,
-            CancellationToken cancellationToken)
-        {
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            var query = context.SignUpApplications
+            var query = db.SignUpApplications
                 .AsNoTracking()
                 .Where(app => app.Status == SignUpApplicationStatus.Pending)
-                .OrderBy(app => app.CreatedAt);
+                .OrderBy(app => app.CreatedAtUtc);
         
             int totalItems = await query.CountAsync(cancellationToken);
-            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            int totalPages = (int)Math.Ceiling(totalItems / (double)paginationParams.PageSize);
         
-            List<SignUpApplication> applications = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+            List<Response> applications = await query
+                .Skip((paginationParams.Page - 1) * paginationParams.PageSize)
+                .Take(paginationParams.PageSize)
+                .Select(application => new Response(
+                    application.FullName,
+                    application.Type.ToString(),
+                    application.Group
+                ))
                 .ToListAsync(cancellationToken);
             
-            return Result<Response>.Success(new Response(applications, page, totalPages));
+            Pagination<Response> dto = new(applications, paginationParams.Page, totalPages);
+            
+            return TypedResults.Ok(dto);
         }
     }
 }
