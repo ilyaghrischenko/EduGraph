@@ -38,6 +38,8 @@ dotnet_diagnostic.SA1202.severity = none
 dotnet_diagnostic.CA1032.severity = none
 dotnet_diagnostic.SA1413.severity = none
 dotnet_diagnostic.CA1031.severity = none
+dotnet_diagnostic.CA2225.severity = none
+dotnet_diagnostic.SA1210.severity = none
 
 # SA1633: Требование заголовка файла (File Header) с копирайтом.
 # В 2024 году это мусор, засоряющий начало файла.

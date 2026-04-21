@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using EduGraph.Domain.Models;
 using EduGraph.Infrastructure.SearchModel.Models;
+using EduGraph.SharedKernel.Models;
 
 namespace EduGraph.Infrastructure.SearchModel;
 
@@ -23,13 +23,16 @@ public sealed class SearchService(HttpClient httpClient)
 
             response.EnsureSuccessStatusCode();
 
-            var documents = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<Document>>(cancellationToken);
+            var documents = await response.Content.ReadFromJsonAsync<List<Document>>(cancellationToken);
 
-            return Result<IReadOnlyCollection<Document>?>.Success(documents);
+            return documents;
         }
         catch (Exception ex)
         {
-            return Result<IReadOnlyCollection<Document>?>.Failure(ex.Message, HttpStatusCode.InternalServerError);
+            return new ErrorDetails(
+                ex.Message,
+                HttpStatusCode.InternalServerError
+            );
         }
     }
 }

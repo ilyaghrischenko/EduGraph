@@ -1,4 +1,4 @@
-namespace EduGraph.Core.Features.Common;
+namespace EduGraph.Core.Features.Common.Endpoints;
 
 public interface IEndpoint
 {

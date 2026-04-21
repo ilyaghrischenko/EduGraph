@@ -1,10 +1,10 @@
-using System.Net;
 using EduGraph.Core.Extensions;
+using EduGraph.Core.Factories;
 using EduGraph.Core.Features.Common;
+using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Domain.Entities;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.SharedKernel.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,10 +17,13 @@ public static class RejectSignUpApplication
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("admins/sign-up-applications/{applicationId:int}/reject", Handle)
-                .WithTags("Admins");
+                .WithTags("Admins")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status404NotFound);
         }
 
-        private static async Task<Results<NoContent, NotFound<ProblemDetails>, BadRequest<ProblemDetails>>> Handle(
+        private static async Task<IResult> Handle(
             [FromRoute] int applicationId,
             [FromServices] EduGraphContext db,
             CancellationToken cancellationToken)
@@ -31,14 +34,14 @@ public static class RejectSignUpApplication
             if (application is null)
             {
                 var notFoundProblem = ProblemDetailsFactory.NotFound($"Заявки на реєстрацію з id: {applicationId} не існує");
-                return TypedResults.NotFound(notFoundProblem);
+                return TypedResults.Problem(notFoundProblem);
             }
 
             Result rejectSignUpApplication = application.Reject();
 
             if (rejectSignUpApplication.IsFailure)
             {
-                return TypedResults.BadRequest(rejectSignUpApplication.ToProblemDetails());
+                return rejectSignUpApplication.ToHttpFailure();
             }
             
             await db.SaveChangesAsync(cancellationToken);

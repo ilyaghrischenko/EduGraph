@@ -1,6 +1,7 @@
 using EduGraph.Core.Features.Common;
 using EduGraph.Core.Features.Common.Dto;
 using EduGraph.Core.Features.Common.Endpoints;
+using EduGraph.Core.Features.Common.Extensions;
 using EduGraph.Core.Features.Common.Parameters;
 using EduGraph.Domain.Entities;
 using EduGraph.Domain.Enums;
@@ -13,6 +14,11 @@ namespace EduGraph.Core.Features.Admins;
 
 public static class GetPendingApplications
 {
+    public readonly record struct Params(
+        [FromQuery] SignUpApplicationStatus Status = SignUpApplicationStatus.Pending,
+        [FromQuery] bool Descending = false
+    );
+    
     public sealed record Response(
         string FullName,
         string UserType,
@@ -29,30 +35,35 @@ public static class GetPendingApplications
 
         private static async Task<Ok<Pagination<Response>>> Handle(
             [AsParameters] PaginationParams paginationParams,
+            [AsParameters] Params parameters,
             [FromServices] EduGraphContext db,
             CancellationToken cancellationToken)
         {
-            var query = db.SignUpApplications
+            IQueryable<SignUpApplication> query = db.SignUpApplications
                 .AsNoTracking()
-                .Where(app => app.Status == SignUpApplicationStatus.Pending)
-                .OrderBy(app => app.CreatedAtUtc);
-        
-            int totalItems = await query.CountAsync(cancellationToken);
-            int totalPages = (int)Math.Ceiling(totalItems / (double)paginationParams.PageSize);
-        
-            List<Response> applications = await query
-                .Skip((paginationParams.Page - 1) * paginationParams.PageSize)
-                .Take(paginationParams.PageSize)
-                .Select(application => new Response(
-                    application.FullName,
-                    application.Type.ToString(),
-                    application.Group
-                ))
-                .ToListAsync(cancellationToken);
+                .Where(app => app.Status == parameters.Status);
+
+            if (parameters.Descending)
+            {
+                query = query.OrderByDescending(app => app.CreatedAtUtc);
+            }
+            else
+            {
+                query = query.OrderBy(app => app.CreatedAtUtc);
+            }
             
-            Pagination<Response> dto = new(applications, paginationParams.Page, totalPages);
+            Pagination<Response> pageDto = await query
+                .ToPagedListAsync(
+                    paginationParams,
+                    application => new Response(
+                        application.FullName,
+                        application.Type.ToString(),
+                        application.Group
+                    ),
+                    cancellationToken
+                );
             
-            return TypedResults.Ok(dto);
+            return TypedResults.Ok(pageDto);
         }
     }
 }

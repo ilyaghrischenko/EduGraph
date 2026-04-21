@@ -1,16 +1,21 @@
 using System.Net;
 using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common;
+using EduGraph.Core.Features.Common.Endpoints;
+using EduGraph.Core.Features.Common.ValidationRules;
 using EduGraph.Domain.Entities;
 using EduGraph.Domain.Enums;
-using EduGraph.Domain.Models;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
+using EduGraph.SharedKernel;
+using EduGraph.SharedKernel.Interfaces;
+using EduGraph.SharedKernel.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.MicrosoftExtensions;
 
 namespace EduGraph.Core.Features.Users;
 
@@ -22,7 +27,8 @@ public static class SignUp
         string? Group,
         string Login,
         string Password,
-        string ConfirmPassword);
+        string ConfirmPassword
+    );
 
     public sealed class Validator : AbstractValidator<Request>
     {
@@ -38,10 +44,10 @@ public static class SignUp
                 .WithMessage("Група обовʼязкова для студентів");
             RuleFor(x => x.Login)
                 .NotEmpty()
-                .MinimumLength(RequestPropertiesRules.LoginMinLength);
+                .MinimumLength(RequestValidationRules.LoginMinLength);
             RuleFor(x => x.Password)
                 .NotEmpty()
-                .MinimumLength(RequestPropertiesRules.PasswordMinLength);
+                .MinimumLength(RequestValidationRules.PasswordMinLength);
             RuleFor(x => x.ConfirmPassword)
                 .Equal(x => x.Password)
                 .WithMessage("Паролі не збігаються");
@@ -54,24 +60,22 @@ public static class SignUp
         {
             app.MapPost("users/signup", Handle)
                 .WithTags("Users")
-                .WithRequestValidation<Request>();
+                .WithRequestValidation<Request>()
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status400BadRequest)
+                .ProducesProblem(StatusCodes.Status409Conflict);
         }
 
-        private static async Task<Results<NoContent, BadRequest<string>, Conflict<string>>> Handle(
+        private static async Task<IResult> Handle(
             [FromBody] Request request,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
         {
-            VoidResult signUpResult = await handler.HandleAsync(request, cancellationToken);
+            Result signUpResult = await handler.HandleAsync(request, cancellationToken);
 
             if (signUpResult.IsFailure)
             {
-                return signUpResult.StatusCode switch
-                {
-                    HttpStatusCode.BadRequest => TypedResults.BadRequest(signUpResult.ErrorMessage),
-                    HttpStatusCode.Conflict => TypedResults.Conflict(signUpResult.ErrorMessage),
-                    _ => throw new UnknownStatusCodeException(signUpResult.StatusCode)
-                };
+                return signUpResult.ToHttpFailure();
             }
             
             return TypedResults.NoContent();
@@ -80,35 +84,41 @@ public static class SignUp
 
     public sealed class Handler(
         UserManager<User> userManager,
-        EduGraphContext context,
-        IPasswordHasher<User> passwordHasher)
+        EduGraphContext db,
+        IPasswordHasher<User> passwordHasher) : IScopedType
     {
-        public async Task<VoidResult> HandleAsync(Request request, CancellationToken cancellationToken)
+        public async Task<Result> HandleAsync(Request request, CancellationToken cancellationToken)
         {
             User? user = await userManager.FindByNameAsync(request.Login);
 
             if (user != null)
             {
-                return VoidResult.Failure("This login is already taken", HttpStatusCode.Conflict);
+                return new ErrorDetails(
+                    "Цей логін вже зайнятий",
+                    HttpStatusCode.Conflict
+                );
             }
 
-            bool isApplicationPending = await context.SignUpApplications
+            bool isApplicationPending = await db.SignUpApplications
                 .AsNoTracking()
                 .AnyAsync(x => x.Login == request.Login && x.Status == SignUpApplicationStatus.Pending, cancellationToken);
 
             if (isApplicationPending)
             {
-                return VoidResult.Failure("Your application is already in progress", HttpStatusCode.Conflict);
+                return new ErrorDetails(
+                    "Ваша заявка вже в обробці",
+                    HttpStatusCode.Conflict
+                );
             }
         
             string passwordHash = passwordHasher.HashPassword(null!, request.Password);
 
             if (!Enum.TryParse(request.UserType, out UserType signUpApplicationType))
             {
-                return VoidResult.Failure("Invalid user type");
+                return new ErrorDetails("Неправильний тип користувача");
             }
 
-            SignUpApplication signUpApplication = new(
+            Result<SignUpApplication> createSignUpApplication = SignUpApplication.Create(
                 request.FullName,
                 signUpApplicationType,
                 request.Login,
@@ -116,10 +126,15 @@ public static class SignUp
                 request.Group
             );
 
-            await context.SignUpApplications.AddAsync(signUpApplication, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
+            if (createSignUpApplication.IsFailure)
+            {
+                return createSignUpApplication;
+            }
+
+            await db.SignUpApplications.AddAsync(createSignUpApplication.Value!, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
         
-            return VoidResult.Success();
+            return Result.Success();
         }
     }
 }

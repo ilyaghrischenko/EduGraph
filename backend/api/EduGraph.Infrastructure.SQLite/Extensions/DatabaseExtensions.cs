@@ -9,21 +9,24 @@ namespace EduGraph.Infrastructure.SQLite.Extensions;
 
 public static class DatabaseExtensions
 {
-    public static async Task EnsureCreatedAndMigrated(this EduGraphContext context)
+    public static async Task EnsureCreatedAndMigrated(this EduGraphContext db, CancellationToken cancellationToken = default)
     {
-        await context.Database.MigrateAsync();
+        await db.Database.MigrateAsync(cancellationToken);
     }
     
-    public static async Task EnsureRolesExistAndValid(this EduGraphContext context, RoleManager<IdentityRole<int>> roleManager)
+    public static async Task EnsureRolesExistAndValid(
+        this EduGraphContext db,
+        RoleManager<IdentityRole<int>> roleManager,
+        CancellationToken cancellationToken = default)
     {
         foreach (string role in Roles.All)
         {
             await EnsureRoleExist(role, roleManager);
         }
         
-        await DeleteInvalidRoles(context, roleManager);
+        await DeleteInvalidRoles(db, roleManager);
         
-        await context.SaveChangesAsync();
+        await db.SaveChangesAsync(cancellationToken);
     }
     
     private static async Task EnsureRoleExist(string role, RoleManager<IdentityRole<int>> roleManager)
@@ -45,14 +48,14 @@ public static class DatabaseExtensions
         }
     }
     
-    private static async Task DeleteInvalidRoles(EduGraphContext context, RoleManager<IdentityRole<int>> roleManager)
+    private static async Task DeleteInvalidRoles(EduGraphContext db, RoleManager<IdentityRole<int>> roleManager)
     {
-        List<IdentityRole<int>> otherInvalidRoles = await context.Roles
+        List<IdentityRole<int>> allInvalidRoles = await db.Roles
             .AsNoTracking()
             .Where(role => !Roles.All.Contains(role.Name))
             .ToListAsync();
 
-        foreach (var invalidRole in otherInvalidRoles)
+        foreach (var invalidRole in allInvalidRoles)
         {
             var deleteResult = await roleManager.DeleteAsync(invalidRole);
             

@@ -9,6 +9,6 @@ builder.AddConfiguration();
 
 WebApplication app = builder.Build();
 
-await app.UseConfigurationAsync();
+await app.UseConfigurationAsync(app.Lifetime.ApplicationStopping);
 
 await app.RunAsync();

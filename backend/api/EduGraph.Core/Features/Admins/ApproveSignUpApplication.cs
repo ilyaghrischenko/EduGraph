@@ -1,12 +1,13 @@
 using System.Net;
+using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common;
+using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Domain.Entities;
-using EduGraph.Domain.Enums;
-using EduGraph.Domain.Models;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
 using EduGraph.Infrastructure.SQLite.Extensions;
-using Microsoft.AspNetCore.Http.HttpResults;
+using EduGraph.SharedKernel.Interfaces;
+using EduGraph.SharedKernel.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,24 +21,22 @@ public static class ApproveSignUpApplication
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("admins/sign-up-applications/{applicationId:int}/approve", Handle)
-                .WithTags("Admins");
+                .WithTags("Admins")
+                .Produces(StatusCodes.Status204NoContent)
+                .ProducesProblem(StatusCodes.Status404NotFound)
+                .ProducesProblem(StatusCodes.Status500InternalServerError);
         }
 
-        private static async Task<Results<NoContent, NotFound<string>, InternalServerError<string>>> Handle(
+        private static async Task<IResult> Handle(
             [FromRoute] int applicationId,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
         {
-            VoidResult approveApplicationResult = await handler.HandleAsync(applicationId, cancellationToken);
+            Result approveApplicationResult = await handler.HandleAsync(applicationId, cancellationToken);
 
             if (approveApplicationResult.IsFailure)
             {
-                return approveApplicationResult.StatusCode switch
-                {
-                    HttpStatusCode.NotFound => TypedResults.NotFound(approveApplicationResult.ErrorMessage),
-                    HttpStatusCode.InternalServerError => TypedResults.InternalServerError(approveApplicationResult.ErrorMessage),
-                    _ => throw new UnknownStatusCodeException(approveApplicationResult.StatusCode)
-                };
+                return approveApplicationResult.ToHttpFailure();
             }
             
             return TypedResults.NoContent();
@@ -46,41 +45,49 @@ public static class ApproveSignUpApplication
 
     public sealed class Handler(
         UserManager<User> userManager,
-        EduGraphContext context)
+        EduGraphContext db) : IScopedType
     {
-        public async Task<VoidResult> HandleAsync(int applicationId, CancellationToken cancellationToken)
+        public async Task<Result> HandleAsync(int applicationId, CancellationToken cancellationToken)
         {
-            SignUpApplication? application = await context.SignUpApplications
+            SignUpApplication? application = await db.SignUpApplications
                 .FirstOrDefaultAsync(application => application.Id == applicationId, cancellationToken);
 
             if (application is null)
             {
-                return VoidResult.Failure(
+                return new ErrorDetails(
                     $"Заявка на реєстрацію з id: {applicationId} не існує",
                     HttpStatusCode.NotFound
                 );
             }
             
-            VoidResult approveApplicationResult = application.Approve();
+            Result approveApplicationResult = application.Approve();
 
             if (approveApplicationResult.IsFailure)
             {
                 return approveApplicationResult;
             }
             
-            User user = new(application.Login, application.FullName, application.Type, application.Group)
+            Result<User> createResult = User.Create(application.Login, application.FullName, application.Type, application.Group);
+
+            if (createResult.IsFailure)
             {
-                PasswordHash = application.PasswordHash
-            };
+                return createResult;
+            }
+
+            User user = createResult.Value!;
             
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+            await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
             var createUserResult = await userManager.CreateAsync(user);
 
             if (createUserResult.Succeeded is false)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                return VoidResult.Failure(createUserResult.GetErrorMessage(), HttpStatusCode.InternalServerError);
+                
+                return new ErrorDetails(
+                    createUserResult.GetErrorMessage(),
+                    HttpStatusCode.InternalServerError
+                );
             }
             
             var addUserToRoleResult = await userManager.AddToRoleAsync(user, application.Type.ToString());
@@ -88,10 +95,14 @@ public static class ApproveSignUpApplication
             if (addUserToRoleResult.Succeeded is false)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                return VoidResult.Failure(addUserToRoleResult.GetErrorMessage(), HttpStatusCode.InternalServerError);
+                
+                return new ErrorDetails(
+                    createUserResult.GetErrorMessage(),
+                    HttpStatusCode.InternalServerError
+                );
             }
             
-            await context.SaveChangesAsync(cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             
             return approveApplicationResult;

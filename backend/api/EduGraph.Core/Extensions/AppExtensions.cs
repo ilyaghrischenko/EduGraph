@@ -1,5 +1,6 @@
 using System.Reflection;
 using EduGraph.Core.Features.Common;
+using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Core.Filters;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Extensions;
@@ -9,7 +10,7 @@ namespace EduGraph.Core.Extensions;
 
 public static class AppExtensions
 {
-    public static async Task UseConfigurationAsync(this WebApplication app)
+    public static async Task UseConfigurationAsync(this WebApplication app, CancellationToken cancellationToken = default)
     {
         app.UseStaticFiles();
 
@@ -35,25 +36,25 @@ public static class AppExtensions
 
         app.UseResponseCompression();
 
-        app.UseCors("AllowReactClient");
+        app.UseCors("AllowReactDevClient");
 
         var apiGroup = app.MapGroup("api");
         app.MapEndpoints(apiGroup);
 
-        await app.EnsureDatabaseIsOk();
+        await app.EnsureDatabaseIsOk(cancellationToken);
     }
     
-    private static WebApplication MapEndpoints(this WebApplication app, IEndpointRouteBuilder? routeBuilder = null, Assembly? endpointsAssembly = null)
+    private static WebApplication MapEndpoints(this WebApplication app, IEndpointRouteBuilder? routeBuilder = null, Assembly? assemblyToScan = null)
     {
         IEndpointRouteBuilder endpoints = routeBuilder ?? app;
 
-        Assembly assembly = endpointsAssembly ?? typeof(AppExtensions).Assembly;
+        Assembly assembly = assemblyToScan ?? Assembly.GetExecutingAssembly();
         
         var endpointTypes = assembly.GetTypes()
             .Where(t => typeof(IEndpoint).IsAssignableFrom(t)
-                        && t is { IsInterface: false, IsAbstract: false });
+                        && t is { IsInterface: false, IsAbstract: false, IsNested: true });
 
-        foreach (var type in endpointTypes)
+        foreach (Type type in endpointTypes)
         {
             if (Activator.CreateInstance(type) is IEndpoint endpoint)
             {
@@ -64,7 +65,7 @@ public static class AppExtensions
         return app;
     }
 
-    private static async Task EnsureDatabaseIsOk(this WebApplication app)
+    private static async Task EnsureDatabaseIsOk(this WebApplication app, CancellationToken cancellationToken)
     {
         await using var scope = app.Services.CreateAsyncScope();
         var services = scope.ServiceProvider;
@@ -72,13 +73,7 @@ public static class AppExtensions
         var context = services.GetRequiredService<EduGraphContext>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
-        await context.EnsureCreatedAndMigrated();
-        await context.EnsureRolesExistAndValid(roleManager);
-    }
-    
-    public static RouteHandlerBuilder WithRequestValidation<TRequest>(this RouteHandlerBuilder builder)
-    {
-        return builder.AddEndpointFilter<ValidationFilter<TRequest>>()
-            .ProducesValidationProblem();
+        await context.EnsureCreatedAndMigrated(cancellationToken);
+        await context.EnsureRolesExistAndValid(roleManager, cancellationToken);
     }
 }

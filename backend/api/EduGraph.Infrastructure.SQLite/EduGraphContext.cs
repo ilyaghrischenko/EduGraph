@@ -21,16 +21,4 @@ public sealed class EduGraphContext : IdentityDbContext<User, IdentityRole<int>,
         
         builder.ApplyConfigurationsFromAssembly(typeof(EduGraphContext).Assembly);
     }
-
-    // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    // {
-    //     if (optionsBuilder.IsConfigured)
-    //     {
-    //         return;
-    //     }
-    //     
-    //     base.OnConfiguring(optionsBuilder);
-    //     
-    //     optionsBuilder.UseSqlite("");
-    // }
 }

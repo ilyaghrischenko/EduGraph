@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.Goo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.SearchModel", "EduGraph.Infrastructure.SearchModel\EduGraph.Infrastructure.SearchModel.csproj", "{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.SharedKernel", "EduGraph.SharedKernel\EduGraph.SharedKernel.csproj", "{4ED02671-C5D8-48C4-8B2F-A6F7DCB63D10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4ED02671-C5D8-48C4-8B2F-A6F7DCB63D10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4ED02671-C5D8-48C4-8B2F-A6F7DCB63D10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4ED02671-C5D8-48C4-8B2F-A6F7DCB63D10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4ED02671-C5D8-48C4-8B2F-A6F7DCB63D10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

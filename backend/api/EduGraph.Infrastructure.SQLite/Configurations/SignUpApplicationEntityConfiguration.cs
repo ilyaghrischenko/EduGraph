@@ -27,6 +27,6 @@ public sealed class SignUpApplicationEntityConfiguration : IEntityTypeConfigurat
             .HasConversion<string>()
             .IsRequired();
 
-        builder.Property(x => x.CreatedAt).IsRequired();
+        builder.Property(x => x.CreatedAtUtc).IsRequired();
     }
 }

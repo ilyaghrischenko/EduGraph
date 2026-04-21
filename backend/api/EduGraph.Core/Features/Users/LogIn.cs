@@ -1,9 +1,13 @@
 using System.Net;
 using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common;
-using EduGraph.Domain.Models;
+using EduGraph.Core.Features.Common.Endpoints;
+using EduGraph.Core.Features.Common.ValidationRules;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
+using EduGraph.SharedKernel;
+using EduGraph.SharedKernel.Interfaces;
+using EduGraph.SharedKernel.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -17,7 +21,8 @@ public static class LogIn
 {
     public sealed record Request(
         string Login,
-        string Password);
+        string Password
+    );
 
     public sealed class Validator : AbstractValidator<Request>
     {
@@ -25,10 +30,10 @@ public static class LogIn
         {
             RuleFor(x => x.Login)
                 .NotEmpty()
-                .MinimumLength(RequestPropertiesRules.LoginMinLength);
+                .MinimumLength(RequestValidationRules.LoginMinLength);
             RuleFor(x => x.Password)
                 .NotEmpty()
-                .MinimumLength(RequestPropertiesRules.PasswordMinLength);
+                .MinimumLength(RequestValidationRules.PasswordMinLength);
         }
     }
 
@@ -38,10 +43,12 @@ public static class LogIn
         {
             app.MapPost("users/login", Handle)
                 .WithTags("Users")
-                .WithRequestValidation<Request>();
+                .WithRequestValidation<Request>()
+                .Produces<string>()
+                .ProducesProblem(StatusCodes.Status400BadRequest);
         }
 
-        private static async Task<Results<Ok<string>, BadRequest<string>>> Handle(
+        private static async Task<IResult> Handle(
             [FromBody] Request request,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
@@ -50,7 +57,7 @@ public static class LogIn
 
             if (logInResult.IsFailure)
             {
-                return TypedResults.BadRequest(logInResult.ErrorMessage);
+                return logInResult.ToHttpFailure();
             }
             
             return TypedResults.Ok(logInResult.Value);
@@ -59,18 +66,18 @@ public static class LogIn
 
     public sealed class Handler(
         SignInManager<User> signInManager,
-        EduGraphContext context,
+        EduGraphContext db,
         UserManager<User> userManager,
-        JwtService jwtService)
+        JwtService jwtService) : IScopedType
     {
         public async Task<Result<string>> HandleAsync(Request request, CancellationToken cancellationToken)
         {
-            User? user = await context.Users
+            User? user = await db.Users
                 .FirstOrDefaultAsync(user => user.UserName == request.Login, cancellationToken);
 
             if (user is null)
             {
-                return Result<string>.Failure("Неправильний логін чи пароль");
+                return new ErrorDetails("Неправильний логін чи пароль");
             }
         
             SignInResult result = await signInManager.CheckPasswordSignInAsync(
@@ -79,30 +86,25 @@ public static class LogIn
                 lockoutOnFailure: true
             );
 
-            if (result.IsLockedOut)
+            if (result.IsLockedOut || !result.Succeeded)
             {
-                return Result<string>.Failure("Неправильний логін чи пароль");
-            }
-
-            if (result.Succeeded is false)
-            {
-                return Result<string>.Failure("Неправильний логін чи пароль");
+                return new ErrorDetails("Неправильний логін чи пароль");
             }
         
             user.MarkAsLoggedIn();
         
-            await context.SaveChangesAsync(cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
             
             var userRoles = await userManager.GetRolesAsync(user);
 
             if (userRoles.Count is 0 or > 1)
             {
-                throw new InvalidOperationException("User must have only one role");
+                throw new InvalidOperationException("Користувач може мати лише 1 роль");
             }
 
             string token = jwtService.GenerateToken(user.Id, user.UserName!, userRoles[0]);
 
-            return Result<string>.Success(token);
+            return token;
         }
     }
 }

@@ -2,8 +2,10 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Text;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using EduGraph.Core.Features.Users;
 using EduGraph.Core.Options;
+using EduGraph.Domain.Entities;
 using EduGraph.Infrastructure.SearchModel.Extensions;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
@@ -36,7 +38,6 @@ public static class WebApplicationBuilderExtensions
             .AddResponseCompression()
             .AddDbContext()
             .AddAspNetCoreIdentity()
-            .AddHandlers()
             .AddSwagger()
             .AddCors()
             .AddFluentValidation();
@@ -51,6 +52,8 @@ public static class WebApplicationBuilderExtensions
         //todo
         // string searchApiBaseUrl = builder.Configuration.GetOrThrow("SEARCH_API_BASE_URL");
         // builder.Services.AddSearchService(searchApiBaseUrl);
+
+        builder.Services.AddTypesToDi();
         
         return builder;
     }
@@ -81,25 +84,8 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 
-    private static WebApplicationBuilder AddHandlers(this WebApplicationBuilder builder, Assembly? handlersAssembly = null)
-    {
-        Assembly assembly = handlersAssembly ?? typeof(WebApplicationBuilderExtensions).Assembly;
-
-        var handlerTypes = assembly.GetTypes()
-            .Where(t => t is { Name: "Handler", IsClass: true, IsAbstract: false, IsInterface: false, IsNested: true });
-
-        foreach (var handlerType in handlerTypes)
-        {
-            builder.Services.AddScoped(handlerType);
-        }
-        
-        return builder;
-    }
-
     private static WebApplicationBuilder AddJwtBearer(this WebApplicationBuilder builder, string issuer, string audience, string key, string lifetime)
     {
-        builder.Services.AddScoped<JwtService>();
-        
         builder.Services.Configure<JwtOptions>(options =>
         {
             options.Issuer = issuer;
@@ -160,7 +146,18 @@ public static class WebApplicationBuilderExtensions
                 }
             });
             
-            options.CustomSchemaIds(type => type.FullName?.Replace("+", ".", StringComparison.Ordinal));
+            options.CustomSchemaIds(type =>
+            {
+                // Если класс вложенный (как Request внутри класса LogIn), 
+                // комбинируем имя родителя и имя класса -> LogInRequest
+                if (type.DeclaringType is not null)
+                {
+                    return $"{type.DeclaringType.Name}{type.Name}";
+                }
+        
+                // Для обычных сущностей возвращаем просто имя класса -> SignUpApplication
+                return type.Name;
+            });
         });
 
         return builder;
@@ -191,13 +188,16 @@ public static class WebApplicationBuilderExtensions
     {
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowReactClient", corsBuilder =>
+            if (builder.Environment.IsDevelopment())
             {
-                corsBuilder.WithOrigins("http://localhost:5173")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
-            });
+                options.AddPolicy("AllowReactDevClient", corsBuilder =>
+                {
+                    corsBuilder.WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            }
         });
         
         return builder;

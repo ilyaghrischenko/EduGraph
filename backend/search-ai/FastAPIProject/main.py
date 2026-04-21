@@ -62,89 +62,78 @@ from utils import extract_text_from_file
 from fastapi.responses import JSONResponse
 import logging
 
-# Настройка логирования
+# Настройка логов
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Путь к папке
+DOCS_DIR = Path("university_docs")
+DOCS_DIR.mkdir(parents=True, exist_ok=True)
+
 # Подключаем статику
-app.mount("/static", StaticFiles(directory="university_docs"), name="static")
+app.mount("/static", StaticFiles(directory=str(DOCS_DIR)), name="static")
 
 model = SentenceTransformer("intfloat/multilingual-e5-base")
-DOCS_DIR = Path("university_docs")
 
 
-class Document(BaseModel):
-    title: str
-    url: str
+def fix_text(text: str) -> str:
+    """Чинит кракозябры (РћРћРљ -> ООК)"""
+    try:
+        return text.encode('cp1251').decode('utf-8')
+    except:
+        return text
 
 
 @app.get("/")
 def index():
-    return {"message": "University Docs Search API"}
-
-
-def fix_mojibake(text: str) -> str:
-    """
-    Пытается восстановить текст из кракозябр (CP1251 -> UTF-8).
-    Пример: 'РћРћРљ' -> 'ООК'
-    """
-    try:
-        # Пробуем закодировать в cp1251 и декодировать как utf-8
-        return text.encode('cp1251').decode('utf-8')
-    except (UnicodeEncodeError, UnicodeDecodeError):
-        # Если не вышло (например, текст уже нормальный), возвращаем как есть
-        return text
+    return {"message": "API работает"}
 
 
 @app.get("/search")
 def search(q: str = Query(...)):
-    # Логируем запрос для отладки
-    logger.info(f"Search query: {q}")
-
-    query_embedding = model.encode(f"query: {q}")
     results = []
+    query_embedding = model.encode(f"query: {q}")
 
-    # Используем rglob для рекурсивного поиска
     for path in DOCS_DIR.rglob("*"):
-        # Игнорируем скрытые файлы и папки
-        if path.name.startswith('.'):
+        if not path.is_file() or path.name.startswith('.'):
             continue
 
-        if path.is_file() and path.suffix.lower() in {".pdf", ".docx", ".txt"}:
-            try:
-                # 1. Получаем "сырое" имя файла и путь (относительно корня docs)
-                raw_relative_path = path.relative_to(DOCS_DIR)
-                raw_filename = path.name
+        if path.suffix.lower() not in {".pdf", ".docx", ".txt"}:
+            continue
 
-                # 2. Чиним название для отображения пользователю (title)
-                # Чиним имя файла
-                clean_filename = fix_mojibake(raw_filename)
-                # Чиним весь путь для красивого тайтла (если папки тоже битые)
-                clean_relative_path_str = str(raw_relative_path).replace("\\", "/")  # Нормализация слешей
-                clean_title = fix_mojibake(clean_relative_path_str)
-
-                # Извлекаем текст
-                text = extract_text_from_file(path)
-                if not text or not text.strip():
-                    continue
-
-                embedding = model.encode(f"passage: {text}")
-                score = cosine_similarity([query_embedding], [embedding])[0][0]
-
-                results.append({
-                    "title": clean_title,  # Человекочитаемое название
-                    # ВАЖНО: URL оставляем "битым", так как файл на диске всё ещё называется криво.
-                    # FastAPI StaticFiles найдет его только по реальному имени на диске.
-                    "url": f"/static/{raw_relative_path}",
-                    "score": float(score)
-                })
-            except Exception as e:
-                logger.error(f"Error processing {path}: {e}")
+        try:
+            text = extract_text_from_file(path)
+            if not text or not text.strip():
                 continue
 
-    results.sort(key=lambda x: x["score"], reverse=True)
-    top_results = results[:5]
+            embedding = model.encode(f"passage: {text}")
+            score = cosine_similarity([query_embedding], [embedding])[0][0]
 
-    return JSONResponse(content=top_results)
+            # --- ИСПРАВЛЕНИЕ ---
+
+            # Получаем относительный путь
+            relative_path = path.relative_to(DOCS_DIR)
+
+            # 1. Красивое название (Title): Чиним кодировку для глаз пользователя
+            clean_title = fix_text(str(relative_path))
+
+            # 2. Рабочая ссылка (URL):
+            # Используем .as_posix() - это штатный метод Python, который сам
+            # превращает путь в формат с прямыми слэшами (/).
+            # Это работает в Python 3.10 и не вызывает ошибку SyntaxError.
+            real_url = f"/static/{relative_path.as_posix()}"
+
+            results.append({
+                "title": clean_title,
+                "url": real_url,
+                "score": float(score)
+            })
+
+        except Exception as e:
+            print(f"Ошибка с файлом {path}: {e}")
+            continue
+
+    results.sort(key=lambda x: x["score"], reverse=True)
+    return JSONResponse(content=results[:5])
