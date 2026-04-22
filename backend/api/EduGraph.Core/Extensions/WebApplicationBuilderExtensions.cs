@@ -38,7 +38,6 @@ public static class WebApplicationBuilderExtensions
             .AddResponseCompression()
             .AddDbContext()
             .AddAspNetCoreIdentity()
-            .AddSwagger()
             .AddCors()
             .AddFluentValidation();
         
@@ -50,8 +49,8 @@ public static class WebApplicationBuilderExtensions
         builder.AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime);
 
         //todo
-        // string searchApiBaseUrl = builder.Configuration.GetOrThrow("SEARCH_API_BASE_URL");
-        // builder.Services.AddSearchService(searchApiBaseUrl);
+        string searchApiBaseUrl = builder.Configuration.GetOrThrow("SEARCH_API_BASE_URL");
+        builder.Services.AddSearchService(searchApiBaseUrl);
 
         builder.Services.AddTypesToDi();
         
@@ -114,52 +113,6 @@ public static class WebApplicationBuilderExtensions
         //services.AddAuthorizationBuilder()
         //    .AddPoliciesByRoles();
         
-        return builder;
-    }
-
-    private static WebApplicationBuilder AddSwagger(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddSwaggerGen(options =>
-        {
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
-            {
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.Http,
-                Scheme = "Bearer",
-                BearerFormat = "JWT",
-                Description =
-                    "Input your JWT token in the 'Authorization' header like this: \"Authorization: Bearer {yourJWT}\""
-            });
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
-            });
-            
-            options.CustomSchemaIds(type =>
-            {
-                // Если класс вложенный (как Request внутри класса LogIn), 
-                // комбинируем имя родителя и имя класса -> LogInRequest
-                if (type.DeclaringType is not null)
-                {
-                    return $"{type.DeclaringType.Name}{type.Name}";
-                }
-        
-                // Для обычных сущностей возвращаем просто имя класса -> SignUpApplication
-                return type.Name;
-            });
-        });
-
         return builder;
     }
     

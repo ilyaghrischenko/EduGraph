@@ -1,6 +1,5 @@
 using System.Net;
 using EduGraph.Core.Extensions;
-using EduGraph.Core.Features.Common;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Domain.Entities;
 using EduGraph.Infrastructure.SQLite;
@@ -11,6 +10,7 @@ using EduGraph.SharedKernel.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EduGraph.Core.Features.Admins;
 
@@ -66,8 +66,13 @@ public static class ApproveSignUpApplication
             {
                 return approveApplicationResult;
             }
-            
-            Result<User> createResult = User.Create(application.Login, application.FullName, application.Type, application.Group);
+
+            Result<User> createResult = User.Create(
+                application.Login,
+                application.FullName,
+                application.Type,
+                application.Group
+            );
 
             if (createResult.IsFailure)
             {
@@ -76,9 +81,9 @@ public static class ApproveSignUpApplication
 
             User user = createResult.Value!;
             
-            await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+            await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
-            var createUserResult = await userManager.CreateAsync(user);
+            IdentityResult createUserResult = await userManager.CreateAsync(user);
 
             if (createUserResult.Succeeded is false)
             {

@@ -2,7 +2,6 @@
 // using DocumentFormat.OpenXml.Packaging;
 // using EduGraph.Infrastructure.GoogleDrive.Models;
 // using EduGraph.Infrastructure.GoogleDrive.Options;
-// using EduGraph.SharedKernel;
 // using EduGraph.SharedKernel.Interfaces;
 // using EduGraph.SharedKernel.Models;
 // using Google.Apis.Auth.OAuth2;
@@ -19,13 +18,13 @@
 //     private readonly GoogleDriveOptions _googleDriveOptions = options.Value;
 //     
 //     //todo: разобраться со всем самому!!!
-//     public async Task<Result<GoogleDriveDocument>> GetFileFromDriveAsync(string fileId)
+//     public async Task<Result<GoogleDriveDocument>> GetFileFromDriveAsync(string fileId, CancellationToken cancellationToken)
 //     {
 //         // 1. Авторизация
 //         GoogleCredential credential;
 //         await using (var stream = new FileStream("service_account_credentials.json", FileMode.Open, FileAccess.Read))
 //         {
-//             credential = GoogleCredential.FromStream(stream).CreateScoped(DriveService.Scope.DriveReadonly);
+//             credential = await CredentialFactory.FromStreamAsync<GoogleCredential>(stream, cancellationToken);
 //         }
 //
 //         using var service = new DriveService(new BaseClientService.Initializer
@@ -37,7 +36,7 @@
 //         // 2. Получаем метаданные (Имя и Ссылку)
 //         var request = service.Files.Get(fileId);
 //         request.Fields = "id, name, webViewLink, mimeType"; // Указываем, какие поля нам нужны
-//         var fileMetadata = await request.ExecuteAsync();
+//         var fileMetadata = await request.ExecuteAsync(cancellationToken);
 //
 //         var content = string.Empty;
 //
@@ -47,7 +46,7 @@
 //             // ВАЖНО: Если файл - это нативный Google Doc, его нужно "экспортировать", а не скачивать.
 //             // Если это загруженный .docx или .pdf, используем DownloadAsync.
 //         
-//             await request.DownloadAsync(stream);
+//             await request.DownloadAsync(stream, cancellationToken);
 //             stream.Position = 0; // Сбрасываем каретку в начало
 //
 //             // 4. Парсим в зависимости от расширения

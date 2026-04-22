@@ -1,3 +1,7 @@
 namespace EduGraph.Infrastructure.SearchModel.Models;
 
-public sealed record SearchOptions(string Query, IReadOnlyCollection<Document> Documents);
+public sealed record SearchOptions
+{
+    public required string Query { get; init; }
+    public required IReadOnlyCollection<Document> Documents { get; init; }
+}

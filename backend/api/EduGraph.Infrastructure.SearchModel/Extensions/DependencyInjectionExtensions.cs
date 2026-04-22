@@ -21,7 +21,7 @@ public static class DependencyInjectionExtensions
         {
             client.BaseAddress = baseUrl;
         })
-            .AddStandardResilienceHandler();
+        .AddStandardResilienceHandler();
         
         return services;
     }

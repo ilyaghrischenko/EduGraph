@@ -17,10 +17,10 @@ Read this file before every task.
 - **ASP.NET Core Web API**.
 - **EntityFrameworkCore (SQLite)**.
 - **FluentValidation**.
+- **Google.Apis.Drive.v3**.
+- **PdfPig**.
+- **DocumentFormat.OpenXml**.
 - **xUnit + FluentAssertions**.
-- **MailKit**.
-- **Telegram.Bot**.
-- **Azure Blob Storage**.
 - **Scalar for API documentation**.
 
 ## Static Code Analyzer

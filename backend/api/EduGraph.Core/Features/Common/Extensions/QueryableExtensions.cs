@@ -6,8 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EduGraph.Core.Features.Common.Extensions;
 
-public static class QueryableExtensions
+internal static class QueryableExtensions
 {
+    //todo: написать заметку про эти расширения
     public static async Task<Pagination<TDto>> ToPagedListAsync<TSource, TDto>(
         this IQueryable<TSource> source,
         PaginationParams paginationParams,
@@ -29,27 +30,40 @@ public static class QueryableExtensions
             .Take(paginationParams.PageSize)
             .Select(selector)
             .ToListAsync(cancellationToken);
-        
-        return new Pagination<TDto>(items, paginationParams.Page, totalPages);
+
+        return new Pagination<TDto>(
+            items,
+            paginationParams.Page,
+            totalPages
+        );
     }
 
-    public static async Task<CursorPagination<TDto>> ToCursorPagedListAsync<TSource, TDto>(
-        this IQueryable<TSource> source,
+    public static async Task<CursorPagination<TDto>> ToCursorPagedListAsync<TEntity, TDto>(
+        this IQueryable<TEntity> source,
         CursorPaginationParams paginationParams,
-        Expression<Func<TSource, TDto>> selector,
+        Expression<Func<TEntity, TDto>> selector,
         CancellationToken cancellationToken)
-        where TSource : BaseEntity
+        where TEntity : BaseEntity
         where TDto : BaseDto
     {
-        var query = source;
+        IQueryable<TEntity> query = source;
         
         if (paginationParams.LastItemId != null)
         {
-            query = query.Where(entity => entity.Id > paginationParams.LastItemId);
+            query = paginationParams.Descending switch
+            {
+                true => query.Where(entity => entity.Id < paginationParams.LastItemId),
+                false => query.Where(entity => entity.Id > paginationParams.LastItemId)
+            };
         }
 
-        var items = await query
-            .OrderBy(entity => entity.Id)
+        query = paginationParams.Descending switch
+        {
+            true => query.OrderByDescending(entity => entity.Id),
+            false => query.OrderBy(entity => entity.Id)
+        };
+
+        List<TDto> items = await query
             .Take(paginationParams.PageSize)
             .Select(selector)
             .ToListAsync(cancellationToken);
@@ -59,6 +73,9 @@ public static class QueryableExtensions
             return CursorPagination<TDto>.Empty;
         }
 
-        return new CursorPagination<TDto>(items, items.Last().Id);
+        return new CursorPagination<TDto>(
+            items,
+            items.Last().Id
+        );
     }
 }

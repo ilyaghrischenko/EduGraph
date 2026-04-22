@@ -5,6 +5,7 @@ using EduGraph.Core.Filters;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Scalar.AspNetCore;
 
 namespace EduGraph.Core.Extensions;
 
@@ -17,12 +18,15 @@ public static class AppExtensions
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-            app.UseSwagger();
-            app.UseSwaggerUI();
+
+            app.MapScalarApiReference(options =>
+            {
+                options.Theme = ScalarTheme.Mars;
+            });
 
             app.MapGet("/", context =>
             {
-                context.Response.Redirect("/swagger/index.html");
+                context.Response.Redirect("/scalar/v1");
                 return Task.CompletedTask;
             });
         }
@@ -50,7 +54,7 @@ public static class AppExtensions
 
         Assembly assembly = assemblyToScan ?? Assembly.GetExecutingAssembly();
         
-        var endpointTypes = assembly.GetTypes()
+        IEnumerable<Type> endpointTypes = assembly.GetTypes()
             .Where(t => typeof(IEndpoint).IsAssignableFrom(t)
                         && t is { IsInterface: false, IsAbstract: false, IsNested: true });
 
@@ -67,8 +71,8 @@ public static class AppExtensions
 
     private static async Task EnsureDatabaseIsOk(this WebApplication app, CancellationToken cancellationToken)
     {
-        await using var scope = app.Services.CreateAsyncScope();
-        var services = scope.ServiceProvider;
+        await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
+        IServiceProvider services = scope.ServiceProvider;
         
         var context = services.GetRequiredService<EduGraphContext>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
