@@ -68,7 +68,8 @@ public static class LogIn
         SignInManager<User> signInManager,
         EduGraphContext db,
         UserManager<User> userManager,
-        JwtService jwtService) : IScopedType
+        JwtService jwtService,
+        TimeProvider timeProvider) : IScopedType
     {
         public async Task<Result<string>> HandleAsync(Request request, CancellationToken cancellationToken)
         {
@@ -90,8 +91,9 @@ public static class LogIn
             {
                 return new ErrorDetails("Неправильний логін чи пароль");
             }
-        
-            user.MarkAsLoggedIn();
+
+            DateOnly currentDate = DateOnly.FromDateTime(timeProvider.GetUtcNow().DateTime);
+            user.MarkAsLoggedIn(currentDate);
         
             await db.SaveChangesAsync(cancellationToken);
             

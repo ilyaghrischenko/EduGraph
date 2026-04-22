@@ -60,10 +60,14 @@ public static class ApproveSignUpApplication
                 );
             }
             
+            await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+            
             Result approveApplicationResult = application.Approve();
 
             if (approveApplicationResult.IsFailure)
             {
+                await transaction.RollbackAsync(cancellationToken);
+                
                 return approveApplicationResult;
             }
 
@@ -71,18 +75,19 @@ public static class ApproveSignUpApplication
                 application.Login,
                 application.FullName,
                 application.Type,
+                application.PasswordHash,
                 application.Group
             );
 
             if (createResult.IsFailure)
             {
+                await transaction.RollbackAsync(cancellationToken);
+                
                 return createResult;
             }
 
             User user = createResult.Value!;
             
-            await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-
             IdentityResult createUserResult = await userManager.CreateAsync(user);
 
             if (createUserResult.Succeeded is false)

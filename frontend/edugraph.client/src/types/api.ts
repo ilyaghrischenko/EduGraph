@@ -1,0 +1,36 @@
+export interface LoginRequest {
+    login: string;
+    password: string;
+}
+
+export interface SignUpRequest {
+    fullName: string;
+    userType: 'Student' | 'Teacher';
+    group: string | null;
+    login: string;
+    password: string;
+    confirmPassword: string;
+}
+
+export interface SignUpApplicationResponse {
+    id: number;
+    fullName: string;
+    userType: string;
+    group: string | null;
+    login: string;
+    createdAt: string;
+}
+
+export interface PaginationResponse<T> {
+    items: T[];
+    currentPage: number;
+    totalPages: number;
+}
+
+export interface ProblemDetails {
+    type?: string | null;
+    title?: string | null;
+    status?: number | null;
+    detail?: string | null;
+    instance?: string | null;
+}

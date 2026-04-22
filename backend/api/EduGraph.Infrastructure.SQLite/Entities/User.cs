@@ -6,28 +6,26 @@ namespace EduGraph.Infrastructure.SQLite.Entities;
 
 public sealed class User : IdentityUser<int>
 {
-    public string FullName { get; private set; }
+    public string FullName { get; private set; } = null!;
     
     public UserType Type { get; private set; }
-    
+
     public string? Group { get; private set; }
     
     public DateOnly? LastLoginDate { get; private set; }
 
-    private User()
-    {
-        FullName = null!;
-    }
+    private User() { }
 
-    private User(string userName, string fullName, UserType type, string? group = null)
+    private User(string userName, string fullName, UserType type, string passwordHash, string? group = null)
         : base(userName)
     {
         FullName = fullName;
         Type = type;
+        PasswordHash = passwordHash;
         Group = group;
     }
 
-    public static Result<User> Create(string userName, string fullName, UserType type, string? group = null)
+    public static Result<User> Create(string userName, string fullName, UserType type, string passwordHash, string? group = null)
     {
         if (string.IsNullOrWhiteSpace(userName))
         {
@@ -48,6 +46,11 @@ public sealed class User : IdentityUser<int>
         {
             return new ErrorDetails("Тип користувача вказаний не вірно");
         }
+
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            return new ErrorDetails("Пароль не може бути пустий");
+        }
         
         if (group is not null && string.IsNullOrWhiteSpace(group))
         {
@@ -58,10 +61,11 @@ public sealed class User : IdentityUser<int>
             userName,
             fullName,
             type,
+            passwordHash,
             group
         );
     }
     
-    public void MarkAsLoggedIn()
-        => LastLoginDate = DateOnly.FromDateTime(DateTime.UtcNow);
+    public void MarkAsLoggedIn(DateOnly currentDate)
+        => LastLoginDate = currentDate;
 }
