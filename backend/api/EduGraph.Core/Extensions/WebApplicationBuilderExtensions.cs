@@ -23,6 +23,8 @@ public static class WebApplicationBuilderExtensions
 {
     public static WebApplicationBuilder AddConfiguration(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSingleton(TimeProvider.System);
+        
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
 
