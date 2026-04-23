@@ -175,7 +175,6 @@ class SearchResult(BaseModel):
     content: str
     url: str
 
-
 # ------- Endpoints -------
 
 @app.get("/")
