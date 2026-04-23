@@ -1,3 +1,4 @@
+// src/types/api.ts
 export interface LoginRequest {
     login: string;
     password: string;
@@ -33,4 +34,10 @@ export interface ProblemDetails {
     status?: number | null;
     detail?: string | null;
     instance?: string | null;
+}
+
+// /api/users/search-documents response
+export interface SearchDocumentResponse {
+    title: string;
+    url: string;
 }
