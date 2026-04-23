@@ -77,7 +77,6 @@ app.mount("/static", StaticFiles(directory=str(DOCS_DIR)), name="static")
 
 model = SentenceTransformer("intfloat/multilingual-e5-base")
 
-
 def fix_text(text: str) -> str:
     """Чинит кракозябры (РћРћРљ -> ООК)"""
     try:

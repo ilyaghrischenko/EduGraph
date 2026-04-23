@@ -20,15 +20,12 @@ public sealed class GoogleDriveService(
 {
     private readonly GoogleDriveOptions _options = options.Value;
 
-#pragma warning disable SA1204
-    private static int _configuredLimit;
-#pragma warning restore SA1204
-
-    public static void Configure(int maxConcurrentRequests) =>
-        _configuredLimit = maxConcurrentRequests > 0 ? maxConcurrentRequests : 5;
+#pragma warning disable SA1203
+    private const int Limit = 15;
+#pragma warning restore SA1203
 
     private static readonly Lazy<SemaphoreSlim> GlobalSemaphore = new(
-        () => new SemaphoreSlim(_configuredLimit, _configuredLimit),
+        () => new SemaphoreSlim(Limit, Limit),
         LazyThreadSafetyMode.ExecutionAndPublication);
 
     private static SemaphoreSlim GetOrCreateSemaphore() => GlobalSemaphore.Value;

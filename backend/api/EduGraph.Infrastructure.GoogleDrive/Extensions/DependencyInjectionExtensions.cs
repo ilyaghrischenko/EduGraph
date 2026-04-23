@@ -24,7 +24,8 @@ public static class DependencyInjectionExtensions
         services.AddSingleton(_ =>
         {
             using var stream = new FileStream(pathToAccountCredentials, FileMode.Open, FileAccess.Read);
-            GoogleCredential? credential = CredentialFactory.FromStream<GoogleCredential>(stream)
+            GoogleCredential? credential = CredentialFactory.FromStream<ServiceAccountCredential>(stream)
+                .ToGoogleCredential()
                 .CreateScoped(DriveService.Scope.DriveReadonly);
 
             return new DriveService(new BaseClientService.Initializer

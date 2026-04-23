@@ -5,6 +5,7 @@
 
 # dotenv files
 .env
+/backend/api/EduGraph.Core/service_account_credentials.json
 
 # User-specific files
 *.rsuser

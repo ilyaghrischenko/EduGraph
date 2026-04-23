@@ -57,7 +57,7 @@ public static class WebApplicationBuilderExtensions
         string pathToAccountCredentials = builder.Configuration.GetOrThrow("GOOGLE_DRIVE_PATH_TO_ACCOUNT_CREDENTIALS");
         
         //todo: в енв файле внести значение
-        string defaultForderId = builder.Configuration.GetOrThrow("GOOGLE_DRIVE_DEFAULT_FORDER_ID");
+        string defaultForderId = builder.Configuration.GetOrThrow("GOOGLE_DRIVE_DEFAULT_FOLDER_ID");
 
         builder.Services.AddGoogleDrive(maxConcurrentRequests, pathToAccountCredentials, defaultForderId);
 
