@@ -9,6 +9,7 @@ public static class DependencyInjectionExtensions
         services.AddHttpClient<SearchService>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromMinutes(10);
         })
         .AddStandardResilienceHandler();
         

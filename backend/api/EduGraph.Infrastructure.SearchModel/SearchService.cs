@@ -1,13 +1,14 @@
 using System.Net;
 using System.Net.Http.Json;
 using EduGraph.Infrastructure.SearchModel.Models;
+using EduGraph.SharedKernel.Interfaces;
 using EduGraph.SharedKernel.Models;
 
 namespace EduGraph.Infrastructure.SearchModel;
 
-public sealed class SearchService(HttpClient httpClient)
+public sealed class SearchService(HttpClient httpClient) : IScopedType
 {
-    public async Task<Result<IReadOnlyCollection<Document>?>> GetDocumentsByQueryAsync(
+    public async Task<Result<IReadOnlyCollection<Document>?>> GetRelatedDocumentsByQueryAsync(
         SearchOptions options,
         CancellationToken cancellationToken)
     {

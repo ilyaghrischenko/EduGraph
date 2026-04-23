@@ -6,6 +6,7 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 using EduGraph.Core.Features.Users;
 using EduGraph.Core.Options;
 using EduGraph.Domain.Entities;
+using EduGraph.Infrastructure.GoogleDrive.Extensions;
 using EduGraph.Infrastructure.SearchModel.Extensions;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
@@ -50,7 +51,17 @@ public static class WebApplicationBuilderExtensions
         
         builder.AddJwtBearer(tokenIssuer, tokenAudience, tokenKey, tokenLifetime);
 
-        //todo
+        int maxConcurrentRequests = int.Parse(builder.Configuration.GetOrThrow("GOOGLE_DRIVE_MAX_CONCURRENT_REQUESTS"), CultureInfo.InvariantCulture);
+        
+        //todo: в енв файле внести значение
+        string pathToAccountCredentials = builder.Configuration.GetOrThrow("GOOGLE_DRIVE_PATH_TO_ACCOUNT_CREDENTIALS");
+        
+        //todo: в енв файле внести значение
+        string defaultForderId = builder.Configuration.GetOrThrow("GOOGLE_DRIVE_DEFAULT_FORDER_ID");
+
+        builder.Services.AddGoogleDrive(maxConcurrentRequests, pathToAccountCredentials, defaultForderId);
+
+        //todo: в енв файле внести значение
         string searchApiBaseUrl = builder.Configuration.GetOrThrow("SEARCH_API_BASE_URL");
         builder.Services.AddSearchService(searchApiBaseUrl);
 
@@ -79,7 +90,7 @@ public static class WebApplicationBuilderExtensions
             throw new InvalidCredentialException("DB_CONNECTION_STRING is not set");
         }
         
-        builder.Services.AddDbContext<EduGraphContext>(options =>
+        builder.Services.AddDbContextPool<EduGraphContext>(options =>
             options.UseSqlite(connectionString));
 
         return builder;
