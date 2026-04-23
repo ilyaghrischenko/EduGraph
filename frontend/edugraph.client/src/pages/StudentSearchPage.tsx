@@ -176,6 +176,8 @@ export const StudentSearchPage: React.FC = () => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const hoveredNodeRef = useRef<GraphNode | null>(null);
     const stepTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fgRef = useRef<any>(null);
 
     // Track container size
     useEffect(() => {
@@ -235,6 +237,14 @@ export const StudentSearchPage: React.FC = () => {
     }, [query, pageState]);
 
     useEffect(() => () => clearStepTimers(), []);
+
+    // Spread nodes out: increase repulsion and link distance
+    useEffect(() => {
+        if (!fgRef.current || !graphData) return;
+        fgRef.current.d3Force('charge').strength(-350);
+        fgRef.current.d3Force('link').distance(120);
+        fgRef.current.d3ReheatSimulation();
+    }, [graphData]);
 
     // ── Graph callbacks ────────────────────────────────────────────────────────
 
@@ -553,6 +563,7 @@ export const StudentSearchPage: React.FC = () => {
                 {/* ── Force Graph ────────────────────────────────────────────────── */}
                 {pageState === 'results' && graphData && dimensions.width > 0 && (
                     <ForceGraph2D
+                        ref={fgRef}
                         graphData={graphData}
                         width={dimensions.width}
                         height={dimensions.height}
