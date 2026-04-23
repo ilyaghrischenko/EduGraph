@@ -52,87 +52,164 @@
 #
 #     return JSONResponse(content=response)
 
-from fastapi import FastAPI, Query
-from fastapi.staticfiles import StaticFiles
+# ----------------------
+
+# from fastapi import FastAPI, Query
+# from fastapi.staticfiles import StaticFiles
+# from pydantic import BaseModel
+# from sentence_transformers import SentenceTransformer
+# from sklearn.metrics.pairwise import cosine_similarity
+# from pathlib import Path
+# from utils import extract_text_from_file
+# from fastapi.responses import JSONResponse
+# import logging
+#
+# # Настройка логов
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+#
+# app = FastAPI()
+#
+# # Путь к папке
+# DOCS_DIR = Path("university_docs")
+# DOCS_DIR.mkdir(parents=True, exist_ok=True)
+#
+# # Подключаем статику
+# app.mount("/static", StaticFiles(directory=str(DOCS_DIR)), name="static")
+#
+# model = SentenceTransformer("intfloat/multilingual-e5-base")
+#
+# def fix_text(text: str) -> str:
+#     """Чинит кракозябры (РћРћРљ -> ООК)"""
+#     try:
+#         return text.encode('cp1251').decode('utf-8')
+#     except:
+#         return text
+#
+#
+# @app.get("/")
+# def index():
+#     return {"message": "API работает"}
+#
+#
+# @app.get("/search")
+# def search(q: str = Query(...)):
+#     results = []
+#     query_embedding = model.encode(f"query: {q}")
+#
+#     for path in DOCS_DIR.rglob("*"):
+#         if not path.is_file() or path.name.startswith('.'):
+#             continue
+#
+#         if path.suffix.lower() not in {".pdf", ".docx", ".txt"}:
+#             continue
+#
+#         try:
+#             text = extract_text_from_file(path)
+#             if not text or not text.strip():
+#                 continue
+#
+#             embedding = model.encode(f"passage: {text}")
+#             score = cosine_similarity([query_embedding], [embedding])[0][0]
+#
+#             # --- ИСПРАВЛЕНИЕ ---
+#
+#             # Получаем относительный путь
+#             relative_path = path.relative_to(DOCS_DIR)
+#
+#             # 1. Красивое название (Title): Чиним кодировку для глаз пользователя
+#             clean_title = fix_text(str(relative_path))
+#
+#             # 2. Рабочая ссылка (URL):
+#             # Используем .as_posix() - это штатный метод Python, который сам
+#             # превращает путь в формат с прямыми слэшами (/).
+#             # Это работает в Python 3.10 и не вызывает ошибку SyntaxError.
+#             real_url = f"/static/{relative_path.as_posix()}"
+#
+#             results.append({
+#                 "title": clean_title,
+#                 "url": real_url,
+#                 "score": float(score)
+#             })
+#
+#         except Exception as e:
+#             print(f"Ошибка с файлом {path}: {e}")
+#             continue
+#
+#     results.sort(key=lambda x: x["score"], reverse=True)
+#     return JSONResponse(content=results[:5])
+
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from pathlib import Path
-from utils import extract_text_from_file
-from fastapi.responses import JSONResponse
 import logging
+import numpy as np
 
-# Настройка логов
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+model = SentenceTransformer("intfloat/multilingual-e5-large")
 
-# Путь к папке
-DOCS_DIR = Path("university_docs")
-DOCS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Подключаем статику
-app.mount("/static", StaticFiles(directory=str(DOCS_DIR)), name="static")
+# ------- Контракт входящего запроса -------
 
-model = SentenceTransformer("intfloat/multilingual-e5-base")
+class IncomingDocument(BaseModel):
+    title: str
+    content: str
+    url: str
 
-def fix_text(text: str) -> str:
-    """Чинит кракозябры (РћРћРљ -> ООК)"""
-    try:
-        return text.encode('cp1251').decode('utf-8')
-    except:
-        return text
 
+class SearchRequest(BaseModel):
+    query: str
+    documents: list[IncomingDocument]
+    top_k: int = 5
+
+
+# ------- Контракт ответа (совпадает с C# Document record) -------
+
+class SearchResult(BaseModel):
+    title: str
+    content: str
+    url: str
+
+
+# ------- Endpoints -------
 
 @app.get("/")
 def index():
-    return {"message": "API работает"}
+    return {"message": "EduGraph Search API is running"}
 
 
-@app.get("/search")
-def search(q: str = Query(...)):
-    results = []
-    query_embedding = model.encode(f"query: {q}")
+@app.post("/search", response_model=list[SearchResult])
+def search(request: SearchRequest):
+    if not request.documents:
+        return JSONResponse(content=[])
 
-    for path in DOCS_DIR.rglob("*"):
-        if not path.is_file() or path.name.startswith('.'):
+    query_embedding = model.encode(f"query: {request.query}")
+
+    scored: list[tuple[float, IncomingDocument]] = []
+
+    for doc in request.documents:
+        if not doc.content.strip():
+            logger.warning("Skipping document '%s' — empty content", doc.name)
             continue
 
-        if path.suffix.lower() not in {".pdf", ".docx", ".txt"}:
-            continue
+        # E5 требует префикс "passage:" для документов
+        passage_embedding = model.encode(f"passage: {doc.content}")
+        score: float = cosine_similarity(
+            [query_embedding],
+            [passage_embedding]
+        )[0][0]
 
-        try:
-            text = extract_text_from_file(path)
-            if not text or not text.strip():
-                continue
+        scored.append((float(score), doc))
 
-            embedding = model.encode(f"passage: {text}")
-            score = cosine_similarity([query_embedding], [embedding])[0][0]
+    scored.sort(key=lambda x: x[0], reverse=True)
+    top = scored[:request.top_k]
 
-            # --- ИСПРАВЛЕНИЕ ---
-
-            # Получаем относительный путь
-            relative_path = path.relative_to(DOCS_DIR)
-
-            # 1. Красивое название (Title): Чиним кодировку для глаз пользователя
-            clean_title = fix_text(str(relative_path))
-
-            # 2. Рабочая ссылка (URL):
-            # Используем .as_posix() - это штатный метод Python, который сам
-            # превращает путь в формат с прямыми слэшами (/).
-            # Это работает в Python 3.10 и не вызывает ошибку SyntaxError.
-            real_url = f"/static/{relative_path.as_posix()}"
-
-            results.append({
-                "title": clean_title,
-                "url": real_url,
-                "score": float(score)
-            })
-
-        except Exception as e:
-            print(f"Ошибка с файлом {path}: {e}")
-            continue
-
-    results.sort(key=lambda x: x["score"], reverse=True)
-    return JSONResponse(content=results[:5])
+    return [
+        SearchResult(title=doc.title, content=doc.content, url=doc.url)
+        for _, doc in top
+    ]

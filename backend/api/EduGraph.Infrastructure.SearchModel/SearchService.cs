@@ -6,7 +6,7 @@ using EduGraph.SharedKernel.Models;
 
 namespace EduGraph.Infrastructure.SearchModel;
 
-public sealed class SearchService(HttpClient httpClient) : IScopedType
+public sealed class SearchService(HttpClient httpClient)
 {
     public async Task<Result<IReadOnlyCollection<Document>?>> GetRelatedDocumentsByQueryAsync(
         SearchOptions options,

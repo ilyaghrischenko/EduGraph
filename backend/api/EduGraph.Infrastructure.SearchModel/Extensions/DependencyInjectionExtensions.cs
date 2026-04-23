@@ -21,6 +21,7 @@ public static class DependencyInjectionExtensions
         services.AddHttpClient<SearchService>(client =>
         {
             client.BaseAddress = baseUrl;
+            client.Timeout = TimeSpan.FromMinutes(10);
         })
         .AddStandardResilienceHandler();
         
