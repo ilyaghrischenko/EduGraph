@@ -29,10 +29,10 @@ type PageState = 'idle' | 'loading' | 'results' | 'empty' | 'error';
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const LOADING_STEPS = [
-    { label: 'Підключення до Google Drive', duration: 3000 },
-    { label: 'Завантаження документів', duration: 5000 },
-    { label: 'Семантичний аналіз тексту', duration: 5000 },
-    { label: 'Побудова графу знань', duration: 99999 },
+    { label: 'Отримуємо матеріали', duration: 3000 },
+    { label: 'Аналізуємо зміст', duration: 5000 },
+    { label: 'Знаходимо релевантні документи', duration: 5000 },
+    { label: 'Будуємо граф', duration: 99999 },
 ];
 
 const NODE_COLOR = '#4fffb0';
