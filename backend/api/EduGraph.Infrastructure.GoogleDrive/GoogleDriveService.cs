@@ -64,6 +64,7 @@ public sealed class GoogleDriveService(
             do
             {
                 listRequest.PageToken = pageToken;
+                
                 FileList? response = await listRequest.ExecuteAsync(cancellationToken);
 
                 if (response.Files != null)

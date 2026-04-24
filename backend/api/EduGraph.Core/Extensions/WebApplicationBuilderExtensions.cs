@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Text;
 using DocumentFormat.OpenXml.Drawing.Charts;
+using EduGraph.Core.BackgroundServices;
 using EduGraph.Core.Features.Users;
 using EduGraph.Core.Options;
 using EduGraph.Domain.Entities;
@@ -66,6 +67,8 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddSearchService(searchApiBaseUrl);
 
         builder.Services.AddTypesToDi();
+
+        builder.Services.AddHostedService<FetchDocumentsBackgroundService>();
         
         return builder;
     }
