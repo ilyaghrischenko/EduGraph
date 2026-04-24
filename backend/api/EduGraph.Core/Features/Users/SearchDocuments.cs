@@ -76,6 +76,7 @@ public static class SearchDocuments
             Request request,
             CancellationToken cancellationToken)
         {
+            //todo: брать теперь с базы данных, фоновый воркер туда ложит
             List<Result<GoogleDriveDocument>> getDocumentsFromFolderResult = await googleDriveService.GetDocumentsFromFolderAsync(cancellationToken);
 
             List<Document> documentsForSearch = getDocumentsFromFolderResult
