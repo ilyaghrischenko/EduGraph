@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { DarkInput, DarkLabel, Field, PrimaryButton, Alert, DarkRadio } from '../components/ui';
 import { authApi } from '../api/authApi';
-import type {SignUpRequest} from '../types/api';
+import type { SignUpRequest } from '../types/api';
+import { C, F } from '../styles/tokens';
 
 const NAV_LINKS = [
     { label: 'Увійти', href: '/login' },
@@ -12,48 +14,32 @@ const NAV_LINKS = [
 
 export const SignUpPage: React.FC = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        login: '',
-        password: '',
-        confirmPassword: '',
-        fullName: '',
-        group: '',
-    });
+    const [formData, setFormData] = useState({ login: '', password: '', confirmPassword: '', fullName: '', group: '' });
     const [userType, setUserType] = useState<'Student' | 'Teacher'>('Student');
-
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError]       = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading]   = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-        // Очищаем ошибку поля при вводе
-        if (validationErrors[name]) {
-            setValidationErrors((prev) => ({ ...prev, [name]: '' }));
-        }
+        if (validationErrors[name]) setValidationErrors((prev) => ({ ...prev, [name]: '' }));
     };
 
-    const handleUserTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newType = e.target.value as 'Student' | 'Teacher';
-        setUserType(newType);
-        if (newType === 'Teacher') {
+    const handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const t = e.target.value as 'Student' | 'Teacher';
+        setUserType(t);
+        if (t === 'Teacher') {
             setFormData((prev) => ({ ...prev, group: '' }));
-            if (validationErrors['group']) {
-                setValidationErrors((prev) => ({ ...prev, group: '' }));
-            }
+            setValidationErrors((prev) => ({ ...prev, group: '' }));
         }
     };
 
-    const validateForm = (): boolean => {
+    const validate = (): boolean => {
         const errors: Record<string, string> = {};
-        if (formData.password !== formData.confirmPassword) {
-            errors.confirmPassword = 'Паролі не збігаються';
-        }
-        if (userType === 'Student' && !formData.group.trim()) {
-            errors.group = 'Поле Група є обов\'язковим для студента';
-        }
+        if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Паролі не збігаються';
+        if (userType === 'Student' && !formData.group.trim()) errors.group = 'Обов\'язкове поле для студента';
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -62,100 +48,94 @@ export const SignUpPage: React.FC = () => {
         e.preventDefault();
         setError(null);
         setSuccessMsg(null);
-
-        if (!validateForm()) return;
-
-        setIsLoading(true);
+        if (!validate()) return;
+        setLoading(true);
         try {
             const payload: SignUpRequest = {
                 login: formData.login,
                 password: formData.password,
                 confirmPassword: formData.confirmPassword,
                 fullName: formData.fullName,
-                userType: userType,
+                userType,
                 group: userType === 'Student' ? formData.group : null,
             };
-
             await authApi.signUp(payload);
-            setSuccessMsg('Заявка успішно надіслана!');
-            setTimeout(() => navigate('/login'), 2000);
-        } catch (err: any) {
-            setError(err.message);
+            setSuccessMsg('Заявку надіслано! Очікуйте підтвердження адміністратора.');
+            setTimeout(() => navigate('/login'), 2500);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Невідома помилка');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
-    const inputClass = "block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white border border-gray-300 rounded transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-400 focus:outline-none focus:ring-[0.25rem] focus:ring-[#258cfb]/40";
-
     return (
         <Layout navLinks={NAV_LINKS}>
-            <div className="flex justify-center items-center min-h-[80vh] py-8">
-                <div className="w-full max-w-md px-4">
-                    <h2 className="text-center text-3xl font-medium mb-4">Заявка на реєстрацію</h2>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '48px 0 48px' }}>
+                <div style={{ width: '100%', maxWidth: '420px' }}>
 
-                    <form onSubmit={handleSubmit}>
-                        {error && (
-                            <div className="bg-[#f8d7da] text-[#842029] px-4 py-3 rounded mb-4 border border-[#f5c2c7]" role="alert">
-                                {error}
-                            </div>
-                        )}
-                        {successMsg && (
-                            <div className="bg-[#d1e7dd] text-[#0f5132] px-4 py-3 rounded mb-4 border border-[#badbcc]" role="alert">
-                                {successMsg}
-                            </div>
-                        )}
-
-                        <div className="mb-4">
-                            <label htmlFor="login" className="block text-gray-700 mb-2">Логін</label>
-                            <input id="login" name="login" type="text" className={inputClass} value={formData.login} onChange={handleChange} required />
+                    <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px', padding: '36px 32px' }}>
+                        {/* Heading */}
+                        <div style={{ marginBottom: '28px', textAlign: 'center' }}>
+                            <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                Новий акаунт
+                            </p>
+                            <h1 style={{ fontFamily: F.display, fontSize: '1.6rem', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
+                                Заявка на реєстрацію
+                            </h1>
                         </div>
 
-                        <div className="mb-4">
-                            <label htmlFor="password" className="block text-gray-700 mb-2">Пароль</label>
-                            <input id="password" name="password" type="password" className={inputClass} value={formData.password} onChange={handleChange} required />
-                        </div>
+                        <form onSubmit={handleSubmit}>
+                            {error   && <Alert variant="error">{error}</Alert>}
+                            {successMsg && <Alert variant="success">{successMsg}</Alert>}
 
-                        <div className="mb-4">
-                            <label htmlFor="confirmPassword" className="block text-gray-700 mb-2">Підтвердіть пароль</label>
-                            <input id="confirmPassword" name="confirmPassword" type="password" className={inputClass} value={formData.confirmPassword} onChange={handleChange} required />
-                            {validationErrors.confirmPassword && <span className="text-[#dc3545] text-sm mt-1">{validationErrors.confirmPassword}</span>}
-                        </div>
+                            <Field>
+                                <DarkLabel htmlFor="login">Логін</DarkLabel>
+                                <DarkInput id="login" name="login" type="text" value={formData.login} onChange={handleChange} required placeholder="your_login" />
+                            </Field>
 
-                        <div className="mb-4">
-                            <div className="flex items-center mb-1">
-                                <input id="roleStudent" type="radio" name="userType" value="Student" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-[#258cfb]/40 focus:ring-[0.25rem]" checked={userType === 'Student'} onChange={handleUserTypeChange} />
-                                <label htmlFor="roleStudent" className="ml-2 text-gray-700">Студент</label>
-                            </div>
-                            <div className="flex items-center">
-                                <input id="roleTeacher" type="radio" name="userType" value="Teacher" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-[#258cfb]/40 focus:ring-[0.25rem]" checked={userType === 'Teacher'} onChange={handleUserTypeChange} />
-                                <label htmlFor="roleTeacher" className="ml-2 text-gray-700">Викладач</label>
-                            </div>
-                        </div>
+                            <Field>
+                                <DarkLabel htmlFor="fullName">ПІБ</DarkLabel>
+                                <DarkInput id="fullName" name="fullName" type="text" value={formData.fullName} onChange={handleChange} required placeholder="Іванов Іван Іванович" />
+                            </Field>
 
-                        <div className="mb-4">
-                            <label htmlFor="fullName" className="block text-gray-700 mb-2">ПІБ</label>
-                            <input id="fullName" name="fullName" type="text" className={inputClass} value={formData.fullName} onChange={handleChange} required />
-                        </div>
+                            <Field>
+                                <DarkLabel htmlFor="password">Пароль</DarkLabel>
+                                <DarkInput id="password" name="password" type="password" value={formData.password} onChange={handleChange} required placeholder="••••••••" />
+                            </Field>
 
-                        {/* Conditional Group Field */}
-                        <div className={`mb-4 ${userType !== 'Student' ? 'hidden' : 'block'}`} id="group-container">
-                            <label htmlFor="group" className="block text-gray-700 mb-2">Група</label>
-                            <input id="group" name="group" type="text" className={`${inputClass} ${validationErrors.group ? 'border-[#dc3545]' : ''}`} value={formData.group} onChange={handleChange} required={userType === 'Student'} />
-                            {validationErrors.group && <span className="text-[#dc3545] text-sm mt-1">{validationErrors.group}</span>}
-                        </div>
+                            <Field error={validationErrors.confirmPassword}>
+                                <DarkLabel htmlFor="confirmPassword">Підтвердіть пароль</DarkLabel>
+                                <DarkInput id="confirmPassword" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} required placeholder="••••••••" error={!!validationErrors.confirmPassword} />
+                            </Field>
 
-                        <button type="submit" disabled={isLoading} className="w-full bg-[#1b6ec2] hover:bg-[#1861ac] text-white border border-[#1861ac] rounded px-4 py-2 transition-colors focus:outline-none focus:ring-[0.25rem] focus:ring-[#258cfb]/40 disabled:opacity-70">
-                            {isLoading ? 'Обробка...' : 'Надіслати заявку'}
-                        </button>
-                    </form>
+                            {/* Role selector */}
+                            <Field>
+                                <DarkLabel>Роль</DarkLabel>
+                                <div style={{ display: 'flex', gap: '20px', padding: '10px 14px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px' }}>
+                                    <DarkRadio id="roleStudent" name="userType" value="Student" checked={userType === 'Student'} onChange={handleTypeChange} label="Студент" />
+                                    <DarkRadio id="roleTeacher" name="userType" value="Teacher" checked={userType === 'Teacher'} onChange={handleTypeChange} label="Викладач" />
+                                </div>
+                            </Field>
 
-                    <div className="mt-3 text-gray-700">
-                        Вже є аккаунт?
-                        <Link to="/login" className="text-blue-600 hover:text-blue-800 ml-1 no-underline py-1 px-2 hover:bg-gray-100 rounded transition-colors">
-                            Вхід
-                        </Link>
+                            {/* Conditional group */}
+                            {userType === 'Student' && (
+                                <Field error={validationErrors.group}>
+                                    <DarkLabel htmlFor="group">Група</DarkLabel>
+                                    <DarkInput id="group" name="group" type="text" value={formData.group} onChange={handleChange} required={userType === 'Student'} placeholder="ІО-21" error={!!validationErrors.group} />
+                                </Field>
+                            )}
+
+                            <PrimaryButton type="submit" loading={loading} full style={{ marginTop: '8px' }}>
+                                Надіслати заявку
+                            </PrimaryButton>
+                        </form>
                     </div>
+
+                    <p style={{ textAlign: 'center', marginTop: '20px', fontFamily: F.sans, fontSize: '0.83rem', color: C.textMuted }}>
+                        Вже є акаунт?{' '}
+                        <Link to="/login" style={{ color: C.accent, textDecoration: 'none', fontWeight: 500 }}>Увійти</Link>
+                    </p>
                 </div>
             </div>
         </Layout>

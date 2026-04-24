@@ -1,32 +1,35 @@
 // src/components/Layout.tsx
-import React, {type ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar, type NavLinkDef } from './Navbar';
+import { C, F } from '../styles/tokens';
 
 interface LayoutProps {
     children: ReactNode;
     navLinks?: NavLinkDef[];
+    /** Remove max-width constraint (for full-bleed pages) */
+    fluid?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, navLinks }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, navLinks, fluid }) => {
     return (
-        <div className="flex flex-col min-h-screen relative pb-[60px]">
-            {navLinks && navLinks.length > 0 && (
-                <header>
-                    <Navbar links={navLinks} />
-                </header>
-            )}
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: C.bg }}>
+            {navLinks && navLinks.length > 0 && <Navbar links={navLinks} />}
 
-            <div className="container mx-auto px-4 max-w-6xl flex-grow">
-                <main role="main" className="pb-3">
-                    {children}
-                </main>
-            </div>
+            <main style={{ flex: 1, maxWidth: fluid ? undefined : '1100px', width: '100%', margin: '0 auto', padding: fluid ? 0 : '0 24px' }}>
+                {children}
+            </main>
 
-            <footer className="border-t border-gray-200 text-gray-500 absolute bottom-0 w-full h-[60px] leading-[60px]">
-                <div className="container mx-auto px-4 max-w-6xl">
-                    &copy; 2025 - EduGraph - <Link to="/privacy" className="text-blue-600 hover:underline">Privacy</Link>
-                </div>
+            <footer style={{ borderTop: `1px solid ${C.border}`, padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: F.sans, fontSize: '0.75rem', color: C.textMuted }}>
+          © 2026 EduGraph
+        </span>
+                <Link to="/privacy" style={{ fontFamily: F.sans, fontSize: '0.75rem', color: C.textMuted, textDecoration: 'none' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = C.accent}
+                      onMouseLeave={(e) => e.currentTarget.style.color = C.textMuted}
+                >
+                    Privacy
+                </Link>
             </footer>
         </div>
     );

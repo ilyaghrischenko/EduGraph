@@ -2,183 +2,210 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { Alert, GhostButton } from '../components/ui';
 import { adminsApi } from '../api/adminsApi';
-import type {PaginationResponse, SignUpApplicationResponse} from '../types/api';
+import type { PaginationResponse, SignUpApplicationResponse } from '../types/api';
+import { C, F } from '../styles/tokens';
 
 const NAV_LINKS = [
-    { label: 'Заявки на реєстрацію', href: '/admin/sign-up-applications' },
+    { label: 'Заявки', href: '/admin/sign-up-applications' },
     { label: 'Додати користувача', href: '/admin/add-user' },
 ];
 
+const SortIcon: React.FC<{ descending: boolean }> = ({ descending }) => (
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ marginLeft: '5px', verticalAlign: 'middle' }}>
+        {descending
+            ? <path d="M6 9L1 3h10L6 9z" fill="currentColor" />
+            : <path d="M6 3l5 6H1L6 3z" fill="currentColor" />}
+    </svg>
+);
+
 export const SignUpApplicationsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const page = parseInt(searchParams.get('page') || '1', 10);
+    const page        = parseInt(searchParams.get('page') || '1', 10);
     const isDescending = searchParams.get('descending') === 'true';
 
-    const [data, setData] = useState<PaginationResponse<SignUpApplicationResponse> | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [data, setData]           = useState<PaginationResponse<SignUpApplicationResponse> | null>(null);
+    const [error, setError]         = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
+    const [actionId, setActionId]   = useState<number | null>(null);
 
     const fetchApplications = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await adminsApi.getApplications(page, 30, isDescending);
-            setData(response);
-        } catch (err: any) {
-            setError(err.message);
+            const res = await adminsApi.getApplications(page, 30, isDescending);
+            setData(res);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Помилка запиту');
         } finally {
             setIsLoading(false);
         }
     }, [page, isDescending]);
 
-    useEffect(() => {
-        fetchApplications();
-    }, [fetchApplications]);
+    useEffect(() => { fetchApplications(); }, [fetchApplications]);
 
-    const toggleSort = () => {
-        setSearchParams({ page: '1', descending: (!isDescending).toString() });
-    };
-
-    const changePage = (newPage: number) => {
-        setSearchParams({ page: newPage.toString(), descending: isDescending.toString() });
-    };
+    const toggleSort  = () => setSearchParams({ page: '1', descending: (!isDescending).toString() });
+    const changePage  = (p: number) => setSearchParams({ page: p.toString(), descending: isDescending.toString() });
 
     const handleApprove = async (id: number) => {
-        setActionLoadingId(id);
-        setError(null);
-        try {
-            await adminsApi.approveApplication(id);
-            await fetchApplications(); // Повторный запрос без перезагрузки
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setActionLoadingId(null);
-        }
+        setActionId(id); setError(null);
+        try { await adminsApi.approveApplication(id); await fetchApplications(); }
+        catch (err: unknown) { setError(err instanceof Error ? err.message : 'Помилка'); }
+        finally { setActionId(null); }
     };
 
     const handleReject = async (id: number) => {
-        setActionLoadingId(id);
-        setError(null);
-        try {
-            await adminsApi.rejectApplication(id);
-            await fetchApplications(); // Повторный запрос без перезагрузки
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setActionLoadingId(null);
-        }
+        setActionId(id); setError(null);
+        try { await adminsApi.rejectApplication(id); await fetchApplications(); }
+        catch (err: unknown) { setError(err instanceof Error ? err.message : 'Помилка'); }
+        finally { setActionId(null); }
     };
 
     const hasItems = data && data.items && data.items.length > 0;
 
+    // ── th style helper ───────────────────────────────────────────────────────
+    const thStyle: React.CSSProperties = {
+        padding: '12px 14px',
+        fontFamily: F.sans,
+        fontSize: '0.72rem',
+        fontWeight: 600,
+        color: C.textMuted,
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em',
+        textAlign: 'center',
+        borderBottom: `1px solid ${C.border}`,
+        whiteSpace: 'nowrap',
+    };
+    const tdStyle: React.CSSProperties = {
+        padding: '11px 14px',
+        fontFamily: F.sans,
+        fontSize: '0.84rem',
+        color: C.textPrimary,
+        textAlign: 'center',
+        borderBottom: `1px solid rgba(255,255,255,0.04)`,
+        whiteSpace: 'nowrap',
+    };
+
     return (
         <Layout navLinks={NAV_LINKS}>
-            <h2 className="text-center text-3xl font-medium mt-4 mb-2">Заявки на реєстрацію</h2>
-            <hr className="my-4 border-gray-200" />
-
-            {error && (
-                <div className="bg-[#f8d7da] text-[#842029] px-4 py-3 rounded mb-4 border border-[#f5c2c7]" role="alert">
-                    {error}
+            <div style={{ paddingTop: '36px' }}>
+                {/* Page heading */}
+                <div style={{ marginBottom: '24px' }}>
+                    <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '6px' }}>
+                        Адміністрування
+                    </p>
+                    <h1 style={{ fontFamily: F.display, fontSize: '1.6rem', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
+                        Заявки на реєстрацію
+                    </h1>
                 </div>
-            )}
 
-            {isLoading && !data ? (
-                <div className="text-center text-gray-500 py-8">Завантаження...</div>
-            ) : !hasItems ? (
-                <div className="bg-[#cff4fc] text-[#055160] px-4 py-3 rounded border border-[#b6effb]" role="alert">
-                    Наразі немає нових заявок на реєстрацію.
-                </div>
-            ) : (
-                <>
-                    <div className="border border-gray-200 rounded-lg shadow-sm overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-3 py-3 text-center text-sm font-bold text-gray-900 border-b-2">ID</th>
-                                <th className="px-3 py-3 text-center text-sm font-bold text-gray-900 border-b-2">ПІБ</th>
-                                <th className="px-3 py-3 text-center text-sm font-bold text-gray-900 border-b-2">Тип</th>
-                                <th className="px-3 py-3 text-center text-sm font-bold text-gray-900 border-b-2">Група</th>
-                                <th className="px-3 py-3 text-center text-sm font-bold text-gray-900 border-b-2">Логін</th>
-                                <th className="px-3 py-3 text-center text-sm font-bold text-gray-900 border-b-2">
-                                    <button
-                                        onClick={toggleSort}
-                                        className="text-gray-900 font-bold hover:text-blue-600 focus:outline-none flex items-center justify-center w-full"
-                                    >
-                                        Дата заявки
-                                        <span className="text-xs text-gray-500 ml-1">
-                        {isDescending ? '▼' : '▲'}
-                      </span>
-                                    </button>
-                                </th>
-                                <th className="px-3 py-3 text-center text-sm font-bold text-gray-900 border-b-2 w-[150px]">Дії</th>
-                            </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                            {data.items.map((app) => (
-                                <tr key={app.id} className="hover:bg-gray-50 transition-colors even:bg-[#f2f2f2]">
-                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm text-gray-700">{app.id}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm text-gray-700">{app.fullName}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm text-gray-700">{app.userType}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm text-gray-700">{app.group ?? "N/A"}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm text-gray-700">{app.login}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm text-gray-700">
-                                        {new Date(app.createdAt).toLocaleString('uk-UA')}
-                                    </td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center text-sm">
-                                        <div className="flex flex-row justify-center gap-2">
-                                            <button
-                                                onClick={() => handleApprove(app.id)}
-                                                disabled={actionLoadingId === app.id}
-                                                className="bg-[#198754] hover:bg-[#157347] text-white rounded px-2 py-1 text-sm transition-colors focus:ring-[0.25rem] focus:ring-[#198754]/40 disabled:opacity-65"
-                                            >
-                                                Схвалити
-                                            </button>
-                                            <button
-                                                onClick={() => handleReject(app.id)}
-                                                disabled={actionLoadingId === app.id}
-                                                className="bg-[#dc3545] hover:bg-[#bb2d3b] text-white rounded px-2 py-1 text-sm transition-colors focus:ring-[0.25rem] focus:ring-[#dc3545]/40 disabled:opacity-65"
-                                            >
-                                                Відхилити
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                {error && <Alert variant="error">{error}</Alert>}
+
+                {isLoading && !data ? (
+                    /* Skeleton rows */
+                    <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', padding: '32px', textAlign: 'center', fontFamily: F.sans, color: C.textMuted, fontSize: '0.85rem' }}>
+                        Завантаження…
                     </div>
+                ) : !hasItems ? (
+                    <Alert variant="info">Наразі немає нових заявок на реєстрацію.</Alert>
+                ) : (
+                    <>
+                        {/* Table */}
+                        <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', overflow: 'hidden' }}>
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                    <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                                        <th style={thStyle}>ID</th>
+                                        <th style={thStyle}>ПІБ</th>
+                                        <th style={thStyle}>Тип</th>
+                                        <th style={thStyle}>Група</th>
+                                        <th style={thStyle}>Логін</th>
+                                        <th style={{ ...thStyle, cursor: 'pointer' }} onClick={toggleSort}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', color: isDescending ? C.accent : C.textMuted, transition: 'color 0.15s' }}>
+                          Дата заявки <SortIcon descending={isDescending} />
+                        </span>
+                                        </th>
+                                        <th style={{ ...thStyle, width: '150px' }}>Дії</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {data!.items.map((app, idx) => (
+                                        <tr
+                                            key={app.id}
+                                            style={{ background: idx % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background 0.1s' }}
+                                            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(79,255,176,0.04)')}
+                                            onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent')}
+                                        >
+                                            <td style={{ ...tdStyle, color: C.textMuted }}>{app.id}</td>
+                                            <td style={tdStyle}>{app.fullName}</td>
+                                            <td style={tdStyle}>
+                          <span style={{
+                              display: 'inline-block', padding: '2px 10px', borderRadius: '20px',
+                              fontSize: '0.72rem', fontWeight: 500,
+                              background: app.userType === 'Student' ? 'rgba(79,255,176,0.1)' : 'rgba(103,232,249,0.1)',
+                              border: `1px solid ${app.userType === 'Student' ? 'rgba(79,255,176,0.25)' : 'rgba(103,232,249,0.25)'}`,
+                              color: app.userType === 'Student' ? C.accent : '#67e8f9',
+                          }}>
+                            {app.userType === 'Student' ? 'Студент' : 'Викладач'}
+                          </span>
+                                            </td>
+                                            <td style={{ ...tdStyle, color: C.textMuted }}>{app.group ?? '—'}</td>
+                                            <td style={tdStyle}>{app.login}</td>
+                                            <td style={{ ...tdStyle, color: C.textMuted }}>
+                                                {new Date(app.createdAt).toLocaleString('uk-UA')}
+                                            </td>
+                                            <td style={tdStyle}>
+                                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                                    <GhostButton onClick={() => handleApprove(app.id)} disabled={actionId === app.id}>
+                                                        Схвалити
+                                                    </GhostButton>
+                                                    <GhostButton danger onClick={() => handleReject(app.id)} disabled={actionId === app.id}>
+                                                        Відхилити
+                                                    </GhostButton>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
 
-                    <nav className="mt-4 flex justify-center">
-                        <ul className="flex list-none rounded pl-0">
-                            <li>
-                                <button
-                                    onClick={() => changePage(page - 1)}
-                                    disabled={page === 1}
-                                    className="relative block py-1.5 px-3 bg-white border border-gray-300 text-blue-600 hover:bg-gray-200 disabled:text-gray-400 disabled:bg-white disabled:cursor-not-allowed rounded-l transition-colors"
-                                >
-                                    Попередня
-                                </button>
-                            </li>
-                            <li>
-                <span className="relative block py-1.5 px-3 bg-white border-t border-b border-gray-300 text-gray-500 cursor-default">
-                  Сторінка {data.currentPage} з {data.totalPages}
-                </span>
-                            </li>
-                            <li>
-                                <button
-                                    onClick={() => changePage(page + 1)}
-                                    disabled={page === data.totalPages || data.totalPages === 0}
-                                    className="relative block py-1.5 px-3 bg-white border border-gray-300 text-blue-600 hover:bg-gray-200 disabled:text-gray-400 disabled:bg-white disabled:cursor-not-allowed rounded-r transition-colors"
-                                >
-                                    Наступна
-                                </button>
-                            </li>
-                        </ul>
-                    </nav>
-                </>
-            )}
+                        {/* Pagination */}
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '24px' }}>
+                            <button
+                                onClick={() => changePage(page - 1)} disabled={page === 1}
+                                style={{
+                                    padding: '6px 16px', borderRadius: '8px', fontFamily: F.sans, fontSize: '0.82rem',
+                                    background: C.surface, border: `1px solid ${C.border}`, color: page === 1 ? C.textMuted : C.textPrimary,
+                                    cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.4 : 1, transition: 'background 0.15s',
+                                }}
+                                onMouseEnter={(e) => { if (page !== 1) e.currentTarget.style.borderColor = C.borderHi; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
+                            >← Попередня</button>
+
+                            <span style={{ fontFamily: F.sans, fontSize: '0.8rem', color: C.textMuted, padding: '0 8px' }}>
+                {data!.currentPage} / {data!.totalPages}
+              </span>
+
+                            <button
+                                onClick={() => changePage(page + 1)} disabled={page === data!.totalPages || data!.totalPages === 0}
+                                style={{
+                                    padding: '6px 16px', borderRadius: '8px', fontFamily: F.sans, fontSize: '0.82rem',
+                                    background: C.surface, border: `1px solid ${C.border}`,
+                                    color: (page === data!.totalPages || data!.totalPages === 0) ? C.textMuted : C.textPrimary,
+                                    cursor: (page === data!.totalPages || data!.totalPages === 0) ? 'not-allowed' : 'pointer',
+                                    opacity: (page === data!.totalPages || data!.totalPages === 0) ? 0.4 : 1, transition: 'background 0.15s',
+                                }}
+                                onMouseEnter={(e) => { if (page !== data!.totalPages) e.currentTarget.style.borderColor = C.borderHi; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
+                            >Наступна →</button>
+                        </div>
+                    </>
+                )}
+            </div>
         </Layout>
     );
 };

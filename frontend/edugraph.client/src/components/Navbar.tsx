@@ -1,5 +1,7 @@
+// src/components/Navbar.tsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { C, F } from '../styles/tokens';
 
 export interface NavLinkDef {
     label: string;
@@ -11,28 +13,53 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ links }) => {
+    const { pathname } = useLocation();
+
     return (
-        <nav className="bg-white border-b border-gray-200 shadow-sm mb-6">
-            <div className="container mx-auto px-4 max-w-6xl">
-                <div className="flex flex-wrap items-center justify-between py-2">
-                    <Link to="/" className="text-xl font-medium text-gray-900 py-1 mr-4">
-                        EduGraph
-                    </Link>
-                    <div className="flex-grow flex items-center justify-between sm:flex-row flex-col">
-                        <ul className="flex flex-row space-x-4 m-0 p-0 list-none">
-                            {links.map((link) => (
-                                <li key={link.href} className="nav-item">
-                                    <Link
-                                        to={link.href}
-                                        className="block py-2 text-gray-800 hover:text-blue-600 transition-colors"
-                                    >
-                                        {link.label}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
+        <nav style={{
+            borderBottom: `1px solid ${C.border}`,
+            background: 'rgba(10,13,20,0.85)',
+            backdropFilter: 'blur(12px)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+        }}>
+            <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '56px' }}>
+                {/* Logo */}
+                <Link to="/" style={{ fontFamily: F.display, fontWeight: 700, fontSize: '1.1rem', color: C.accent, textDecoration: 'none', letterSpacing: '-0.02em' }}>
+                    EduGraph
+                </Link>
+
+                {/* Links */}
+                <ul style={{ display: 'flex', gap: '4px', listStyle: 'none', margin: 0, padding: 0 }}>
+                    {links.map((link) => {
+                        const active = pathname === link.href;
+                        return (
+                            <li key={link.href}>
+                                <Link
+                                    to={link.href}
+                                    style={{
+                                        display: 'block',
+                                        padding: '5px 14px',
+                                        borderRadius: '8px',
+                                        fontFamily: F.sans,
+                                        fontSize: '0.85rem',
+                                        fontWeight: active ? 500 : 400,
+                                        color: active ? C.accent : C.textMuted,
+                                        background: active ? C.accentDim : 'transparent',
+                                        border: `1px solid ${active ? C.accentBorder : 'transparent'}`,
+                                        textDecoration: 'none',
+                                        transition: 'color 0.15s, background 0.15s',
+                                    }}
+                                    onMouseEnter={(e) => { if (!active) { e.currentTarget.style.color = C.textPrimary; e.currentTarget.style.background = C.surface; } }}
+                                    onMouseLeave={(e) => { if (!active) { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.background = 'transparent'; } }}
+                                >
+                                    {link.label}
+                                </Link>
+                            </li>
+                        );
+                    })}
+                </ul>
             </div>
         </nav>
     );
