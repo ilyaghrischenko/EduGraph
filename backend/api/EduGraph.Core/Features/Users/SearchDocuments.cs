@@ -5,11 +5,13 @@ using EduGraph.Infrastructure.GoogleDrive;
 using EduGraph.Infrastructure.GoogleDrive.Models;
 using EduGraph.Infrastructure.SearchModel;
 using EduGraph.Infrastructure.SearchModel.Models;
+using EduGraph.Infrastructure.SQLite;
 using EduGraph.SharedKernel.Interfaces;
 using EduGraph.SharedKernel.Models;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EduGraph.Core.Features.Users;
 
@@ -69,46 +71,27 @@ public static class SearchDocuments
     }
 
     public sealed class Handler(
-        GoogleDriveService googleDriveService,
+        EduGraphContext db,
         SearchService searchService) : IScopedType
     {
         public async Task<Result<IReadOnlyCollection<Response>>> HandleAsync(
             Request request,
             CancellationToken cancellationToken)
         {
-            //todo: брать теперь с базы данных, фоновый воркер туда ложит
-            List<Result<GoogleDriveDocument>> getDocumentsFromFolderResult = await googleDriveService.GetDocumentsFromFolderAsync(cancellationToken);
-
-            List<Document> documentsForSearch = getDocumentsFromFolderResult
-                .Where(getDocumentResult => getDocumentResult is { IsSuccess: true, Value: not null } 
-                        && !string.IsNullOrWhiteSpace(getDocumentResult.Value.Content))
-                .Select(getDocumentResult => new Document
+            List<Document> documents = await db.UniversityDocuments
+                .AsNoTracking()
+                .Select(document => new Document
                 {
-                    Title = getDocumentResult.Value!.Name,
-                    Content = getDocumentResult.Value.Content,
-                    Url = getDocumentResult.Value.Link
+                    Title = document.Name,
+                    Content = document.Content,
+                    Url = document.Link
                 })
-                .ToList();
-
-            if (documentsForSearch.Count == 0)
-            {
-                ErrorDetails? firstGoogleDriveError = getDocumentsFromFolderResult
-                    .Where(getGoogleDriveDocumentResult => getGoogleDriveDocumentResult.IsFailure)
-                    .Select(getGoogleDriveDocumentResult => getGoogleDriveDocumentResult.ErrorDetails)
-                    .FirstOrDefault(errorDetails => errorDetails is not null);
-
-                if (firstGoogleDriveError is not null)
-                {
-                    return firstGoogleDriveError;
-                }
-
-                return new ErrorDetails("No documents available for search.");
-            }
+                .ToListAsync(cancellationToken);
 
             SearchOptions searchOptions = new()
             {
                 Query = request.Query,
-                Documents = documentsForSearch
+                Documents = documents
             };
 
             Result<IReadOnlyCollection<Document>?> getRelatedDocumentsByQueryResult = await searchService.GetRelatedDocumentsByQueryAsync(

@@ -20,5 +20,11 @@ public sealed class UniversityDocumentEntityConfiguration : IEntityTypeConfigura
 
         builder.Property(x => x.Link)
             .IsRequired();
+
+        builder.Property(x => x.GoogleDriveId)
+            .IsRequired();
+        
+        builder.HasIndex(x => x.GoogleDriveId)
+            .IsUnique();
     }
 }

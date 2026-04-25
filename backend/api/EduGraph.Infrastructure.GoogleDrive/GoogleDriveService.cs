@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using DocumentFormat.OpenXml.Packaging;
 using EduGraph.Infrastructure.GoogleDrive.Models;
@@ -22,6 +23,7 @@ public sealed class GoogleDriveService(
 
 #pragma warning disable SA1203
     private const int Limit = 15;
+    private const int BatchSize = 50;
 #pragma warning restore SA1203
 
     private static readonly Lazy<SemaphoreSlim> GlobalSemaphore = new(
@@ -30,15 +32,15 @@ public sealed class GoogleDriveService(
 
     private static SemaphoreSlim GetOrCreateSemaphore() => GlobalSemaphore.Value;
 
-    public async Task<List<Result<GoogleDriveDocument>>> GetDocumentsFromFolderAsync(
-        CancellationToken cancellationToken,
+    public async IAsyncEnumerable<List<Result<GoogleDriveDocument>>> GetDocumentsStreamAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken,
         string? folderId = null)
     {
         string targetFolderId = folderId ?? _options.DefaultFolderId;
 
         if (string.IsNullOrWhiteSpace(targetFolderId))
         {
-            return [new ErrorDetails("Target folder id is empty")];
+            yield break;
         }
         
         var allFileIds = new List<string>();
@@ -91,34 +93,42 @@ public sealed class GoogleDriveService(
 
         if (allFileIds.Count == 0)
         {
-            return [new ErrorDetails("No files found")];
+            yield break;
         }
 
         // Отправляем все собранные ID в наш параллельный загрузчик
-        return await GetFilesFromDriveAsync(allFileIds, cancellationToken);
+        await foreach (List<Result<GoogleDriveDocument>> result in GetFilesFromDriveAsync(allFileIds, cancellationToken))
+        {
+            yield return result;
+        }
     }
 
-    private async Task<List<Result<GoogleDriveDocument>>> GetFilesFromDriveAsync(
+    private async IAsyncEnumerable<List<Result<GoogleDriveDocument>>> GetFilesFromDriveAsync(
         IReadOnlyCollection<string> fileIds,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         SemaphoreSlim semaphore = GetOrCreateSemaphore();
 
-        IEnumerable<Task<Result<GoogleDriveDocument>>> tasks = fileIds.Select(async id =>
+        IEnumerable<string[]> batches = fileIds.Chunk(BatchSize);
+        
+        foreach (string[] batch in batches)
         {
-            await semaphore.WaitAsync(cancellationToken);
-            try
+            IEnumerable<Task<Result<GoogleDriveDocument>>> tasks = batch.Select(async id =>
             {
-                return await GetFileFromDriveAsync(id, cancellationToken);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        });
+                await semaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    return await GetFileFromDriveAsync(id, cancellationToken);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
 
-        Result<GoogleDriveDocument>[] results = await Task.WhenAll(tasks);
-        return results.ToList();
+            Result<GoogleDriveDocument>[] results = await Task.WhenAll(tasks);
+            yield return results.ToList();
+        }
     }
 
     private async Task<Result<GoogleDriveDocument>> GetFileFromDriveAsync(
@@ -165,7 +175,7 @@ public sealed class GoogleDriveService(
             return new GoogleDriveDocument(
                 Id: fileMetadata.Id,
                 Name: fileMetadata.Name,
-                Content: content, // Python-сервису нужен голый текст
+                Content: content,
                 Link: fileMetadata.WebViewLink
             );
         }

@@ -1,4 +1,3 @@
-using System.Data.Common;
 using EduGraph.Domain.Entities;
 using EduGraph.Infrastructure.GoogleDrive;
 using EduGraph.Infrastructure.GoogleDrive.Models;
@@ -33,55 +32,55 @@ public sealed partial class FetchDocumentsBackgroundService(
                 var googleDriveService = scope.ServiceProvider.GetRequiredService<GoogleDriveService>();
                 var db = scope.ServiceProvider.GetRequiredService<EduGraphContext>();
 
-                List<Result<GoogleDriveDocument>> getAllDocumentsResults;
                 try
                 {
-                    getAllDocumentsResults = await googleDriveService.GetDocumentsFromFolderAsync(stoppingToken);
-                }
-                catch (Exception ex)
-                {
-                    LogGoogleDriveError(ex);
-                    await Task.Delay(TimeSpan.FromHours(3), stoppingToken);
-                    continue;
-                }
-
-                List<UniversityDocument> universityDocuments =
-                    new(getAllDocumentsResults.Count(result => result.IsSuccess));
-                foreach (Result<GoogleDriveDocument> documentResult in getAllDocumentsResults)
-                {
-                    if (documentResult.IsFailure)
+                    HashSet<string> syncedIds = [];
+                    
+                    await foreach (List<Result<GoogleDriveDocument>> batchDocumentsResults in googleDriveService.GetDocumentsStreamAsync(stoppingToken))
                     {
-                        continue;
+                        List<string> batchIds = batchDocumentsResults
+                            .Where(result => result.IsSuccess)
+                            .Select(result => result.Value!.Id)
+                            .ToList();
+                        
+                        syncedIds.UnionWith(batchIds);
+                        
+                        List<UniversityDocument> existingDocuments = await db.UniversityDocuments
+                            .Where(document => batchIds.Contains(document.GoogleDriveId))
+                            .ToListAsync(stoppingToken);
+                        
+                        List<UniversityDocument> newUniversityDocuments = new(batchIds.Count - existingDocuments.Count);
+                        
+                        foreach (Result<GoogleDriveDocument> documentResult in batchDocumentsResults)
+                        {
+                            if (documentResult.IsFailure)
+                            {
+                                continue;
+                            }
+
+                            GoogleDriveDocument googleDriveDocument = documentResult.Value!;
+
+                            UniversityDocument? existingDocument = existingDocuments.FirstOrDefault(document => document.GoogleDriveId == googleDriveDocument.Id);
+
+                            UpdateOrInsertDocument(newUniversityDocuments, existingDocument, googleDriveDocument);
+                        }
+                        
+                        await db.UniversityDocuments.AddRangeAsync(newUniversityDocuments, stoppingToken);
+                        await db.SaveChangesAsync(stoppingToken);
+                        db.ChangeTracker.Clear();
                     }
-
-                    GoogleDriveDocument googleDriveDocument = documentResult.Value!;
-
-                    Result<UniversityDocument> createUniversityDocumentResult = UniversityDocument.Create(
-                        googleDriveDocument.Name,
-                        googleDriveDocument.Content,
-                        googleDriveDocument.Link
-                    );
-
-                    if (createUniversityDocumentResult.IsFailure)
-                    {
-                        continue;
-                    }
-
-                    universityDocuments.Add(createUniversityDocumentResult.Value!);
-                }
-
-                await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(stoppingToken);
-                try
-                {
-                    await db.UniversityDocuments.ExecuteDeleteAsync(stoppingToken);
-                    await db.UniversityDocuments.AddRangeAsync(universityDocuments, stoppingToken);
-
-                    await db.SaveChangesAsync(stoppingToken);
-                    await transaction.CommitAsync(stoppingToken);
+                    
+                    await db.UniversityDocuments
+                        .Where(document => !syncedIds.Contains(document.GoogleDriveId))
+                        .ExecuteDeleteAsync(stoppingToken);
                 }
                 catch (DbUpdateException ex)
                 {
                     LogDbError(ex);
+                }
+                catch (Exception ex)
+                {
+                    LogGoogleDriveError(ex);
                 }
             }
             catch (Exception ex)
@@ -92,6 +91,27 @@ public sealed partial class FetchDocumentsBackgroundService(
             {
                 await Task.Delay(TimeSpan.FromHours(3), stoppingToken);
             }
+        }
+    }
+
+    private static void UpdateOrInsertDocument(List<UniversityDocument> universityDocuments, UniversityDocument? existingDocument, GoogleDriveDocument googleDriveDocument)
+    {
+        (string id, string name, string content, string link) = googleDriveDocument;
+        
+        if (existingDocument is not null)
+        {
+            existingDocument.Update(name, content, link);
+        }
+        else
+        {
+            Result<UniversityDocument> createUniversityDocumentResult = UniversityDocument.Create(
+                name,
+                content,
+                link,
+                id
+            );
+
+            universityDocuments.Add(createUniversityDocumentResult.Value!);
         }
     }
 }
