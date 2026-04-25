@@ -43,7 +43,7 @@ public sealed class GoogleDriveService(
             yield break;
         }
         
-        var allFileIds = new List<string>();
+        List<string> currentBatchFilesIds = new(BatchSize);
 
         // Очередь папок для обработки. Начинаем с корневой.
         var foldersToProcess = new Queue<string>();
@@ -66,6 +66,7 @@ public sealed class GoogleDriveService(
             do
             {
                 listRequest.PageToken = pageToken;
+                listRequest.PageSize = 1000;
                 
                 FileList? response = await listRequest.ExecuteAsync(cancellationToken);
 
@@ -81,7 +82,15 @@ public sealed class GoogleDriveService(
                         else
                         {
                             // Нашли обычный файл (документ) -> добавляем в список на скачивание
-                            allFileIds.Add(item.Id);
+                            currentBatchFilesIds.Add(item.Id);
+
+                            if (currentBatchFilesIds.Count == BatchSize)
+                            {
+                                // Отправляем все собранные ID в наш параллельный загрузчик
+                                yield return await GetBatchFilesFromDriveAsync(currentBatchFilesIds, cancellationToken);
+                                
+                                currentBatchFilesIds.Clear();
+                            }
                         }
                     }
                 }
@@ -90,45 +99,37 @@ public sealed class GoogleDriveService(
             }
             while (pageToken != null);
         }
-
-        if (allFileIds.Count == 0)
+        
+        if (currentBatchFilesIds.Count != 0)
         {
-            yield break;
-        }
-
-        // Отправляем все собранные ID в наш параллельный загрузчик
-        await foreach (List<Result<GoogleDriveDocument>> result in GetFilesFromDriveAsync(allFileIds, cancellationToken))
-        {
-            yield return result;
+            // Отправляем все собранные ID в наш параллельный загрузчик
+            yield return await GetBatchFilesFromDriveAsync(currentBatchFilesIds, cancellationToken);
+                        
+            currentBatchFilesIds.Clear();
         }
     }
 
-    private async IAsyncEnumerable<List<Result<GoogleDriveDocument>>> GetFilesFromDriveAsync(
-        IReadOnlyCollection<string> fileIds,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    private async Task<List<Result<GoogleDriveDocument>>> GetBatchFilesFromDriveAsync(
+        IReadOnlyCollection<string> batchFileIds,
+        CancellationToken cancellationToken)
     {
         SemaphoreSlim semaphore = GetOrCreateSemaphore();
 
-        IEnumerable<string[]> batches = fileIds.Chunk(BatchSize);
-        
-        foreach (string[] batch in batches)
+        IEnumerable<Task<Result<GoogleDriveDocument>>> tasks = batchFileIds.Select(async id =>
         {
-            IEnumerable<Task<Result<GoogleDriveDocument>>> tasks = batch.Select(async id =>
+            await semaphore.WaitAsync(cancellationToken);
+            try
             {
-                await semaphore.WaitAsync(cancellationToken);
-                try
-                {
-                    return await GetFileFromDriveAsync(id, cancellationToken);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            });
+                return await GetFileFromDriveAsync(id, cancellationToken);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
 
-            Result<GoogleDriveDocument>[] results = await Task.WhenAll(tasks);
-            yield return results.ToList();
-        }
+        Result<GoogleDriveDocument>[] results = await Task.WhenAll(tasks);
+        return results.ToList();
     }
 
     private async Task<Result<GoogleDriveDocument>> GetFileFromDriveAsync(
