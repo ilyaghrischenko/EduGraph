@@ -22,13 +22,14 @@ public sealed class GoogleDriveService(
     private readonly GoogleDriveOptions _options = options.Value;
 
 #pragma warning disable SA1203
-    private const int Limit = 20;
-    private const int BatchSize = 20;
+    private const int Limit = 50;
+    private const int BatchSize = 50;
 #pragma warning restore SA1203
 
     private static readonly Lazy<SemaphoreSlim> GlobalSemaphore = new(
         () => new SemaphoreSlim(Limit, Limit),
-        LazyThreadSafetyMode.ExecutionAndPublication);
+        LazyThreadSafetyMode.ExecutionAndPublication
+    );
 
     private static SemaphoreSlim GetOrCreateSemaphore() => GlobalSemaphore.Value;
 
@@ -102,7 +103,7 @@ public sealed class GoogleDriveService(
         
         if (currentBatchFilesIds.Count != 0)
         {
-            // Отправляем все собранные ID в наш параллельный загрузчик
+            // Отправляем остаток ID
             yield return await GetBatchFilesFromDriveAsync(currentBatchFilesIds, cancellationToken);
                         
             currentBatchFilesIds.Clear();

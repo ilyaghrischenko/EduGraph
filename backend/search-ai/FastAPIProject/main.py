@@ -154,8 +154,6 @@ app = FastAPI()
 model = SentenceTransformer("intfloat/multilingual-e5-large")
 
 
-# ------- Контракт входящего запроса -------
-
 class IncomingDocument(BaseModel):
     title: str
     content: str
@@ -168,20 +166,17 @@ class SearchRequest(BaseModel):
     top_k: int = 5
 
 
-# ------- Контракт ответа (совпадает с C# Document record) -------
-
 class SearchResult(BaseModel):
     title: str
     content: str
     url: str
-
-# ------- Endpoints -------
 
 @app.get("/")
 def index():
     return {"message": "EduGraph Search API is running"}
 
 
+#todo: добавить границу 60%
 @app.post("/search", response_model=list[SearchResult])
 def search(request: SearchRequest):
     if not request.documents:
