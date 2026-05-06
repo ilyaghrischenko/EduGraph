@@ -3,14 +3,14 @@ import { apiFetch } from './apiClient';
 
 export const authApi = {
     login: (data: LoginRequest): Promise<string> => {
-        return apiFetch('/api/users/login', {
+        return apiFetch<string>('/api/users/login', {
             method: 'POST',
             body: JSON.stringify(data),
         });
     },
 
     signUp: (data: SignUpRequest): Promise<void> => {
-        return apiFetch('/api/users/signup', {
+        return apiFetch<void>('/api/users/signup', {
             method: 'POST',
             body: JSON.stringify(data),
         });

@@ -10,15 +10,15 @@ export const getToken = (): string | null => localStorage.getItem('token');
 /**
  * Универсальный обработчик ошибок API. Выбрасывает строку с описанием ошибки.
  */
-async function handleResponse(response: Response): Promise<any> {
+async function handleResponse<T>(response: Response): Promise<T> {
     if (response.ok) {
-        if (response.status === 204) return null; // No Content
+        if (response.status === 204) return null as T; // No Content
 
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
-            return response.json();
+            return response.json() as Promise<T>;
         }
-        return response.text(); // Для JWT токена, который возвращается как строка
+        return response.text() as Promise<T>; // Для JWT токена, который возвращается как строка
     }
 
     let errorMsg = 'Сталася невідома помилка';
@@ -36,15 +36,13 @@ async function handleResponse(response: Response): Promise<any> {
 /**
  * Базовая функция для выполнения запросов с нативным fetch
  */
-export async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<any> {
+export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = getToken();
-    const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-        ...options.headers,
-    };
+    const headers = new Headers(options.headers);
+    headers.set('Content-Type', headers.get('Content-Type') ?? 'application/json');
 
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers.set('Authorization', `Bearer ${token}`);
     }
 
     const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -52,5 +50,5 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}): Pro
         headers,
     });
 
-    return handleResponse(response);
+    return handleResponse<T>(response);
 }

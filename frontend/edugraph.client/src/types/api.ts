@@ -41,3 +41,10 @@ export interface SearchDocumentResponse {
     title: string;
     url: string;
 }
+
+// /api/users/folders response
+export interface FolderResponse {
+    id: string;
+    name: string;
+    link: string;
+}

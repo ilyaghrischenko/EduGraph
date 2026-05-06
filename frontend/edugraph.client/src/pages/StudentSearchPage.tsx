@@ -1,17 +1,18 @@
 // src/pages/StudentSearchPage.tsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { NodeObject } from 'react-force-graph-2d';
 import { Link } from 'react-router-dom';
 import { usersApi } from '../api/usersApi';
-import type { SearchDocumentResponse } from '../types/api';
+import type { FolderResponse, SearchDocumentResponse } from '../types/api';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface GraphNode extends NodeObject {
     id: string;
     title: string;
-    url: string;
+    url?: string;
+    type: 'root' | 'folder' | 'document';
 }
 
 interface GraphLink {
@@ -24,7 +25,7 @@ interface GraphData {
     links: GraphLink[];
 }
 
-type PageState = 'idle' | 'loading' | 'results' | 'empty' | 'error';
+type PageState = 'foldersLoading' | 'folders' | 'loading' | 'results' | 'empty' | 'error' | 'foldersError';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -38,16 +39,16 @@ const LOADING_STEPS = [
 const NODE_COLOR = '#4fffb0';
 const NODE_HOVER_COLOR = '#67e8f9';
 const LINK_COLOR = 'rgba(79, 255, 176, 0.18)';
-const LINK_HOVER_COLOR = 'rgba(103, 232, 249, 0.5)';
 const BG_COLOR = '#0a0d14';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function buildFullGraph(docs: SearchDocumentResponse[]): GraphData {
     const nodes: GraphNode[] = docs.map((doc, i) => ({
-        id: String(i),
+        id: `doc:${i}`,
         title: doc.title,
         url: doc.url,
+        type: 'document',
     }));
 
     const links: GraphLink[] = [];
@@ -58,6 +59,62 @@ function buildFullGraph(docs: SearchDocumentResponse[]): GraphData {
     }
 
     return { nodes, links };
+}
+
+function buildFoldersGraph(folders: FolderResponse[]): GraphData {
+    const root: GraphNode = {
+        id: 'root:g7',
+        title: 'G7',
+        type: 'root',
+    };
+
+    const nodes: GraphNode[] = [
+        root,
+        ...folders.map((folder) => ({
+            id: `folder:${folder.id}`,
+            title: folder.name,
+            url: folder.link,
+            type: 'folder' as const,
+        })),
+    ];
+
+    const links: GraphLink[] = folders.map((folder) => ({
+        source: root.id,
+        target: `folder:${folder.id}`,
+    }));
+
+    return { nodes, links };
+}
+
+function applyFoldersLayout(graph: GraphData, width: number, height: number): GraphData {
+    const root = graph.nodes.find((node) => node.type === 'root');
+    const folders = graph.nodes.filter((node) => node.type === 'folder');
+    const rootY = -Math.min(90, height * 0.12);
+    const firstRowY = 110;
+    const columns = Math.max(1, Math.min(folders.length, Math.floor((width - 160) / 190)));
+    const rows = Math.ceil(folders.length / columns);
+    const rowGap = rows > 1
+        ? Math.min(105, Math.max(78, (height * 0.7) / (rows - 1)))
+        : 0;
+
+    const positionedFolders = folders.map((node, index) => {
+        const row = Math.floor(index / columns);
+        const rowStart = row * columns;
+        const rowCount = Math.min(columns, folders.length - rowStart);
+        const col = index - rowStart;
+        const x = (col - (rowCount - 1) / 2) * 190;
+        const y = firstRowY + row * rowGap;
+
+        return { ...node, x, y, fx: x, fy: y };
+    });
+
+    return {
+        nodes: [
+            ...(root ? [{ ...root, x: 0, y: rootY, fx: 0, fy: rootY }] : []),
+            ...positionedFolders,
+        ],
+        links: graph.links,
+    };
 }
 
 // ─── Loading Overlay ─────────────────────────────────────────────────────────
@@ -166,7 +223,7 @@ const DotDotDot: React.FC = () => {
 
 export const StudentSearchPage: React.FC = () => {
     const [query, setQuery] = useState('');
-    const [pageState, setPageState] = useState<PageState>('idle');
+    const [pageState, setPageState] = useState<PageState>('foldersLoading');
     const [loadingStep, setLoadingStep] = useState(0);
     const [graphData, setGraphData] = useState<GraphData | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -178,6 +235,13 @@ export const StudentSearchPage: React.FC = () => {
     const stepTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<any>(null);
+    const visibleGraphData = useMemo(() => {
+        if (!graphData || pageState !== 'folders' || dimensions.width <= 0 || dimensions.height <= 0) {
+            return graphData;
+        }
+
+        return applyFoldersLayout(graphData, dimensions.width, dimensions.height);
+    }, [dimensions.height, dimensions.width, graphData, pageState]);
 
     // Track container size
     useEffect(() => {
@@ -195,22 +259,35 @@ export const StudentSearchPage: React.FC = () => {
         return () => observer.disconnect();
     }, []);
 
-    const clearStepTimers = () => {
+    const clearStepTimers = useCallback(() => {
         stepTimersRef.current.forEach(clearTimeout);
         stepTimersRef.current = [];
-    };
+    }, []);
 
-    const startLoadingSteps = () => {
+    const startLoadingSteps = useCallback(() => {
         setLoadingStep(0);
         clearStepTimers();
         let elapsed = 0;
-        LOADING_STEPS.forEach((step, i) => {
+        LOADING_STEPS.forEach((_, i) => {
             if (i === 0) return;
             elapsed += LOADING_STEPS[i - 1].duration;
             const t = setTimeout(() => setLoadingStep(i), elapsed);
             stepTimersRef.current.push(t);
         });
-    };
+    }, [clearStepTimers]);
+
+    const fetchFolders = useCallback(async () => {
+        setPageState('foldersLoading');
+        setError(null);
+        try {
+            const folders = await usersApi.getFolders();
+            setGraphData(buildFoldersGraph(folders));
+            setPageState('folders');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Помилка запиту');
+            setPageState('foldersError');
+        }
+    }, []);
 
     const handleSearch = useCallback(async () => {
         if (!query.trim() || pageState === 'loading') return;
@@ -234,17 +311,34 @@ export const StudentSearchPage: React.FC = () => {
             setError(err instanceof Error ? err.message : 'Помилка запиту');
             setPageState('error');
         }
-    }, [query, pageState]);
+    }, [clearStepTimers, pageState, query, startLoadingSteps]);
 
-    useEffect(() => () => clearStepTimers(), []);
+    useEffect(() => () => clearStepTimers(), [clearStepTimers]);
+    useEffect(() => {
+        let ignore = false;
+
+        usersApi.getFolders()
+            .then((folders) => {
+                if (ignore) return;
+                setGraphData(buildFoldersGraph(folders));
+                setPageState('folders');
+            })
+            .catch((err: unknown) => {
+                if (ignore) return;
+                setError(err instanceof Error ? err.message : 'Помилка запиту');
+                setPageState('foldersError');
+            });
+
+        return () => { ignore = true; };
+    }, []);
 
     // Spread nodes out: increase repulsion and link distance
     useEffect(() => {
-        if (!fgRef.current || !graphData) return;
-        fgRef.current.d3Force('charge').strength(-350);
-        fgRef.current.d3Force('link').distance(120);
+        if (!fgRef.current || !visibleGraphData) return;
+        fgRef.current.d3Force('charge').strength(pageState === 'folders' ? -520 : -350);
+        fgRef.current.d3Force('link').distance(pageState === 'folders' ? 180 : 120);
         fgRef.current.d3ReheatSimulation();
-    }, [graphData]);
+    }, [pageState, visibleGraphData]);
 
     // ── Graph callbacks ────────────────────────────────────────────────────────
 
@@ -257,7 +351,7 @@ export const StudentSearchPage: React.FC = () => {
         const n = node ? (node as GraphNode) : null;
         hoveredNodeRef.current = n;
         setHoveredNode(n);
-        document.body.style.cursor = node ? 'pointer' : 'default';
+        document.body.style.cursor = n?.url ? 'pointer' : 'default';
     }, []);
 
     // Custom canvas node painter — uses ref to avoid re-creating on every hover
@@ -267,10 +361,12 @@ export const StudentSearchPage: React.FC = () => {
             const x = node.x ?? 0;
             const y = node.y ?? 0;
             const isHovered = hoveredNodeRef.current?.id === n.id;
-            const r = isHovered ? 8 : 5.5;
+            const isRoot = n.type === 'root';
+            const isFolder = n.type === 'folder';
+            const r = isRoot ? 20 : isFolder ? 15 : isHovered ? 8 : 5.5;
 
             // Glow halo
-            const glowR = r * 5;
+            const glowR = isRoot || isFolder ? r * 2.6 : r * 5;
             const grd = ctx.createRadialGradient(x, y, 0, x, y, glowR);
             grd.addColorStop(0, isHovered ? 'rgba(103,232,249,0.45)' : 'rgba(79,255,176,0.25)');
             grd.addColorStop(1, 'rgba(79,255,176,0)');
@@ -278,6 +374,50 @@ export const StudentSearchPage: React.FC = () => {
             ctx.arc(x, y, glowR, 0, Math.PI * 2);
             ctx.fillStyle = grd;
             ctx.fill();
+
+            ctx.fillStyle = isRoot
+                ? 'rgba(79,255,176,0.16)'
+                : isFolder
+                    ? 'rgba(255,255,255,0.05)'
+                    : isHovered ? NODE_HOVER_COLOR : NODE_COLOR;
+            ctx.strokeStyle = isHovered ? NODE_HOVER_COLOR : isRoot || isFolder ? 'rgba(79,255,176,0.55)' : 'rgba(255,255,255,0.25)';
+            ctx.lineWidth = isRoot || isFolder ? 1.5 : 1;
+
+            if (isRoot || isFolder) {
+                const w = isRoot ? 92 : 120;
+                const h = isRoot ? 40 : 44;
+                const bx = x - w / 2;
+                const by = y - h / 2;
+                const br = 13;
+                ctx.beginPath();
+                ctx.moveTo(bx + br, by);
+                ctx.lineTo(bx + w - br, by);
+                ctx.arcTo(bx + w, by, bx + w, by + h, br);
+                ctx.lineTo(bx + w, by + h - br);
+                ctx.arcTo(bx + w, by + h, bx + w - br, by + h, br);
+                ctx.lineTo(bx + br, by + h);
+                ctx.arcTo(bx, by + h, bx, by + h - br, br);
+                ctx.lineTo(bx, by + br);
+                ctx.arcTo(bx, by, bx + br, by, br);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            if (isRoot || isFolder) {
+                const label = n.title.length > 16 ? n.title.slice(0, 16) + '…' : n.title;
+                ctx.font = `${isRoot ? 14 : 12}px 'DM Sans', sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = isHovered ? NODE_HOVER_COLOR : '#e2e8f0';
+                ctx.fillText(label, x, y);
+                return;
+            }
 
             // Core circle
             ctx.beginPath();
@@ -332,6 +472,14 @@ export const StudentSearchPage: React.FC = () => {
     // Clickable area matches visual node size
     const paintPointerArea = useCallback(
         (node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => {
+            const n = node as GraphNode;
+            if (n.type === 'root' || n.type === 'folder') {
+                const w = n.type === 'root' ? 92 : 120;
+                const h = n.type === 'root' ? 40 : 44;
+                ctx.fillStyle = color;
+                ctx.fillRect((node.x ?? 0) - w / 2, (node.y ?? 0) - h / 2, w, h);
+                return;
+            }
             ctx.beginPath();
             ctx.arc(node.x ?? 0, node.y ?? 0, 10, 0, Math.PI * 2);
             ctx.fillStyle = color;
@@ -458,25 +606,10 @@ export const StudentSearchPage: React.FC = () => {
             <div ref={containerRef} className="flex-1 relative min-h-0">
 
                 {/* ── Idle state ─────────────────────────────────────────────────── */}
-                {pageState === 'idle' && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 pointer-events-none">
-                        <div style={{ opacity: 0.12 }}>
-                            <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-                                <circle cx="60" cy="60" r="6" fill="#4fffb0" />
-                                <circle cx="20" cy="40" r="5" fill="#4fffb0" />
-                                <circle cx="100" cy="30" r="5" fill="#4fffb0" />
-                                <circle cx="25" cy="85" r="4" fill="#4fffb0" />
-                                <circle cx="95" cy="80" r="5" fill="#4fffb0" />
-                                <circle cx="55" cy="15" r="4" fill="#4fffb0" />
-                                {[[60,60,20,40],[60,60,100,30],[60,60,25,85],[60,60,95,80],[60,60,55,15],
-                                    [20,40,100,30],[20,40,25,85],[100,30,95,80],[25,85,95,80],[55,15,100,30]
-                                ].map(([x1,y1,x2,y2], i) => (
-                                    <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#4fffb0" strokeOpacity="0.4" strokeWidth="1" />
-                                ))}
-                            </svg>
-                        </div>
-                        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.18)', fontFamily: "'DM Sans', sans-serif" }}>
-                            Введіть запит для побудови графу знань
+                {pageState === 'foldersLoading' && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'DM Sans', sans-serif" }}>
+                            Завантаження папок…
                         </p>
                     </div>
                 )}
@@ -485,7 +618,7 @@ export const StudentSearchPage: React.FC = () => {
                 {pageState === 'loading' && <LoadingOverlay currentStep={loadingStep} />}
 
                 {/* ── Error state ────────────────────────────────────────────────── */}
-                {pageState === 'error' && (
+                {(pageState === 'error' || pageState === 'foldersError') && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                         <div
                             className="px-5 py-4 rounded-xl text-sm max-w-md text-center"
@@ -499,7 +632,7 @@ export const StudentSearchPage: React.FC = () => {
                             {error}
                         </div>
                         <button
-                            onClick={handleSearch}
+                            onClick={pageState === 'foldersError' ? fetchFolders : handleSearch}
                             className="text-xs px-3 py-1.5 rounded-lg transition-colors"
                             style={{ color: '#4fffb0', background: 'rgba(79,255,176,0.08)', border: '1px solid rgba(79,255,176,0.2)' }}
                         >
@@ -518,7 +651,7 @@ export const StudentSearchPage: React.FC = () => {
                 )}
 
                 {/* ── Hovered node info strip ────────────────────────────────────── */}
-                {pageState === 'results' && hoveredNode && (
+                {(pageState === 'folders' || pageState === 'results') && hoveredNode && hoveredNode.url && (
                     <div
                         className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-xl text-sm flex items-center gap-2 pointer-events-none"
                         style={{
@@ -545,7 +678,7 @@ export const StudentSearchPage: React.FC = () => {
                 )}
 
                 {/* ── Node count badge ───────────────────────────────────────────── */}
-                {pageState === 'results' && graphData && (
+                {(pageState === 'folders' || pageState === 'results') && graphData && (
                     <div
                         className="absolute bottom-4 right-4 z-10 px-3 py-1.5 rounded-lg text-xs"
                         style={{
@@ -556,15 +689,17 @@ export const StudentSearchPage: React.FC = () => {
                             backdropFilter: 'blur(4px)',
                         }}
                     >
-                        {graphData.nodes.length} документів · {graphData.links.length} зв'язків
+                        {pageState === 'folders'
+                            ? `${Math.max(graphData.nodes.length - 1, 0)} папок`
+                            : `${graphData.nodes.length} документів · ${graphData.links.length} зв'язків`}
                     </div>
                 )}
 
                 {/* ── Force Graph ────────────────────────────────────────────────── */}
-                {pageState === 'results' && graphData && dimensions.width > 0 && (
+                {(pageState === 'folders' || pageState === 'results') && visibleGraphData && dimensions.width > 0 && (
                     <ForceGraph2D
                         ref={fgRef}
-                        graphData={graphData}
+                        graphData={visibleGraphData}
                         width={dimensions.width}
                         height={dimensions.height}
                         backgroundColor={BG_COLOR}

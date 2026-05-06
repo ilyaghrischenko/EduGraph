@@ -161,7 +161,7 @@ public static class WebApplicationBuilderExtensions
             {
                 options.AddPolicy("AllowReactDevClient", corsBuilder =>
                 {
-                    corsBuilder.WithOrigins("http://localhost:5173")
+                    corsBuilder.WithOrigins("http://localhost:5174")
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
