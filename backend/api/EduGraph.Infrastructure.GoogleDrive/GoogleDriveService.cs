@@ -32,6 +32,62 @@ public sealed class GoogleDriveService(
     );
 
     private static SemaphoreSlim GetOrCreateSemaphore() => GlobalSemaphore.Value;
+    
+    public async Task<List<Result<GoogleDriveFolder>>> GetRootFoldersAsync(
+        CancellationToken cancellationToken,
+        string? folderId = null)
+    {
+        string targetFolderId = folderId ?? _options.DefaultFolderId;
+
+        if (string.IsNullOrWhiteSpace(targetFolderId))
+        {
+            return [];
+        }
+
+        try
+        {
+            FilesResource.ListRequest listRequest = driveService.Files.List();
+
+            listRequest.Q = $"'{targetFolderId}' in parents and trashed = false and mimeType = 'application/vnd.google-apps.folder'";
+
+            listRequest.Fields = "nextPageToken, files(id, name, webViewLink, mimeType)";
+            listRequest.PageSize = 1000;
+
+            var folders = new List<Result<GoogleDriveFolder>>();
+            string? pageToken = null;
+
+            do
+            {
+                listRequest.PageToken = pageToken;
+
+                FileList? response = await listRequest.ExecuteAsync(cancellationToken);
+
+                if (response.Files != null)
+                {
+                    foreach (File folder in response.Files)
+                    {
+                        folders.Add(new GoogleDriveFolder(
+                            Id: folder.Id,
+                            Name: folder.Name,
+                            Link: folder.WebViewLink
+                        ));
+                    }
+                }
+
+                pageToken = response.NextPageToken;
+            }
+            while (pageToken != null);
+
+            return folders;
+        }
+        catch (Exception ex)
+        {
+            return
+            [
+                new ErrorDetails($"Error reading folders from Google Drive folder {targetFolderId}: {ex.Message}")
+            ];
+        }
+    }
 
     public async IAsyncEnumerable<List<Result<GoogleDriveDocument>>> GetDocumentsStreamAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken,

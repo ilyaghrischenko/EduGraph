@@ -89,7 +89,7 @@ public sealed partial class FetchDocumentsBackgroundService(
             }
             finally
             {
-                await Task.Delay(TimeSpan.FromHours(3), stoppingToken);
+                await Task.Delay(TimeSpan.FromHours(4), stoppingToken);
             }
         }
     }

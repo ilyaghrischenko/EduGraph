@@ -1,8 +1,5 @@
-using System.Net;
 using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common.Endpoints;
-using EduGraph.Infrastructure.GoogleDrive;
-using EduGraph.Infrastructure.GoogleDrive.Models;
 using EduGraph.Infrastructure.SearchModel;
 using EduGraph.Infrastructure.SearchModel.Models;
 using EduGraph.Infrastructure.SQLite;
@@ -13,7 +10,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace EduGraph.Core.Features.Users;
+namespace EduGraph.Core.Features.GoogleDrive;
 
 #pragma warning disable CA1056
 #pragma warning disable CA1054
