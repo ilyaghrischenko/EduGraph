@@ -9,8 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EduGraph.Core.Features.GoogleDrive;
 
-#pragma warning disable CA1056
-#pragma warning disable CA1054
 public static class GetAllFolders
 {
     public sealed record Response(string Id, string Name, string Link);
@@ -40,8 +38,7 @@ public static class GetAllFolders
         }
     }
 
-    public sealed class Handler(
-        GoogleDriveService googleDriveService) : IScopedType
+    public sealed class Handler(GoogleDriveService googleDriveService) : IScopedType
     {
         public async Task<Result<IReadOnlyCollection<Response>>> HandleAsync(CancellationToken cancellationToken)
         {
@@ -85,5 +82,3 @@ public static class GetAllFolders
         }
     }
 }
-#pragma warning restore CA1056
-#pragma warning restore CA1054
