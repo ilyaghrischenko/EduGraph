@@ -12,7 +12,7 @@ interface GraphNode extends NodeObject {
     id: string;
     title: string;
     url?: string;
-    type: 'root' | 'folder' | 'document';
+    type: 'root' | 'folder' | 'document' | 'trunk';
 }
 
 interface GraphLink {
@@ -71,6 +71,16 @@ function buildFoldersGraph(folders: FolderResponse[]): GraphData {
     const nodes: GraphNode[] = [
         root,
         ...folders.map((folder) => ({
+            id: `trunk:${folder.id}`,
+            title: '',
+            type: 'trunk' as const,
+        })),
+        ...(folders.length > 0 ? [{
+            id: 'trunk:tail',
+            title: '',
+            type: 'trunk' as const,
+        }] : []),
+        ...folders.map((folder) => ({
             id: `folder:${folder.id}`,
             title: folder.name,
             url: folder.link,
@@ -78,10 +88,25 @@ function buildFoldersGraph(folders: FolderResponse[]): GraphData {
         })),
     ];
 
-    const links: GraphLink[] = folders.map((folder) => ({
-        source: root.id,
-        target: `folder:${folder.id}`,
-    }));
+    const links: GraphLink[] = [];
+    folders.forEach((folder, index) => {
+        const trunkId = `trunk:${folder.id}`;
+        links.push({
+            source: index === 0 ? root.id : `trunk:${folders[index - 1].id}`,
+            target: trunkId,
+        });
+        links.push({
+            source: trunkId,
+            target: `folder:${folder.id}`,
+        });
+    });
+
+    if (folders.length > 0) {
+        links.push({
+            source: `trunk:${folders[folders.length - 1].id}`,
+            target: 'trunk:tail',
+        });
+    }
 
     return { nodes, links };
 }
@@ -89,28 +114,30 @@ function buildFoldersGraph(folders: FolderResponse[]): GraphData {
 function applyFoldersLayout(graph: GraphData, width: number, height: number): GraphData {
     const root = graph.nodes.find((node) => node.type === 'root');
     const folders = graph.nodes.filter((node) => node.type === 'folder');
-    const rootY = -Math.min(90, height * 0.12);
-    const firstRowY = 110;
-    const columns = Math.max(1, Math.min(folders.length, Math.floor((width - 160) / 190)));
-    const rows = Math.ceil(folders.length / columns);
-    const rowGap = rows > 1
-        ? Math.min(105, Math.max(78, (height * 0.7) / (rows - 1)))
-        : 0;
+    const trunkNodes = graph.nodes.filter((node) => node.type === 'trunk');
+    const rootY = -Math.min(260, height * 0.24);
+    const firstBranchY = rootY + 150;
+    const branchGap = Math.min(62, Math.max(46, (height * 0.55) / Math.max(folders.length, 1)));
+    const branchOffset = Math.min(280, Math.max(190, width * 0.16));
 
     const positionedFolders = folders.map((node, index) => {
-        const row = Math.floor(index / columns);
-        const rowStart = row * columns;
-        const rowCount = Math.min(columns, folders.length - rowStart);
-        const col = index - rowStart;
-        const x = (col - (rowCount - 1) / 2) * 190;
-        const y = firstRowY + row * rowGap;
+        const side = index % 2 === 0 ? 1 : -1;
+        const x = side * branchOffset;
+        const y = firstBranchY + index * branchGap;
 
         return { ...node, x, y, fx: x, fy: y };
+    });
+
+    const positionedTrunkNodes = trunkNodes.map((node, index) => {
+        const y = firstBranchY + Math.min(index, folders.length) * branchGap;
+
+        return { ...node, x: 0, y, fx: 0, fy: y };
     });
 
     return {
         nodes: [
             ...(root ? [{ ...root, x: 0, y: rootY, fx: 0, fy: rootY }] : []),
+            ...positionedTrunkNodes,
             ...positionedFolders,
         ],
         links: graph.links,
@@ -363,6 +390,8 @@ export const StudentSearchPage: React.FC = () => {
             const isHovered = hoveredNodeRef.current?.id === n.id;
             const isRoot = n.type === 'root';
             const isFolder = n.type === 'folder';
+            if (n.type === 'trunk') return;
+
             const r = isRoot ? 20 : isFolder ? 15 : isHovered ? 8 : 5.5;
 
             // Glow halo
@@ -473,6 +502,8 @@ export const StudentSearchPage: React.FC = () => {
     const paintPointerArea = useCallback(
         (node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => {
             const n = node as GraphNode;
+            if (n.type === 'trunk') return;
+
             if (n.type === 'root' || n.type === 'folder') {
                 const w = n.type === 'root' ? 92 : 120;
                 const h = n.type === 'root' ? 40 : 44;
@@ -690,7 +721,7 @@ export const StudentSearchPage: React.FC = () => {
                         }}
                     >
                         {pageState === 'folders'
-                            ? `${Math.max(graphData.nodes.length - 1, 0)} папок`
+                            ? `${graphData.nodes.filter((node) => node.type === 'folder').length} папок`
                             : `${graphData.nodes.length} документів · ${graphData.links.length} зв'язків`}
                     </div>
                 )}
