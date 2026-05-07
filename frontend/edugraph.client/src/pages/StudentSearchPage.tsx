@@ -41,6 +41,10 @@ const NODE_COLOR = '#4fffb0';
 const NODE_HOVER_COLOR = '#67e8f9';
 const LINK_COLOR = 'rgba(79, 255, 176, 0.18)';
 const BG_COLOR = '#0a0d14';
+const DOCUMENT_NODE_WIDTH = 160;
+const DOCUMENT_NODE_HEIGHT = 44;
+const DOCUMENT_NODE_GAP = 14;
+const DOCUMENT_GROUP_GAP = 42;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -116,6 +120,82 @@ function buildGraph(folders: FolderResponse[], docs: SearchDocumentResponse[] = 
     return { nodes, links };
 }
 
+function fitCanvasText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+    if (ctx.measureText(text).width <= maxWidth) return text;
+
+    let fitted = text;
+    while (fitted.length > 1 && ctx.measureText(`${fitted}…`).width > maxWidth) {
+        fitted = fitted.slice(0, -1);
+    }
+
+    return `${fitted}…`;
+}
+
+function getDocumentLabelLines(ctx: CanvasRenderingContext2D, title: string, maxWidth: number): string[] {
+    const words = title
+        .replace(/\.[^.]+$/, '')
+        .replace(/[_-]+/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+    const lines: string[] = [];
+
+    words.forEach((word) => {
+        if (lines.length === 0) {
+            lines.push(word);
+            return;
+        }
+
+        const currentLine = lines[lines.length - 1];
+        const candidate = `${currentLine} ${word}`;
+        if (lines.length < 2 && ctx.measureText(candidate).width > maxWidth) {
+            lines.push(word);
+            return;
+        }
+
+        lines[lines.length - 1] = candidate;
+    });
+
+    if (lines.length === 0) return [fitCanvasText(ctx, title, maxWidth)];
+
+    return lines.slice(0, 2).map((line, index) => {
+        const suffix = index === 1 && lines.length > 2 ? '…' : '';
+        return fitCanvasText(ctx, `${line}${suffix}`, maxWidth);
+    });
+}
+
+function resolveDocumentGroupCenters(
+    documentGroups: Map<string, GraphNode[]>,
+    positionById: Map<string, { x: number; y: number }>,
+): Map<string, number> {
+    const groups = [...documentGroups.entries()]
+        .map(([parentId, nodes]) => {
+            const parentPosition = positionById.get(parentId);
+            const height = nodes.length * DOCUMENT_NODE_HEIGHT + Math.max(0, nodes.length - 1) * DOCUMENT_NODE_GAP;
+
+            return parentPosition
+                ? { parentId, centerY: parentPosition.y + (parentId === 'root:g7' ? 112 : -24), height }
+                : null;
+        })
+        .filter((group): group is { parentId: string; centerY: number; height: number } => group !== null)
+        .sort((a, b) => a.centerY - b.centerY);
+
+    for (let i = 1; i < groups.length; i++) {
+        const previous = groups[i - 1];
+        const current = groups[i];
+        const minCenterY = previous.centerY + previous.height / 2 + DOCUMENT_GROUP_GAP + current.height / 2;
+
+        if (current.centerY < minCenterY) {
+            current.centerY = minCenterY;
+        }
+    }
+
+    const centers = new Map<string, number>();
+    groups.forEach((group) => centers.set(group.parentId, group.centerY));
+
+    return centers;
+}
+
 function applyGraphLayout(graph: GraphData, width: number, height: number): GraphData {
     const root = graph.nodes.find((node) => node.type === 'root');
     const folders = graph.nodes.filter((node) => node.type === 'folder');
@@ -124,7 +204,9 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
     const rootY = -Math.min(260, height * 0.24);
     const firstBranchY = rootY + 150;
     const branchGap = Math.min(62, Math.max(46, (height * 0.55) / Math.max(folders.length, 1)));
-    const branchOffset = Math.min(280, Math.max(190, width * 0.16));
+    const branchOffset = documents.length > 0
+        ? Math.min(170, Math.max(90, width * 0.07))
+        : Math.min(280, Math.max(190, width * 0.16));
 
     const positionById = new Map<string, { x: number; y: number }>();
 
@@ -153,6 +235,7 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
         if (!parentId) return;
         documentGroups.set(parentId, [...(documentGroups.get(parentId) ?? []), node]);
     });
+    const documentGroupCenters = resolveDocumentGroupCenters(documentGroups, positionById);
 
     const positionedDocuments = documents.map((node) => {
         const parentId = node.parentId ?? root?.id;
@@ -163,10 +246,12 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
 
         const siblings = documentGroups.get(parentId) ?? [];
         const index = Math.max(0, siblings.findIndex((doc) => doc.id === node.id));
-        const side = parentId === root?.id || parentPosition.x >= 0 ? 1 : -1;
-        const yOffset = (index - (siblings.length - 1) / 2) * 30;
-        const x = parentPosition.x + side * (parentId === root?.id ? 110 + index * 34 : 96 + Math.floor(index / 5) * 42);
-        const y = parentPosition.y + (parentId === root?.id ? 70 : yOffset);
+        const isRootParent = parentId === root?.id;
+        const side = isRootParent ? -1 : parentPosition.x >= 0 ? 1 : -1;
+        const groupCenterY = documentGroupCenters.get(parentId) ?? parentPosition.y + (parentId === root?.id ? 112 : -24);
+        const yOffset = (index - (siblings.length - 1) / 2) * (DOCUMENT_NODE_HEIGHT + DOCUMENT_NODE_GAP);
+        const x = parentPosition.x + side * (isRootParent ? DOCUMENT_NODE_WIDTH / 2 + 90 : DOCUMENT_NODE_WIDTH / 2 + 60);
+        const y = groupCenterY + yOffset;
 
         return { ...node, x, y, fx: x, fy: y };
     });
@@ -431,17 +516,22 @@ export const StudentSearchPage: React.FC = () => {
             const isHovered = hoveredNodeRef.current?.id === n.id;
             const isRoot = n.type === 'root';
             const isFolder = n.type === 'folder';
+            const isDocument = n.type === 'document';
             if (n.type === 'trunk') return;
 
             const r = isRoot ? 20 : isFolder ? 15 : isHovered ? 8 : 5.5;
 
             // Glow halo
-            const glowR = isRoot || isFolder ? r * 2.6 : r * 5;
+            const glowR = isRoot || isFolder || isDocument ? r * 2.6 : r * 5;
             const grd = ctx.createRadialGradient(x, y, 0, x, y, glowR);
             grd.addColorStop(0, isHovered ? 'rgba(103,232,249,0.45)' : 'rgba(79,255,176,0.25)');
             grd.addColorStop(1, 'rgba(79,255,176,0)');
             ctx.beginPath();
-            ctx.arc(x, y, glowR, 0, Math.PI * 2);
+            if (isDocument) {
+                ctx.rect(x - DOCUMENT_NODE_WIDTH / 2, y - DOCUMENT_NODE_HEIGHT / 2, DOCUMENT_NODE_WIDTH, DOCUMENT_NODE_HEIGHT);
+            } else {
+                ctx.arc(x, y, glowR, 0, Math.PI * 2);
+            }
             ctx.fillStyle = grd;
             ctx.fill();
 
@@ -449,16 +539,18 @@ export const StudentSearchPage: React.FC = () => {
                 ? 'rgba(79,255,176,0.16)'
                 : isFolder
                     ? 'rgba(255,255,255,0.05)'
+                    : isDocument
+                        ? 'rgba(255,255,255,0.045)'
                     : isHovered ? NODE_HOVER_COLOR : NODE_COLOR;
-            ctx.strokeStyle = isHovered ? NODE_HOVER_COLOR : isRoot || isFolder ? 'rgba(79,255,176,0.55)' : 'rgba(255,255,255,0.25)';
-            ctx.lineWidth = isRoot || isFolder ? 1.5 : 1;
+            ctx.strokeStyle = isHovered ? NODE_HOVER_COLOR : isRoot || isFolder || isDocument ? 'rgba(79,255,176,0.55)' : 'rgba(255,255,255,0.25)';
+            ctx.lineWidth = isRoot || isFolder || isDocument ? 1.5 : 1;
 
-            if (isRoot || isFolder) {
-                const w = isRoot ? 92 : 120;
-                const h = isRoot ? 40 : 44;
+            if (isRoot || isFolder || isDocument) {
+                const w = isRoot ? 92 : isFolder ? 120 : DOCUMENT_NODE_WIDTH;
+                const h = isRoot ? 40 : isFolder ? 44 : DOCUMENT_NODE_HEIGHT;
                 const bx = x - w / 2;
                 const by = y - h / 2;
-                const br = 13;
+                const br = isDocument ? 11 : 13;
                 ctx.beginPath();
                 ctx.moveTo(bx + br, by);
                 ctx.lineTo(bx + w - br, by);
@@ -479,13 +571,23 @@ export const StudentSearchPage: React.FC = () => {
                 ctx.stroke();
             }
 
-            if (isRoot || isFolder) {
+            if (isRoot || isFolder || isDocument) {
                 const label = n.title.length > 16 ? n.title.slice(0, 16) + '…' : n.title;
-                ctx.font = `${isRoot ? 14 : 12}px 'DM Sans', sans-serif`;
+                ctx.font = `${isRoot ? 14 : isFolder ? 12 : 11}px 'DM Sans', sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = isHovered ? NODE_HOVER_COLOR : '#e2e8f0';
-                ctx.fillText(label, x, y);
+
+                if (isDocument) {
+                    const lines = getDocumentLabelLines(ctx, n.title, DOCUMENT_NODE_WIDTH - 24);
+                    const lineHeight = 14;
+                    const firstLineY = y - ((lines.length - 1) * lineHeight) / 2;
+                    lines.forEach((line, index) => {
+                        ctx.fillText(line, x, firstLineY + index * lineHeight);
+                    });
+                } else {
+                    ctx.fillText(label, x, y);
+                }
                 return;
             }
 
@@ -550,6 +652,16 @@ export const StudentSearchPage: React.FC = () => {
                 const h = n.type === 'root' ? 40 : 44;
                 ctx.fillStyle = color;
                 ctx.fillRect((node.x ?? 0) - w / 2, (node.y ?? 0) - h / 2, w, h);
+                return;
+            }
+            if (n.type === 'document') {
+                ctx.fillStyle = color;
+                ctx.fillRect(
+                    (node.x ?? 0) - DOCUMENT_NODE_WIDTH / 2,
+                    (node.y ?? 0) - DOCUMENT_NODE_HEIGHT / 2,
+                    DOCUMENT_NODE_WIDTH,
+                    DOCUMENT_NODE_HEIGHT,
+                );
                 return;
             }
             ctx.beginPath();
