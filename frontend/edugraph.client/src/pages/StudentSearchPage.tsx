@@ -45,7 +45,10 @@ const DOCUMENT_NODE_WIDTH = 160;
 const DOCUMENT_NODE_HEIGHT = 44;
 const DOCUMENT_NODE_GAP = 22;
 const DOCUMENT_GROUP_GAP = 56;
-const FOLDER_NODE_WIDTH = 120;
+const FOLDER_NODE_MIN_WIDTH = 120;
+const FOLDER_NODE_MAX_WIDTH = 240;
+const FOLDER_NODE_CHAR_WIDTH = 9;
+const FOLDER_NODE_HORIZONTAL_PADDING = 34;
 const DOCUMENT_FOLDER_GAP = 76;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -166,6 +169,13 @@ function getDocumentLabelLines(ctx: CanvasRenderingContext2D, title: string, max
     });
 }
 
+function getFolderNodeWidth(title: string): number {
+    return Math.min(
+        FOLDER_NODE_MAX_WIDTH,
+        Math.max(FOLDER_NODE_MIN_WIDTH, title.length * FOLDER_NODE_CHAR_WIDTH + FOLDER_NODE_HORIZONTAL_PADDING),
+    );
+}
+
 function resolveDocumentGroupCenters(
     documentGroups: Map<string, GraphNode[]>,
     positionById: Map<string, { x: number; y: number }>,
@@ -238,6 +248,7 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
         documentGroups.set(parentId, [...(documentGroups.get(parentId) ?? []), node]);
     });
     const documentGroupCenters = resolveDocumentGroupCenters(documentGroups, positionById);
+    const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
 
     const positionedDocuments = documents.map((node) => {
         const parentId = node.parentId ?? root?.id;
@@ -252,10 +263,12 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
         const side = isRootParent ? -1 : parentPosition.x >= 0 ? 1 : -1;
         const groupCenterY = documentGroupCenters.get(parentId) ?? parentPosition.y + (parentId === root?.id ? 112 : -24);
         const yOffset = (index - (siblings.length - 1) / 2) * (DOCUMENT_NODE_HEIGHT + DOCUMENT_NODE_GAP);
+        const parentTitle = parentId ? nodeById.get(parentId)?.title ?? '' : '';
+        const folderWidth = isRootParent ? 92 : getFolderNodeWidth(parentTitle);
         const x = parentPosition.x + side * (
             isRootParent
                 ? DOCUMENT_NODE_WIDTH / 2 + 90
-                : FOLDER_NODE_WIDTH / 2 + DOCUMENT_FOLDER_GAP + DOCUMENT_NODE_WIDTH / 2
+                : folderWidth / 2 + DOCUMENT_FOLDER_GAP + DOCUMENT_NODE_WIDTH / 2
         );
         const y = groupCenterY + yOffset;
 
@@ -552,7 +565,7 @@ export const StudentSearchPage: React.FC = () => {
             ctx.lineWidth = isRoot || isFolder || isDocument ? 1.5 : 1;
 
             if (isRoot || isFolder || isDocument) {
-                const w = isRoot ? 92 : isFolder ? 120 : DOCUMENT_NODE_WIDTH;
+                const w = isRoot ? 92 : isFolder ? getFolderNodeWidth(n.title) : DOCUMENT_NODE_WIDTH;
                 const h = isRoot ? 40 : isFolder ? 44 : DOCUMENT_NODE_HEIGHT;
                 const bx = x - w / 2;
                 const by = y - h / 2;
@@ -578,7 +591,6 @@ export const StudentSearchPage: React.FC = () => {
             }
 
             if (isRoot || isFolder || isDocument) {
-                const label = n.title.length > 16 ? n.title.slice(0, 16) + '…' : n.title;
                 ctx.font = `${isRoot ? 14 : isFolder ? 12 : 11}px 'DM Sans', sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -592,6 +604,7 @@ export const StudentSearchPage: React.FC = () => {
                         ctx.fillText(line, x, firstLineY + index * lineHeight);
                     });
                 } else {
+                    const label = isFolder ? fitCanvasText(ctx, n.title, getFolderNodeWidth(n.title) - 22) : n.title;
                     ctx.fillText(label, x, y);
                 }
                 return;
@@ -654,7 +667,7 @@ export const StudentSearchPage: React.FC = () => {
             if (n.type === 'trunk') return;
 
             if (n.type === 'root' || n.type === 'folder') {
-                const w = n.type === 'root' ? 92 : 120;
+                const w = n.type === 'root' ? 92 : getFolderNodeWidth(n.title);
                 const h = n.type === 'root' ? 40 : 44;
                 ctx.fillStyle = color;
                 ctx.fillRect((node.x ?? 0) - w / 2, (node.y ?? 0) - h / 2, w, h);
