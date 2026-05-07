@@ -38,12 +38,9 @@ class DeleteRequest(BaseModel):
 
 
 class SearchRequest(BaseModel):
-
     query: str
-
     top_k: int = 5
-
-    min_score: float = 0.55
+    min_score: float = 0.81
 
 
 class SearchResult(BaseModel):
@@ -201,6 +198,7 @@ def search(request: SearchRequest):
     raw_results = (
         table
         .search(query_vector)
+        .metric("cosine")
         .limit(request.top_k * 3)
         .to_list()
     )
@@ -210,9 +208,15 @@ def search(request: SearchRequest):
     for item in raw_results:
         distance = float(item.get("_distance", 1.0))
 
-        # Для normalize_embeddings=True стартово используем так.
-        # Потом откалибруешь threshold на реальных данных.
         score = 1.0 - distance
+
+        logger.info(
+            "Search result: query='%s', title='%s', distance=%s, score=%s",
+            query,
+            item["title"],
+            distance,
+            score,
+        )
 
         if score < request.min_score:
             continue
