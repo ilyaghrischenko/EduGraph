@@ -43,8 +43,10 @@ const LINK_COLOR = 'rgba(79, 255, 176, 0.18)';
 const BG_COLOR = '#0a0d14';
 const DOCUMENT_NODE_WIDTH = 160;
 const DOCUMENT_NODE_HEIGHT = 44;
-const DOCUMENT_NODE_GAP = 14;
-const DOCUMENT_GROUP_GAP = 42;
+const DOCUMENT_NODE_GAP = 22;
+const DOCUMENT_GROUP_GAP = 56;
+const FOLDER_NODE_WIDTH = 120;
+const DOCUMENT_FOLDER_GAP = 76;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -250,7 +252,11 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
         const side = isRootParent ? -1 : parentPosition.x >= 0 ? 1 : -1;
         const groupCenterY = documentGroupCenters.get(parentId) ?? parentPosition.y + (parentId === root?.id ? 112 : -24);
         const yOffset = (index - (siblings.length - 1) / 2) * (DOCUMENT_NODE_HEIGHT + DOCUMENT_NODE_GAP);
-        const x = parentPosition.x + side * (isRootParent ? DOCUMENT_NODE_WIDTH / 2 + 90 : DOCUMENT_NODE_WIDTH / 2 + 60);
+        const x = parentPosition.x + side * (
+            isRootParent
+                ? DOCUMENT_NODE_WIDTH / 2 + 90
+                : FOLDER_NODE_WIDTH / 2 + DOCUMENT_FOLDER_GAP + DOCUMENT_NODE_WIDTH / 2
+        );
         const y = groupCenterY + yOffset;
 
         return { ...node, x, y, fx: x, fy: y };
