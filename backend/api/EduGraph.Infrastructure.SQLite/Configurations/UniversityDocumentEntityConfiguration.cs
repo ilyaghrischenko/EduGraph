@@ -12,6 +12,9 @@ public sealed class UniversityDocumentEntityConfiguration : IEntityTypeConfigura
         
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.FolderName)
+            .IsRequired(false);
+
         builder.Property(x => x.Name)
             .IsRequired();
 
@@ -26,5 +29,18 @@ public sealed class UniversityDocumentEntityConfiguration : IEntityTypeConfigura
         
         builder.HasIndex(x => x.GoogleDriveId)
             .IsUnique();
+
+        builder.Property(x => x.ContentHash)
+            .IsRequired();
+
+        builder.Property(x => x.SearchIndexStatus)
+            .IsRequired()
+            .HasConversion<string>();
+
+        builder.Property(x => x.SearchIndexedAt)
+            .IsRequired(false);
+
+        builder.Property(x => x.SearchIndexError)
+            .IsRequired(false);
     }
 }

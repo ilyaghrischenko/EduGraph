@@ -8,7 +8,7 @@ using EduGraph.Core.Features.Users;
 using EduGraph.Core.Options;
 using EduGraph.Domain.Entities;
 using EduGraph.Infrastructure.GoogleDrive.Extensions;
-using EduGraph.Infrastructure.SearchModel.Extensions;
+using EduGraph.Infrastructure.VectorSearch.Extensions;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
 using FluentValidation;

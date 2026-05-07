@@ -75,7 +75,7 @@ public static class LogIn
         {
             User? user = await db.Users
                 .FirstOrDefaultAsync(user => user.UserName == request.Login, cancellationToken);
-
+            
             if (user is null)
             {
                 return new ErrorDetails("Неправильний логін чи пароль");

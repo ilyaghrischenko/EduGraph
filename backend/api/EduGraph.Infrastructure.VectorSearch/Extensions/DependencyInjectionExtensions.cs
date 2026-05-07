@@ -1,13 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 
-namespace EduGraph.Infrastructure.SearchModel.Extensions;
+namespace EduGraph.Infrastructure.VectorSearch.Extensions;
 
 public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddSearchService(this IServiceCollection services, string baseUrl)
     {
-        services.AddHttpClient<SearchService>(client =>
+        services.AddHttpClient<VectorSearchService>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
         })
@@ -23,7 +23,7 @@ public static class DependencyInjectionExtensions
 
     public static IServiceCollection AddSearchService(this IServiceCollection services, Uri baseUrl)
     {
-        services.AddHttpClient<SearchService>(client =>
+        services.AddHttpClient<VectorSearchService>(client =>
         {
             client.BaseAddress = baseUrl;
         })

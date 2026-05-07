@@ -1,7 +1,7 @@
 using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common.Endpoints;
-using EduGraph.Infrastructure.SearchModel;
-using EduGraph.Infrastructure.SearchModel.Models;
+using EduGraph.Infrastructure.VectorSearch;
+using EduGraph.Infrastructure.VectorSearch.Models;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.SharedKernel.Interfaces;
 using EduGraph.SharedKernel.Models;
@@ -18,7 +18,13 @@ public static class SearchDocuments
 {
     public sealed record Request(string Query);
 
-    public sealed record Response(string Title, string Url);
+    public sealed record Response
+    {
+        public required string Title { get; init; }
+        public required string Url { get; init; }
+        public string? FolderName { get; init; }
+        public required double Score { get; init; }
+    }
 
     public sealed class Validator : AbstractValidator<Request>
     {
@@ -46,7 +52,7 @@ public static class SearchDocuments
         private static async Task<IResult> Handle(
             [AsParameters] Request request,
             [FromServices] IValidator<Request> validator,
-            [FromServices] Handler handler,
+            [FromServices] VectorSearchService vectorSearchService,
             CancellationToken cancellationToken)
         {
             ValidationResult validateSearchDocumentsRequest = await validator.ValidateAsync(request, cancellationToken);
@@ -56,62 +62,32 @@ public static class SearchDocuments
                 return Results.ValidationProblem(validateSearchDocumentsRequest.ToDictionary());
             }
 
-            Result<IReadOnlyCollection<Response>> searchDocumentsResult = await handler.HandleAsync(request, cancellationToken);
-
-            if (searchDocumentsResult.IsFailure)
+            VectorSearchRequest searchRequest = new()
             {
-                return searchDocumentsResult.ToHttpFailure();
-            }
-
-            return TypedResults.Ok(searchDocumentsResult.Value);
-        }
-    }
-
-    public sealed class Handler(
-        EduGraphContext db,
-        SearchService searchService) : IScopedType
-    {
-        public async Task<Result<IReadOnlyCollection<Response>>> HandleAsync(
-            Request request,
-            CancellationToken cancellationToken)
-        {
-            List<Document> documents = await db.UniversityDocuments
-                .AsNoTracking()
-                .Select(document => new Document
-                {
-                    Title = document.Name,
-                    Content = document.Content,
-                    Url = document.Link
-                })
-                .ToListAsync(cancellationToken);
-
-            SearchOptions searchOptions = new()
-            {
-                Query = request.Query,
-                Documents = documents
+                Query = request.Query
             };
 
-            Result<IReadOnlyCollection<Document>?> getRelatedDocumentsByQueryResult = await searchService.GetRelatedDocumentsByQueryAsync(
-                searchOptions,
+            Result<IReadOnlyCollection<VectorSearchResult>?> getRelatedDocumentsResult = await vectorSearchService.SearchAsync(
+                searchRequest,
                 cancellationToken
             );
 
-            if (getRelatedDocumentsByQueryResult.IsFailure)
+            if (getRelatedDocumentsResult.IsFailure)
             {
-                return Result<IReadOnlyCollection<Response>>.Failure(getRelatedDocumentsByQueryResult);
+                return getRelatedDocumentsResult.ToHttpFailure();
             }
 
-            if (getRelatedDocumentsByQueryResult.Value is null
-                || getRelatedDocumentsByQueryResult.Value.Count == 0)
-            {
-                return Result<IReadOnlyCollection<Response>>.Success([]);
-            }
-
-            List<Response> response = getRelatedDocumentsByQueryResult.Value
-                .Select(document => new Response(document.Title, document.Url))
+            List<Response> response = getRelatedDocumentsResult.Value!
+                .Select(document => new Response
+                {
+                    Title = document.Title,
+                    Url = document.Url,
+                    FolderName = document.FolderName,
+                    Score = document.Score
+                })
                 .ToList();
 
-            return response;
+            return TypedResults.Ok(response);
         }
     }
 }

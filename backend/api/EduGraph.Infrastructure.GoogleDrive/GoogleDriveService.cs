@@ -100,16 +100,16 @@ public sealed class GoogleDriveService(
             yield break;
         }
         
-        List<string> currentBatchFilesIds = new(BatchSize);
+        List<(string FileId, string? FolderName)> currentBatchFiles = new(BatchSize);
 
         // Очередь папок для обработки. Начинаем с корневой.
-        var foldersToProcess = new Queue<string>();
-        foldersToProcess.Enqueue(targetFolderId);
+        var foldersToProcess = new Queue<(string Id, string? Name)>();
+        foldersToProcess.Enqueue((targetFolderId, null));
 
         while (foldersToProcess.Count > 0)
         {
             // Берем следующую папку из очереди
-            string currentFolderId = foldersToProcess.Dequeue();
+            (string currentFolderId, string? currentFolderName) = foldersToProcess.Dequeue();
 
             FilesResource.ListRequest listRequest = driveService.Files.List();
 
@@ -117,7 +117,7 @@ public sealed class GoogleDriveService(
             listRequest.Q = $"'{currentFolderId}' in parents and trashed = false";
 
             // Запрашиваем ID и MimeType, чтобы отличать файлы от папок
-            listRequest.Fields = "nextPageToken, files(id, mimeType)";
+            listRequest.Fields = "nextPageToken, files(id, name, mimeType)";
 
             string? pageToken = null;
             do
@@ -133,20 +133,18 @@ public sealed class GoogleDriveService(
                     {
                         if (item.MimeType == "application/vnd.google-apps.folder")
                         {
-                            // Нашли подпапку -> добавляем в конец очереди на проверку
-                            foldersToProcess.Enqueue(item.Id);
+                            foldersToProcess.Enqueue((item.Id, item.Name));
                         }
                         else
                         {
                             // Нашли обычный файл (документ) -> добавляем в список на скачивание
-                            currentBatchFilesIds.Add(item.Id);
+                            currentBatchFiles.Add((item.Id, currentFolderName));
 
-                            if (currentBatchFilesIds.Count == BatchSize)
+                            if (currentBatchFiles.Count == BatchSize)
                             {
-                                // Отправляем все собранные ID в наш параллельный загрузчик
-                                yield return await GetBatchFilesFromDriveAsync(currentBatchFilesIds, cancellationToken);
-                                
-                                currentBatchFilesIds.Clear();
+                                yield return await GetBatchFilesFromDriveAsync(currentBatchFiles, cancellationToken);
+
+                                currentBatchFiles.Clear();
                             }
                         }
                     }
@@ -157,27 +155,30 @@ public sealed class GoogleDriveService(
             while (pageToken != null);
         }
         
-        if (currentBatchFilesIds.Count != 0)
+        if (currentBatchFiles.Count != 0)
         {
-            // Отправляем остаток ID
-            yield return await GetBatchFilesFromDriveAsync(currentBatchFilesIds, cancellationToken);
-                        
-            currentBatchFilesIds.Clear();
+            yield return await GetBatchFilesFromDriveAsync(currentBatchFiles, cancellationToken);
+                
+            currentBatchFiles.Clear();
         }
     }
 
     private async Task<List<Result<GoogleDriveDocument>>> GetBatchFilesFromDriveAsync(
-        IReadOnlyCollection<string> batchFileIds,
+        IReadOnlyCollection<(string FileId, string? FolderName)> batchFiles,
         CancellationToken cancellationToken)
     {
         SemaphoreSlim semaphore = GetOrCreateSemaphore();
 
-        IEnumerable<Task<Result<GoogleDriveDocument>>> tasks = batchFileIds.Select(async id =>
+        IEnumerable<Task<Result<GoogleDriveDocument>>> tasks = batchFiles.Select(async file =>
         {
             await semaphore.WaitAsync(cancellationToken);
             try
             {
-                return await GetFileFromDriveAsync(id, cancellationToken);
+                return await GetFileFromDriveAsync(
+                    file.FileId,
+                    file.FolderName,
+                    cancellationToken
+                );
             }
             finally
             {
@@ -191,6 +192,7 @@ public sealed class GoogleDriveService(
 
     private async Task<Result<GoogleDriveDocument>> GetFileFromDriveAsync(
         string fileId,
+        string? folderName,
         CancellationToken cancellationToken)
     {
         try
@@ -234,7 +236,8 @@ public sealed class GoogleDriveService(
                 Id: fileMetadata.Id,
                 Name: fileMetadata.Name,
                 Content: content,
-                Link: fileMetadata.WebViewLink
+                Link: fileMetadata.WebViewLink,
+                FolderName: folderName
             );
         }
         catch (Exception ex)

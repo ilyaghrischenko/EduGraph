@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.SQL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.GoogleDrive", "EduGraph.Infrastructure.GoogleDrive\EduGraph.Infrastructure.GoogleDrive.csproj", "{8A53B9C1-94D6-4FB3-96DD-CFDF1844791A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.SearchModel", "EduGraph.Infrastructure.SearchModel\EduGraph.Infrastructure.SearchModel.csproj", "{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.Infrastructure.VectorSearch", "EduGraph.Infrastructure.VectorSearch\EduGraph.Infrastructure.VectorSearch.csproj", "{BD5221C5-26D3-4199-A69A-D4E5D42E98EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EduGraph.SharedKernel", "EduGraph.SharedKernel\EduGraph.SharedKernel.csproj", "{4ED02671-C5D8-48C4-8B2F-A6F7DCB63D10}"
 EndProject

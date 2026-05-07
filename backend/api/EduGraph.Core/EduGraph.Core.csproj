@@ -35,7 +35,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\EduGraph.Infrastructure.GoogleDrive\EduGraph.Infrastructure.GoogleDrive.csproj" />
-      <ProjectReference Include="..\EduGraph.Infrastructure.SearchModel\EduGraph.Infrastructure.SearchModel.csproj" />
+      <ProjectReference Include="..\EduGraph.Infrastructure.VectorSearch\EduGraph.Infrastructure.VectorSearch.csproj" />
       <ProjectReference Include="..\EduGraph.Infrastructure.SQLite\EduGraph.Infrastructure.SQLite.csproj" />
       <ProjectReference Include="..\EduGraph.SharedKernel\EduGraph.SharedKernel.csproj" />
     </ItemGroup>
