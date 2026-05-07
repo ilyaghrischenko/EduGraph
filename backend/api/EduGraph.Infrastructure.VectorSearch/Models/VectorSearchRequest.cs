@@ -11,5 +11,5 @@ public sealed record VectorSearchRequest
     public int TopK { get; init; } = 5;
     
     [property: JsonPropertyName("min_score")]
-    public double MinScore { get; init; } = 0.55;
+    public double MinScore { get; init; } = 0.81;
 }
