@@ -12,6 +12,7 @@ interface GraphNode extends NodeObject {
     id: string;
     title: string;
     url?: string;
+    parentId?: string;
     type: 'root' | 'folder' | 'document' | 'trunk';
 }
 
@@ -43,30 +44,26 @@ const BG_COLOR = '#0a0d14';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function buildFullGraph(docs: SearchDocumentResponse[]): GraphData {
-    const nodes: GraphNode[] = docs.map((doc, i) => ({
-        id: `doc:${i}`,
-        title: doc.title,
-        url: doc.url,
-        type: 'document',
-    }));
-
-    const links: GraphLink[] = [];
-    for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-            links.push({ source: nodes[i].id, target: nodes[j].id });
-        }
-    }
-
-    return { nodes, links };
-}
-
-function buildFoldersGraph(folders: FolderResponse[]): GraphData {
+function buildGraph(folders: FolderResponse[], docs: SearchDocumentResponse[] = []): GraphData {
     const root: GraphNode = {
         id: 'root:g7',
         title: 'G7',
         type: 'root',
     };
+    const folderNodeIdByName = new Map(folders.map((folder) => [folder.name, `folder:${folder.id}`]));
+    const documentNodes: GraphNode[] = docs.map((doc, index) => {
+        const parentId = doc.folderName === null
+            ? root.id
+            : folderNodeIdByName.get(doc.folderName) ?? root.id;
+
+        return {
+            id: `doc:${index}`,
+            title: doc.title,
+            url: doc.url,
+            parentId,
+            type: 'document' as const,
+        };
+    });
 
     const nodes: GraphNode[] = [
         root,
@@ -86,6 +83,7 @@ function buildFoldersGraph(folders: FolderResponse[]): GraphData {
             url: folder.link,
             type: 'folder' as const,
         })),
+        ...documentNodes,
     ];
 
     const links: GraphLink[] = [];
@@ -108,30 +106,69 @@ function buildFoldersGraph(folders: FolderResponse[]): GraphData {
         });
     }
 
+    documentNodes.forEach((doc) => {
+        links.push({
+            source: doc.parentId ?? root.id,
+            target: doc.id,
+        });
+    });
+
     return { nodes, links };
 }
 
-function applyFoldersLayout(graph: GraphData, width: number, height: number): GraphData {
+function applyGraphLayout(graph: GraphData, width: number, height: number): GraphData {
     const root = graph.nodes.find((node) => node.type === 'root');
     const folders = graph.nodes.filter((node) => node.type === 'folder');
     const trunkNodes = graph.nodes.filter((node) => node.type === 'trunk');
+    const documents = graph.nodes.filter((node) => node.type === 'document');
     const rootY = -Math.min(260, height * 0.24);
     const firstBranchY = rootY + 150;
     const branchGap = Math.min(62, Math.max(46, (height * 0.55) / Math.max(folders.length, 1)));
     const branchOffset = Math.min(280, Math.max(190, width * 0.16));
+
+    const positionById = new Map<string, { x: number; y: number }>();
 
     const positionedFolders = folders.map((node, index) => {
         const side = index % 2 === 0 ? 1 : -1;
         const x = side * branchOffset;
         const y = firstBranchY + index * branchGap;
 
+        positionById.set(node.id, { x, y });
         return { ...node, x, y, fx: x, fy: y };
     });
 
     const positionedTrunkNodes = trunkNodes.map((node, index) => {
         const y = firstBranchY + Math.min(index, folders.length) * branchGap;
 
+        positionById.set(node.id, { x: 0, y });
         return { ...node, x: 0, y, fx: 0, fy: y };
+    });
+    if (root) {
+        positionById.set(root.id, { x: 0, y: rootY });
+    }
+
+    const documentGroups = new Map<string, GraphNode[]>();
+    documents.forEach((node) => {
+        const parentId = node.parentId ?? root?.id;
+        if (!parentId) return;
+        documentGroups.set(parentId, [...(documentGroups.get(parentId) ?? []), node]);
+    });
+
+    const positionedDocuments = documents.map((node) => {
+        const parentId = node.parentId ?? root?.id;
+        const parentPosition = parentId ? positionById.get(parentId) : undefined;
+        if (!parentId || !parentPosition) {
+            return node;
+        }
+
+        const siblings = documentGroups.get(parentId) ?? [];
+        const index = Math.max(0, siblings.findIndex((doc) => doc.id === node.id));
+        const side = parentId === root?.id || parentPosition.x >= 0 ? 1 : -1;
+        const yOffset = (index - (siblings.length - 1) / 2) * 30;
+        const x = parentPosition.x + side * (parentId === root?.id ? 110 + index * 34 : 96 + Math.floor(index / 5) * 42);
+        const y = parentPosition.y + (parentId === root?.id ? 70 : yOffset);
+
+        return { ...node, x, y, fx: x, fy: y };
     });
 
     return {
@@ -139,6 +176,7 @@ function applyFoldersLayout(graph: GraphData, width: number, height: number): Gr
             ...(root ? [{ ...root, x: 0, y: rootY, fx: 0, fy: rootY }] : []),
             ...positionedTrunkNodes,
             ...positionedFolders,
+            ...positionedDocuments,
         ],
         links: graph.links,
     };
@@ -252,6 +290,7 @@ export const StudentSearchPage: React.FC = () => {
     const [query, setQuery] = useState('');
     const [pageState, setPageState] = useState<PageState>('foldersLoading');
     const [loadingStep, setLoadingStep] = useState(0);
+    const [folders, setFolders] = useState<FolderResponse[]>([]);
     const [graphData, setGraphData] = useState<GraphData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
@@ -263,12 +302,12 @@ export const StudentSearchPage: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<any>(null);
     const visibleGraphData = useMemo(() => {
-        if (!graphData || pageState !== 'folders' || dimensions.width <= 0 || dimensions.height <= 0) {
+        if (!graphData || dimensions.width <= 0 || dimensions.height <= 0) {
             return graphData;
         }
 
-        return applyFoldersLayout(graphData, dimensions.width, dimensions.height);
-    }, [dimensions.height, dimensions.width, graphData, pageState]);
+        return applyGraphLayout(graphData, dimensions.width, dimensions.height);
+    }, [dimensions.height, dimensions.width, graphData]);
 
     // Track container size
     useEffect(() => {
@@ -307,8 +346,9 @@ export const StudentSearchPage: React.FC = () => {
         setPageState('foldersLoading');
         setError(null);
         try {
-            const folders = await usersApi.getFolders();
-            setGraphData(buildFoldersGraph(folders));
+            const loadedFolders = await usersApi.getFolders();
+            setFolders(loadedFolders);
+            setGraphData(buildGraph(loadedFolders));
             setPageState('folders');
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Помилка запиту');
@@ -330,7 +370,7 @@ export const StudentSearchPage: React.FC = () => {
             if (docs.length === 0) {
                 setPageState('empty');
             } else {
-                setGraphData(buildFullGraph(docs));
+                setGraphData(buildGraph(folders, docs));
                 setPageState('results');
             }
         } catch (err: unknown) {
@@ -338,16 +378,17 @@ export const StudentSearchPage: React.FC = () => {
             setError(err instanceof Error ? err.message : 'Помилка запиту');
             setPageState('error');
         }
-    }, [clearStepTimers, pageState, query, startLoadingSteps]);
+    }, [clearStepTimers, folders, pageState, query, startLoadingSteps]);
 
     useEffect(() => () => clearStepTimers(), [clearStepTimers]);
     useEffect(() => {
         let ignore = false;
 
         usersApi.getFolders()
-            .then((folders) => {
+            .then((loadedFolders) => {
                 if (ignore) return;
-                setGraphData(buildFoldersGraph(folders));
+                setFolders(loadedFolders);
+                setGraphData(buildGraph(loadedFolders));
                 setPageState('folders');
             })
             .catch((err: unknown) => {
@@ -720,9 +761,7 @@ export const StudentSearchPage: React.FC = () => {
                             backdropFilter: 'blur(4px)',
                         }}
                     >
-                        {pageState === 'folders'
-                            ? `${graphData.nodes.filter((node) => node.type === 'folder').length} папок`
-                            : `${graphData.nodes.length} документів · ${graphData.links.length} зв'язків`}
+                        {`${graphData.nodes.filter((node) => node.type === 'folder').length} папок · ${graphData.nodes.filter((node) => node.type === 'document').length} документів`}
                     </div>
                 )}
 

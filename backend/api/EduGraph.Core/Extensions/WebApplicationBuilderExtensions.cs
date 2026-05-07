@@ -166,6 +166,13 @@ public static class WebApplicationBuilderExtensions
                         .AllowAnyMethod()
                         .AllowCredentials();
                 });
+                options.AddPolicy("AllowReactDevClient", corsBuilder =>
+                {
+                    corsBuilder.WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
             }
         });
         

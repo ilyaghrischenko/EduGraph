@@ -129,7 +129,7 @@ public sealed partial class FetchDocumentsBackgroundService(
         VectorSearchService vectorSearchService,
         CancellationToken cancellationToken)
     {
-        const int batchSize = 25;
+        const int batchSize = 15;
 
         while (!cancellationToken.IsCancellationRequested)
         {

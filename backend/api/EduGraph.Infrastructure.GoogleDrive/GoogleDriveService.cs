@@ -22,8 +22,8 @@ public sealed class GoogleDriveService(
     private readonly GoogleDriveOptions _options = options.Value;
 
 #pragma warning disable SA1203
-    private const int Limit = 50;
-    private const int BatchSize = 50;
+    private const int Limit = 15;
+    private const int BatchSize = 15;
 #pragma warning restore SA1203
 
     private static readonly Lazy<SemaphoreSlim> GlobalSemaphore = new(

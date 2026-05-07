@@ -59,7 +59,8 @@ def escape_filter_value(value: str) -> str:
     return value.replace("'", "''")
 
 
-def chunk_text(text: str, max_chars: int = 1800, overlap: int = 250) -> list[str]:
+#настроить правильно max_chars overlap чтобы и производительно было, и качественно
+def chunk_text(text: str, max_chars: int = 2500, overlap: int = 300) -> list[str]:
     text = re.sub(r"\s+", " ", text).strip()
 
     if not text:
@@ -141,7 +142,7 @@ def upsert_documents(request: UpsertRequest):
 
         vectors = model.encode(
             passages,
-            batch_size=16,
+            batch_size=8,
             show_progress_bar=False,
             normalize_embeddings=True,
         )

@@ -40,6 +40,8 @@ export interface ProblemDetails {
 export interface SearchDocumentResponse {
     title: string;
     url: string;
+    folderName: string | null;
+    score: number;
 }
 
 // /api/users/folders response
