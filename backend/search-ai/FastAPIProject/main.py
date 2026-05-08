@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 from typing import List
 import logging
 import lancedb
@@ -11,11 +11,14 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-MODEL_NAME = "intfloat/multilingual-e5-large"
+EMBEDDING_MODEL_NAME = "intfloat/multilingual-e5-base"
+RERANKER_MODEL_NAME = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
+
 DB_PATH = "./vector_db"
 TABLE_NAME = "document_chunks"
 
-model = SentenceTransformer(MODEL_NAME)
+embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+reranker = CrossEncoder(RERANKER_MODEL_NAME)
 
 db = lancedb.connect(DB_PATH)
 
@@ -30,7 +33,7 @@ class IncomingDocument(BaseModel):
 
 
 class UpsertRequest(BaseModel):
-    documents: List[IncomingDocument]
+    documents: list[IncomingDocument]
 
 
 class DeleteRequest(BaseModel):
@@ -40,7 +43,8 @@ class DeleteRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
-    min_score: float = 0.81
+    min_score: float = 0.74
+    min_rerank_score: float = 1.0
 
 
 class SearchResult(BaseModel):
@@ -50,14 +54,15 @@ class SearchResult(BaseModel):
     url: str
     folder_name: str | None = None
     score: float
+    rerank_score: float
 
 
 def escape_filter_value(value: str) -> str:
     return value.replace("'", "''")
 
 
-#настроить правильно max_chars overlap чтобы и производительно было, и качественно
-def chunk_text(text: str, max_chars: int = 2500, overlap: int = 300) -> list[str]:
+#todo настроить правильно max_chars overlap чтобы и производительно было, и качественно
+def chunk_text(text: str, max_chars: int = 1800, overlap: int = 200) -> list[str]:
     text = re.sub(r"\s+", " ", text).strip()
 
     if not text:
@@ -82,7 +87,7 @@ def get_or_create_table():
     if TABLE_NAME in db.table_names():
         return db.open_table(TABLE_NAME)
 
-    sample_vector = model.encode(
+    sample_vector = embedding_model.encode(
         "passage: sample",
         normalize_embeddings=True,
     ).tolist()
@@ -137,7 +142,7 @@ def upsert_documents(request: UpsertRequest):
 
         passages = [f"passage: {chunk}" for chunk in chunks]
 
-        vectors = model.encode(
+        vectors = embedding_model.encode(
             passages,
             batch_size=8,
             show_progress_bar=False,
@@ -190,45 +195,118 @@ def search(request: SearchRequest):
     if not query:
         return []
 
-    query_vector = model.encode(
+    query_vector = embedding_model.encode(
         f"query: {query}",
         normalize_embeddings=True,
     ).tolist()
+
+    candidate_limit = max(request.top_k * 8, 30)
 
     raw_results = (
         table
         .search(query_vector)
         .metric("cosine")
-        .limit(request.top_k * 3)
+        .limit(candidate_limit)
         .to_list()
     )
 
-    results: list[SearchResult] = []
+    candidates = []
+    seen_chunk_ids: set[str] = set()
 
     for item in raw_results:
         distance = float(item.get("_distance", 1.0))
+        vector_score = 1.0 - distance
 
-        score = 1.0 - distance
-
-        logger.info(
-            "Search result: query='%s', title='%s', distance=%s, score=%s",
+        logger.debug(
+            "Vector result: query='%s', title='%s', distance=%s, score=%s",
             query,
             item["title"],
             distance,
-            score,
+            vector_score,
         )
 
-        if score < request.min_score:
+        if vector_score < request.min_score:
             continue
+
+        chunk_id = item["chunk_id"]
+
+        if chunk_id in seen_chunk_ids:
+            continue
+
+        seen_chunk_ids.add(chunk_id)
+
+        candidates.append(
+            {
+                "document_id": item["document_id"],
+                "chunk_id": chunk_id,
+                "title": item["title"],
+                "content": item["content"],
+                "url": item["url"],
+                "folder_name": item.get("folder_name"),
+                "score": vector_score,
+            }
+        )
+
+    if not candidates:
+        return []
+
+    rerank_pairs = [
+        [query, f"{candidate['title']}\n{candidate['content']}"]
+        for candidate in candidates
+    ]
+
+    rerank_scores = reranker.predict(
+        rerank_pairs,
+        batch_size=8,
+        show_progress_bar=False,
+    )
+
+    reranked = []
+
+    for candidate, rerank_score in zip(candidates, rerank_scores):
+        rerank_score = float(rerank_score)
+
+        logger.debug(
+            "Rerank result: query='%s', title='%s', vector_score=%s, rerank_score=%s",
+            query,
+            candidate["title"],
+            candidate["score"],
+            rerank_score,
+        )
+
+        if rerank_score < request.min_rerank_score:
+            continue
+
+        reranked.append(
+            {
+                **candidate,
+                "rerank_score": rerank_score,
+            }
+        )
+
+    reranked.sort(key=lambda item: item["rerank_score"], reverse=True)
+
+    results: list[SearchResult] = []
+
+    seen_document_ids: set[str] = set()
+
+    for item in reranked:
+        document_id = item["document_id"]
+
+        if document_id in seen_document_ids:
+            continue
+
+        seen_document_ids.add(document_id)
 
         results.append(
             SearchResult(
-                document_id=item["document_id"],
+                document_id=document_id,
                 title=item["title"],
                 content=item["content"],
                 url=item["url"],
                 folder_name=item.get("folder_name"),
-                score=score,
+                score=item["score"],
+                rerank_score=item["rerank_score"],
             )
         )
 

@@ -22,5 +22,8 @@ public sealed record VectorSearchResult
     
     [property: JsonPropertyName("score")]
     public required double Score { get; init; }
+    
+    [JsonPropertyName("rerank_score")]
+    public required double RerankScore { get; init; }
 }
 #pragma warning restore CA1056
