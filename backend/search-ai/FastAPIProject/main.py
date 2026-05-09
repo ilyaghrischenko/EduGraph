@@ -43,8 +43,8 @@ class DeleteRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
-    min_score: float = 0.74
-    min_rerank_score: float = 1.0
+    min_score: float = 0.75
+    min_rerank_score: float = -1.0
 
 
 class SearchResult(BaseModel):
@@ -62,7 +62,7 @@ def escape_filter_value(value: str) -> str:
 
 
 #todo настроить правильно max_chars overlap чтобы и производительно было, и качественно
-def chunk_text(text: str, max_chars: int = 1800, overlap: int = 200) -> list[str]:
+def chunk_text(text: str, max_chars: int = 1000, overlap: int = 150) -> list[str]:
     text = re.sub(r"\s+", " ", text).strip()
 
     if not text:
