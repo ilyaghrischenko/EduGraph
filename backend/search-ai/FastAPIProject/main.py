@@ -112,9 +112,10 @@ def get_or_create_table():
 table = get_or_create_table()
 
 
-@app.get("/")
-def index():
-    return {"message": "EduGraph Vector Search API is running"}
+@app.get("/health")
+def health():
+    logger.info("Health endpoint was called")
+    return {"status": "ok"}
 
 
 @app.post("/documents/upsert")

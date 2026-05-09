@@ -1,6 +1,12 @@
 fastapi
 uvicorn[standard]
 sentence-transformers
-lancedb
+lancedb==0.30.2
 pydantic
 numpy
+
+opentelemetry-distro
+opentelemetry-exporter-otlp
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-logging
