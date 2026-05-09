@@ -1,3 +1,4 @@
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using DocumentFormat.OpenXml.Packaging;
@@ -32,6 +33,43 @@ public sealed class GoogleDriveService(
     );
 
     private static SemaphoreSlim GetOrCreateSemaphore() => GlobalSemaphore.Value;
+
+    public async Task<Result<string>> GetRootFolderLinkAsync(CancellationToken cancellationToken)
+    {
+        string folderId = _options.DefaultFolderId;
+        
+        if (string.IsNullOrWhiteSpace(folderId))
+        {
+            return new ErrorDetails(
+                "Root folder ID is not set in the configuration",
+                HttpStatusCode.InternalServerError
+            );
+        }
+        
+        try
+        {
+            FilesResource.GetRequest? request = driveService.Files.Get(folderId);
+            request.Fields = "webViewLink";
+            File? fileMetadata = await request.ExecuteAsync(cancellationToken);
+
+            if (fileMetadata is null)
+            {
+                return new ErrorDetails(
+                    $"Root folder with ID {folderId} not found",
+                    HttpStatusCode.NotFound
+                );
+            }
+            
+            return fileMetadata.WebViewLink;
+        }
+        catch (Exception ex)
+        {
+            return new ErrorDetails(
+                $"Error reading root folder from Google Drive - {folderId}: {ex.Message}",
+                HttpStatusCode.InternalServerError
+            );
+        }
+    }
     
     public async Task<List<Result<GoogleDriveFolder>>> GetRootFoldersAsync(
         CancellationToken cancellationToken,
