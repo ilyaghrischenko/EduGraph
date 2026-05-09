@@ -7,13 +7,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EduGraph.Core.Features.GoogleDrive;
 
-//todo: review + на фронте кнопку добавить красивую
 public static class GetRootFolderLink
 {
     public sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
+            //todo: поменять роут и WithTags потому что не правильно сейчас + поправить это на фронте потом
             app.MapGet("users/root-folder-link", Handle)
                 .WithTags("Users")
                 .Produces<string>()
