@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EduGraph.Core.Features.GoogleDrive;
 
+//todo: review + на фронте кнопку добавить красивую
 public static class GetRootFolderLink
 {
     public sealed class Endpoint : IEndpoint
@@ -21,10 +22,10 @@ public static class GetRootFolderLink
         }
 
         private static async Task<IResult> Handle(
-            [FromServices] Handler handler,
+            [FromServices] GoogleDriveService googleDriveService,
             CancellationToken cancellationToken)
         {
-            Result<string> getRootFolderLinkResult = await handler.HandleAsync(cancellationToken);
+            Result<string> getRootFolderLinkResult = await googleDriveService.GetRootFolderLinkAsync(cancellationToken);
 
             if (getRootFolderLinkResult.IsFailure)
             {
@@ -32,21 +33,6 @@ public static class GetRootFolderLink
             }
 
             return TypedResults.Ok(getRootFolderLinkResult.Value);
-        }
-    }
-
-    public sealed class Handler(GoogleDriveService googleDriveService) : IScopedType
-    {
-        public async Task<Result<string>> HandleAsync(CancellationToken cancellationToken)
-        {
-            Result<string> getRootFolderLinkResult = await googleDriveService.GetRootFolderLinkAsync(cancellationToken);
-
-            if (getRootFolderLinkResult.IsFailure)
-            {
-                return getRootFolderLinkResult;
-            }
-
-            return getRootFolderLinkResult.Value!;
         }
     }
 }

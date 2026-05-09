@@ -218,7 +218,7 @@ def search(request: SearchRequest):
         distance = float(item.get("_distance", 1.0))
         vector_score = 1.0 - distance
 
-        logger.debug(
+        logger.info(
             "Vector result: query='%s', title='%s', distance=%s, score=%s",
             query,
             item["title"],
@@ -267,7 +267,7 @@ def search(request: SearchRequest):
     for candidate, rerank_score in zip(candidates, rerank_scores):
         rerank_score = float(rerank_score)
 
-        logger.debug(
+        logger.info(
             "Rerank result: query='%s', title='%s', vector_score=%s, rerank_score=%s",
             query,
             candidate["title"],
