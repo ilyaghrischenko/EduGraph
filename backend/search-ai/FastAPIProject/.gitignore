@@ -1,1 +1,6 @@
 vector_db
+
+.venv
+__pycache__
+.idea
+*.pyc

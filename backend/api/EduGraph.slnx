@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EduGraph.Core/EduGraph.Core.csproj" />
+    <Project Path="src/EduGraph.Domain/EduGraph.Domain.csproj" />
+    <Project Path="src/EduGraph.Infrastructure.GoogleDrive/EduGraph.Infrastructure.GoogleDrive.csproj" />
+    <Project Path="src/EduGraph.Infrastructure.SQLite/EduGraph.Infrastructure.SQLite.csproj" />
+    <Project Path="src/EduGraph.Infrastructure.VectorSearch/EduGraph.Infrastructure.VectorSearch.csproj" />
+    <Project Path="src/EduGraph.SharedKernel/EduGraph.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/aspire/">
+    <Project Path="src/aspire/EduGraph.AppHost/EduGraph.AppHost.csproj" />
+    <Project Path="src/aspire/EduGraph.ServiceDefaults/EduGraph.ServiceDefaults.csproj" />
+  </Folder>
+</Solution>

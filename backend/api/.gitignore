@@ -5,7 +5,7 @@
 
 # dotenv files
 .env
-EduGraph.Core/service_account_credentials.json
+src/EduGraph.Core/service_account_credentials.json
 
 *.db
 *.db-wal
