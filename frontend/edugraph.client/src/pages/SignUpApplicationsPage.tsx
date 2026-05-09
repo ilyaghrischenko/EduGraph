@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Alert, GhostButton } from '../components/ui';
 import { adminsApi } from '../api/adminsApi';
+import { usersApi } from '../api/usersApi';
 import type { PaginationResponse, SignUpApplicationResponse } from '../types/api';
 import { C, F } from '../styles/tokens';
 
@@ -20,6 +21,17 @@ const SortIcon: React.FC<{ descending: boolean }> = ({ descending }) => (
     </svg>
 );
 
+const GoogleDriveIcon: React.FC = () => (
+    <svg width="25" height="22" viewBox="0 0 87.3 78" aria-hidden="true" focusable="false">
+        <path d="M6.6 66.9 10.8 74.2c.9 1.6 2.3 2.8 3.9 3.4l15-26H0c0 1.8.5 3.6 1.4 5.2l5.2 10.1z" fill="#0066da" />
+        <path d="M43.6 26 28.6 0c-1.6.6-3 1.8-3.9 3.4L1.4 44.2C.5 45.8 0 47.6 0 49.4v2.2h29.8L43.6 26z" fill="#00ac47" />
+        <path d="M72.6 77.6c1.6-.6 3-1.8 3.9-3.4l1.7-2.9 7.7-14.5c.9-1.6 1.4-3.4 1.4-5.2H57.5l6.4 12.5 8.7 13.5z" fill="#ea4335" />
+        <path d="M43.6 26 58.6 0c-1.6-.6-3.4-.6-5.1-.6H33.8c-1.8 0-3.5 0-5.1.6l15 26z" fill="#00832d" />
+        <path d="M57.5 51.6H29.8l-15 26c1.6.6 3.4.4 5.1.4h47.4c1.8 0 3.5-.2 5.1-.8l-14.9-25.6z" fill="#2684fc" />
+        <path d="M72.4 27.7 60.7 7.1c-.9-1.6-2.3-2.8-3.9-3.4L43.6 26l13.9 25.6h29.7c0-1.8-.5-3.6-1.4-5.2L72.4 27.7z" fill="#ffba00" />
+    </svg>
+);
+
 export const SignUpApplicationsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const page        = parseInt(searchParams.get('page') || '1', 10);
@@ -29,6 +41,7 @@ export const SignUpApplicationsPage: React.FC = () => {
     const [error, setError]         = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [actionId, setActionId]   = useState<number | null>(null);
+    const [driveLink, setDriveLink] = useState<string | null>(null);
 
     const fetchApplications = useCallback(async () => {
         setIsLoading(true);
@@ -44,6 +57,16 @@ export const SignUpApplicationsPage: React.FC = () => {
     }, [page, isDescending]);
 
     useEffect(() => { fetchApplications(); }, [fetchApplications]);
+
+    useEffect(() => {
+        let ignore = false;
+
+        usersApi.getRootFolderLink()
+            .then((link) => { if (!ignore) setDriveLink(link); })
+            .catch(() => { if (!ignore) setDriveLink(null); });
+
+        return () => { ignore = true; };
+    }, []);
 
     const toggleSort  = () => setSearchParams({ page: '1', descending: (!isDescending).toString() });
     const changePage  = (p: number) => setSearchParams({ page: p.toString(), descending: isDescending.toString() });
@@ -91,13 +114,48 @@ export const SignUpApplicationsPage: React.FC = () => {
         <Layout navLinks={NAV_LINKS}>
             <div style={{ paddingTop: '36px' }}>
                 {/* Page heading */}
-                <div style={{ marginBottom: '24px' }}>
-                    <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                        Адміністрування
-                    </p>
-                    <h1 style={{ fontFamily: F.display, fontSize: '1.6rem', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
-                        Заявки на реєстрацію
-                    </h1>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '24px' }}>
+                    <div>
+                        <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '6px' }}>
+                            Адміністрування
+                        </p>
+                        <h1 style={{ fontFamily: F.display, fontSize: '1.6rem', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
+                            Заявки на реєстрацію
+                        </h1>
+                    </div>
+                    <a
+                        href={driveLink ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Відкрити Google Drive"
+                        title="Відкрити Google Drive"
+                        onClick={(e) => { if (!driveLink) e.preventDefault(); }}
+                        style={{
+                            width: '44px',
+                            height: '44px',
+                            flex: '0 0 44px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '10px',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: `1px solid ${C.border}`,
+                            opacity: driveLink ? 1 : 0.45,
+                            cursor: driveLink ? 'pointer' : 'not-allowed',
+                            transition: 'border-color 0.15s, background 0.15s',
+                        }}
+                        onMouseEnter={(e) => {
+                            if (!driveLink) return;
+                            e.currentTarget.style.borderColor = C.borderHi;
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.07)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = C.border;
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                        }}
+                    >
+                        <GoogleDriveIcon />
+                    </a>
                 </div>
 
                 {error && <Alert variant="error">{error}</Alert>}
