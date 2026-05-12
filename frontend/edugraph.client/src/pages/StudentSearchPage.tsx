@@ -53,8 +53,6 @@ const FOLDER_NODE_MAX_WIDTH = 240;
 const FOLDER_NODE_HORIZONTAL_PADDING = 34;
 const DOCUMENT_FOLDER_GAP = 76;
 const ROOT_DOCUMENT_GAP = 44;
-const DOCUMENT_PANEL_WIDTH = 440;
-const DOCUMENT_PANEL_TRANSITION_MS = 360;
 
 let textMeasureContext: CanvasRenderingContext2D | null | undefined;
 const textWidthCache = new Map<string, number>();
@@ -436,34 +434,36 @@ const DotDotDot: React.FC = () => {
     return <span>{'.'.repeat(dots)}&nbsp;</span>;
 };
 
-interface DocumentPanelProps {
+interface DocumentModalProps {
     document: GraphNode;
-    isOpen: boolean;
     onClose: () => void;
 }
 
-const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, isOpen, onClose }) => (
-    <aside
-        className="document-panel relative z-20 flex h-full flex-shrink-0 overflow-hidden"
+const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
+    <div
+        className="document-modal-backdrop fixed inset-0 z-30 flex items-center justify-center px-4 py-6"
         style={{
-            width: isOpen ? `${DOCUMENT_PANEL_WIDTH}px` : 0,
-            opacity: isOpen ? 1 : 0,
-            transform: isOpen ? 'translateX(0)' : 'translateX(28px)',
-            background: 'rgba(10,13,20,0.94)',
-            border: '1px solid rgba(79,255,176,0.24)',
-            borderRight: 0,
-            boxShadow: '-22px 0 70px rgba(0,0,0,0.38), inset 1px 0 0 rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(79,255,176,0.10), 0 0 42px rgba(79,255,176,0.06)',
-            backdropFilter: 'blur(14px)',
+            background: 'rgba(3,7,18,0.72)',
+            backdropFilter: 'blur(12px)',
             fontFamily: "'DM Sans', sans-serif",
-            transition: `width ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${DOCUMENT_PANEL_TRANSITION_MS}ms ease, transform ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
         }}
-        aria-label="Вміст документа"
-        aria-hidden={!isOpen}
-        data-open={isOpen}
+        onMouseDown={onClose}
     >
-        <div className="flex h-full flex-col" style={{ width: `${DOCUMENT_PANEL_WIDTH}px`, minWidth: `${DOCUMENT_PANEL_WIDTH}px` }}>
+        <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="document-modal-title"
+            className="document-modal flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl"
+            style={{
+                maxHeight: 'min(78vh, 720px)',
+                background: 'linear-gradient(180deg, rgba(15,23,42,0.97) 0%, rgba(10,13,20,0.98) 100%)',
+                border: '1px solid rgba(79,255,176,0.24)',
+                boxShadow: '0 34px 110px rgba(0,0,0,0.58), 0 0 0 1px rgba(255,255,255,0.04), 0 0 64px rgba(79,255,176,0.08)',
+            }}
+            onMouseDown={(event) => event.stopPropagation()}
+        >
             <div
-                className="flex items-start justify-between gap-4 px-5 py-4"
+                className="flex items-start justify-between gap-5 px-6 py-5"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
             >
                 <div className="min-w-0">
@@ -474,6 +474,7 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, isOpen, onClose
                         Фрагмент документа
                     </p>
                     <h2
+                        id="document-modal-title"
                         className="text-base font-medium leading-snug"
                         style={{ color: '#e2e8f0', overflowWrap: 'anywhere' }}
                     >
@@ -488,7 +489,7 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, isOpen, onClose
                 <button
                     type="button"
                     onClick={onClose}
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors"
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl transition-colors"
                     style={{
                         background: 'rgba(255,255,255,0.04)',
                         border: '1px solid rgba(255,255,255,0.08)',
@@ -504,17 +505,25 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, isOpen, onClose
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-                <p
-                    className="whitespace-pre-wrap text-sm leading-6"
-                    style={{ color: 'rgba(226,232,240,0.86)', overflowWrap: 'anywhere' }}
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+                <div
+                    className="rounded-2xl px-5 py-4"
+                    style={{
+                        background: 'rgba(255,255,255,0.035)',
+                        border: '1px solid rgba(255,255,255,0.07)',
+                    }}
                 >
-                    {document.content}
-                </p>
+                    <p
+                        className="whitespace-pre-wrap text-sm leading-6"
+                        style={{ color: 'rgba(226,232,240,0.88)', overflowWrap: 'anywhere' }}
+                    >
+                        {document.content}
+                    </p>
+                </div>
             </div>
 
             <div
-                className="px-5 py-4"
+                className="px-6 py-5"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
             >
                 <a
@@ -537,8 +546,8 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, isOpen, onClose
                     Відкрити оригінал у Google Drive
                 </a>
             </div>
-        </div>
-    </aside>
+        </section>
+    </div>
 );
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -552,13 +561,11 @@ export const StudentSearchPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
     const [selectedDocument, setSelectedDocument] = useState<GraphNode | null>(null);
-    const [isDocumentPanelOpen, setIsDocumentPanelOpen] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const hoveredNodeRef = useRef<GraphNode | null>(null);
     const stepTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-    const documentPanelCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<any>(null);
     const visibleGraphData = useMemo(() => {
@@ -605,7 +612,6 @@ export const StudentSearchPage: React.FC = () => {
     const fetchFolders = useCallback(async () => {
         setPageState('foldersLoading');
         setError(null);
-        setIsDocumentPanelOpen(false);
         setSelectedDocument(null);
         try {
             const loadedFolders = await usersApi.getFolders();
@@ -624,7 +630,6 @@ export const StudentSearchPage: React.FC = () => {
         setPageState('loading');
         setError(null);
         setGraphData(null);
-        setIsDocumentPanelOpen(false);
         setSelectedDocument(null);
         startLoadingSteps();
 
@@ -645,11 +650,6 @@ export const StudentSearchPage: React.FC = () => {
     }, [clearStepTimers, folders, pageState, query, startLoadingSteps]);
 
     useEffect(() => () => clearStepTimers(), [clearStepTimers]);
-    useEffect(() => () => {
-        if (documentPanelCloseTimerRef.current) {
-            clearTimeout(documentPanelCloseTimerRef.current);
-        }
-    }, []);
     useEffect(() => {
         let ignore = false;
 
@@ -677,47 +677,34 @@ export const StudentSearchPage: React.FC = () => {
         fgRef.current.d3ReheatSimulation();
     }, [pageState, visibleGraphData]);
 
-    useEffect(() => {
-        if (!fgRef.current || !visibleGraphData || dimensions.width <= 0) return;
-
-        const isDesktopPanel = pageState === 'results'
-            && isDocumentPanelOpen
-            && typeof window !== 'undefined'
-            && window.innerWidth > 768;
-        const currentCenter = fgRef.current.centerAt();
-        const zoom = fgRef.current.zoom?.() ?? 1;
-        const targetX = isDesktopPanel ? DOCUMENT_PANEL_WIDTH / 2 / zoom : 0;
-
-        fgRef.current.centerAt(targetX, currentCenter.y, DOCUMENT_PANEL_TRANSITION_MS);
-    }, [dimensions.width, isDocumentPanelOpen, pageState, visibleGraphData]);
-
     // ── Graph callbacks ────────────────────────────────────────────────────────
 
     const handleNodeClick = useCallback((node: NodeObject) => {
         const n = node as GraphNode;
         if (n.type === 'document') {
-            if (documentPanelCloseTimerRef.current) {
-                clearTimeout(documentPanelCloseTimerRef.current);
-                documentPanelCloseTimerRef.current = null;
-            }
             setSelectedDocument(n);
-            requestAnimationFrame(() => setIsDocumentPanelOpen(true));
             return;
         }
 
         if (n.url) window.open(n.url, '_blank', 'noopener,noreferrer');
     }, []);
 
-    const closeDocumentPanel = useCallback(() => {
-        setIsDocumentPanelOpen(false);
-        if (documentPanelCloseTimerRef.current) {
-            clearTimeout(documentPanelCloseTimerRef.current);
-        }
-        documentPanelCloseTimerRef.current = setTimeout(() => {
-            setSelectedDocument(null);
-            documentPanelCloseTimerRef.current = null;
-        }, DOCUMENT_PANEL_TRANSITION_MS);
+    const closeDocumentModal = useCallback(() => {
+        setSelectedDocument(null);
     }, []);
+
+    useEffect(() => {
+        if (!selectedDocument) return;
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                closeDocumentModal();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [closeDocumentModal, selectedDocument]);
 
     const handleNodeHover = useCallback((node: NodeObject | null) => {
         const n = node ? (node as GraphNode) : null;
@@ -1121,14 +1108,14 @@ export const StudentSearchPage: React.FC = () => {
 
                 </div>
 
-                {(pageState === 'results') && selectedDocument && (
-                    <DocumentPanel
-                        document={selectedDocument}
-                        isOpen={isDocumentPanelOpen}
-                        onClose={closeDocumentPanel}
-                    />
-                )}
             </div>
+
+            {(pageState === 'results') && selectedDocument && (
+                <DocumentModal
+                    document={selectedDocument}
+                    onClose={closeDocumentModal}
+                />
+            )}
 
             {/* ── Global styles injection (Syne + DM Sans + pulse keyframe) ─────── */}
             <style>{`
@@ -1137,26 +1124,19 @@ export const StudentSearchPage: React.FC = () => {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.6; transform: scale(0.85); }
         }
-        @media (max-width: 768px) {
-          .student-search-main {
-            flex-direction: column;
-          }
-          .document-panel {
-            width: 100% !important;
-            height: min(45vh, 380px) !important;
-            max-height: min(45vh, 380px);
-            border-left: 0 !important;
-            border-top: 1px solid rgba(79,255,176,0.22);
-            box-shadow: 0 -22px 70px rgba(0,0,0,0.42), 0 0 42px rgba(79,255,176,0.06) !important;
-            transform: translateY(0) !important;
-            transition: height ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), max-height ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${DOCUMENT_PANEL_TRANSITION_MS}ms ease, transform ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) !important;
-          }
-          .document-panel[data-open="false"] {
-            height: 0 !important;
-            max-height: 0;
-            transform: translateY(24px) !important;
-            pointer-events: none;
-          }
+        .document-modal-backdrop {
+          animation: document-modal-backdrop-in 180ms ease-out;
+        }
+        .document-modal {
+          animation: document-modal-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes document-modal-backdrop-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes document-modal-in {
+          from { opacity: 0; transform: translateY(14px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
         </div>
