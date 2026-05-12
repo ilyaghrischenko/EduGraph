@@ -53,6 +53,7 @@ const FOLDER_NODE_MAX_WIDTH = 240;
 const FOLDER_NODE_HORIZONTAL_PADDING = 34;
 const DOCUMENT_FOLDER_GAP = 76;
 const ROOT_DOCUMENT_GAP = 44;
+const DOCUMENT_PANEL_WIDTH = 440;
 
 let textMeasureContext: CanvasRenderingContext2D | null | undefined;
 const textWidthCache = new Map<string, number>();
@@ -441,15 +442,16 @@ interface DocumentPanelProps {
 
 const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, onClose }) => (
     <aside
-        className="document-panel absolute right-4 top-4 bottom-4 z-20 flex flex-col"
+        className="document-panel relative z-20 flex h-full flex-shrink-0 flex-col"
         style={{
-            width: 'min(420px, calc(100% - 32px))',
+            width: `${DOCUMENT_PANEL_WIDTH}px`,
             background: 'rgba(10,13,20,0.94)',
-            border: '1px solid rgba(79,255,176,0.22)',
-            borderRadius: '18px',
-            boxShadow: '0 24px 70px rgba(0,0,0,0.42), 0 0 42px rgba(79,255,176,0.06)',
+            border: '1px solid rgba(79,255,176,0.24)',
+            borderRight: 0,
+            boxShadow: '-22px 0 70px rgba(0,0,0,0.38), inset 1px 0 0 rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(79,255,176,0.10), 0 0 42px rgba(79,255,176,0.06)',
             backdropFilter: 'blur(14px)',
             fontFamily: "'DM Sans', sans-serif",
+            animation: 'slide-panel-in 0.2s ease-out',
         }}
         aria-label="Вміст документа"
     >
@@ -525,7 +527,7 @@ const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, onClose }) => (
                     <path d="M10 14 21 3" />
                     <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
                 </svg>
-                Відкрити оригінал у Google Диск
+                Відкрити оригінал у Google Drive
             </a>
         </div>
     </aside>
@@ -657,6 +659,20 @@ export const StudentSearchPage: React.FC = () => {
         fgRef.current.d3Force('link').distance(pageState === 'folders' ? 180 : 120);
         fgRef.current.d3ReheatSimulation();
     }, [pageState, visibleGraphData]);
+
+    useEffect(() => {
+        if (!fgRef.current || !visibleGraphData || dimensions.width <= 0) return;
+
+        const isDesktopPanel = pageState === 'results'
+            && selectedDocument
+            && typeof window !== 'undefined'
+            && window.innerWidth > 768;
+        const currentCenter = fgRef.current.centerAt();
+        const zoom = fgRef.current.zoom?.() ?? 1;
+        const targetX = isDesktopPanel ? DOCUMENT_PANEL_WIDTH / 2 / zoom : 0;
+
+        fgRef.current.centerAt(targetX, currentCenter.y, 180);
+    }, [dimensions.width, pageState, selectedDocument, visibleGraphData]);
 
     // ── Graph callbacks ────────────────────────────────────────────────────────
 
@@ -957,7 +973,8 @@ export const StudentSearchPage: React.FC = () => {
             </div>
 
             {/* ── Main area ─────────────────────────────────────────────────────── */}
-            <div ref={containerRef} className="flex-1 relative min-h-0">
+            <div className="student-search-main flex-1 min-h-0 flex overflow-hidden">
+                <div ref={containerRef} className="graph-pane flex-1 relative min-h-0 min-w-0">
 
                 {/* ── Idle state ─────────────────────────────────────────────────── */}
                 {pageState === 'foldersLoading' && (
@@ -1069,6 +1086,8 @@ export const StudentSearchPage: React.FC = () => {
                     />
                 )}
 
+                </div>
+
                 {(pageState === 'results') && selectedDocument && (
                     <DocumentPanel
                         document={selectedDocument}
@@ -1084,15 +1103,27 @@ export const StudentSearchPage: React.FC = () => {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.6; transform: scale(0.85); }
         }
+        @keyframes slide-panel-in {
+          from { transform: translateX(24px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
         @media (max-width: 768px) {
-          .document-panel {
-            left: 12px;
-            right: 12px;
-            top: auto;
-            bottom: 12px;
-            width: auto !important;
-            max-height: min(70vh, 560px);
+          .student-search-main {
+            flex-direction: column;
           }
+          .document-panel {
+            width: 100% !important;
+            height: min(45vh, 380px) !important;
+            max-height: min(45vh, 380px);
+            border-left: 0 !important;
+            border-top: 1px solid rgba(79,255,176,0.22);
+            box-shadow: 0 -22px 70px rgba(0,0,0,0.42), 0 0 42px rgba(79,255,176,0.06) !important;
+            animation: slide-panel-up 0.2s ease-out;
+          }
+        }
+        @keyframes slide-panel-up {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
         }
       `}</style>
         </div>
