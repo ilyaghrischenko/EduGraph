@@ -71,16 +71,16 @@ export const SignUpPage: React.FC = () => {
 
     return (
         <Layout navLinks={NAV_LINKS}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '48px 0 48px' }}>
+            <div className="flex items-start justify-center py-6 md:py-12">
                 <div style={{ width: '100%', maxWidth: '420px' }}>
 
-                    <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px', padding: '36px 32px' }}>
+                    <div className="px-5 py-7 md:px-8 md:py-9" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px' }}>
                         {/* Heading */}
                         <div style={{ marginBottom: '28px', textAlign: 'center' }}>
                             <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '8px' }}>
                                 Новий акаунт
                             </p>
-                            <h1 style={{ fontFamily: F.display, fontSize: '1.6rem', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
+                            <h1 style={{ fontFamily: F.display, fontSize: 'clamp(1.35rem, 5vw, 1.6rem)', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
                                 Заявка на реєстрацію
                             </h1>
                         </div>
@@ -112,7 +112,7 @@ export const SignUpPage: React.FC = () => {
                             {/* Role selector */}
                             <Field>
                                 <DarkLabel>Роль</DarkLabel>
-                                <div style={{ display: 'flex', gap: '20px', padding: '10px 14px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px' }}>
+                                <div className="flex flex-col gap-1 md:flex-row md:gap-5" style={{ padding: '10px 14px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px' }}>
                                     <DarkRadio id="roleStudent" name="userType" value="Student" checked={userType === 'Student'} onChange={handleTypeChange} label="Студент" />
                                     <DarkRadio id="roleTeacher" name="userType" value="Teacher" checked={userType === 'Teacher'} onChange={handleTypeChange} label="Викладач" />
                                 </div>
@@ -134,7 +134,7 @@ export const SignUpPage: React.FC = () => {
 
                     <p style={{ textAlign: 'center', marginTop: '20px', fontFamily: F.sans, fontSize: '0.83rem', color: C.textMuted }}>
                         Вже є акаунт?{' '}
-                        <Link to="/login" style={{ color: C.accent, textDecoration: 'none', fontWeight: 500 }}>Увійти</Link>
+                        <Link to="/login" className="inline-flex min-h-11 min-w-11 items-center justify-center" style={{ color: C.accent, textDecoration: 'none', fontWeight: 500 }}>Увійти</Link>
                     </p>
                 </div>
             </div>

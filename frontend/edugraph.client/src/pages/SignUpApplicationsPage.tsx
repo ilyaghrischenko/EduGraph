@@ -112,14 +112,14 @@ export const SignUpApplicationsPage: React.FC = () => {
 
     return (
         <Layout navLinks={NAV_LINKS}>
-            <div style={{ paddingTop: '36px' }}>
+            <div className="pt-6 md:pt-9">
                 {/* Page heading */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '24px' }}>
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between" style={{ marginBottom: '24px' }}>
                     <div>
                         <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '6px' }}>
                             Адміністрування
                         </p>
-                        <h1 style={{ fontFamily: F.display, fontSize: '1.6rem', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
+                        <h1 style={{ fontFamily: F.display, fontSize: 'clamp(1.35rem, 5vw, 1.6rem)', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
                             Заявки на реєстрацію
                         </h1>
                     </div>
@@ -169,10 +169,10 @@ export const SignUpApplicationsPage: React.FC = () => {
                     <Alert variant="info">Наразі немає нових заявок на реєстрацію.</Alert>
                 ) : (
                     <>
-                        {/* Table */}
+                        {/* Table uses an inner horizontal scroller so all columns remain available on mobile. */}
                         <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', overflow: 'hidden' }}>
                             <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <table style={{ width: '100%', minWidth: '760px', borderCollapse: 'collapse' }}>
                                     <thead>
                                     <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                                         <th style={thStyle}>ID</th>
@@ -215,7 +215,7 @@ export const SignUpApplicationsPage: React.FC = () => {
                                                 {new Date(app.createdAt).toLocaleString('uk-UA')}
                                             </td>
                                             <td style={tdStyle}>
-                                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
                                                     <GhostButton onClick={() => handleApprove(app.id)} disabled={actionId === app.id}>
                                                         Схвалити
                                                     </GhostButton>
@@ -232,10 +232,11 @@ export const SignUpApplicationsPage: React.FC = () => {
                         </div>
 
                         {/* Pagination */}
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '24px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '24px' }}>
                             <button
                                 onClick={() => changePage(page - 1)} disabled={page === 1}
                                 style={{
+                                    minHeight: '44px', minWidth: '44px',
                                     padding: '6px 16px', borderRadius: '8px', fontFamily: F.sans, fontSize: '0.82rem',
                                     background: C.surface, border: `1px solid ${C.border}`, color: page === 1 ? C.textMuted : C.textPrimary,
                                     cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.4 : 1, transition: 'background 0.15s',
@@ -251,6 +252,7 @@ export const SignUpApplicationsPage: React.FC = () => {
                             <button
                                 onClick={() => changePage(page + 1)} disabled={page === data!.totalPages || data!.totalPages === 0}
                                 style={{
+                                    minHeight: '44px', minWidth: '44px',
                                     padding: '6px 16px', borderRadius: '8px', fontFamily: F.sans, fontSize: '0.82rem',
                                     background: C.surface, border: `1px solid ${C.border}`,
                                     color: (page === data!.totalPages || data!.totalPages === 0) ? C.textMuted : C.textPrimary,

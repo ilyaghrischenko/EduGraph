@@ -41,14 +41,14 @@ export const LoginPage: React.FC = () => {
 
     return (
         <Layout navLinks={NAV_LINKS}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 120px)' }}>
+            <div className="flex min-h-[calc(100svh-120px)] items-center justify-center py-6 md:min-h-[calc(100vh-120px)]">
                 <div style={{ width: '100%', maxWidth: '400px' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px', padding: '36px 32px' }}>
+                    <div className="px-5 py-7 md:px-8 md:py-9" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px' }}>
                         <div style={{ marginBottom: '28px', textAlign: 'center' }}>
                             <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '8px' }}>
                                 Ласкаво просимо
                             </p>
-                            <h1 style={{ fontFamily: F.display, fontSize: '1.6rem', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
+                            <h1 style={{ fontFamily: F.display, fontSize: 'clamp(1.35rem, 5vw, 1.6rem)', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
                                 Вхід в систему
                             </h1>
                         </div>
@@ -69,7 +69,7 @@ export const LoginPage: React.FC = () => {
                     </div>
                     <p style={{ textAlign: 'center', marginTop: '20px', fontFamily: F.sans, fontSize: '0.83rem', color: C.textMuted }}>
                         Немає акаунту?{' '}
-                        <Link to="/signup" style={{ color: C.accent, textDecoration: 'none', fontWeight: 500 }}>Зареєструватись</Link>
+                        <Link to="/signup" className="inline-flex min-h-11 min-w-11 items-center justify-center" style={{ color: C.accent, textDecoration: 'none', fontWeight: 500 }}>Зареєструватись</Link>
                     </p>
                 </div>
             </div>

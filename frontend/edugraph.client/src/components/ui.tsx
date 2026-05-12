@@ -13,13 +13,14 @@ export const DarkInput: React.FC<DarkInputProps> = ({ error, style, ...rest }) =
         style={{
             display: 'block',
             width: '100%',
+            minHeight: '44px',
             padding: '10px 14px',
             background: C.surface,
             border: `1px solid ${error ? C.danger : C.border}`,
             borderRadius: '10px',
             color: C.textPrimary,
             fontFamily: F.sans,
-            fontSize: '0.9rem',
+            fontSize: '1rem',
             outline: 'none',
             transition: 'border-color 0.2s, box-shadow 0.2s',
             caretColor: C.accent,
@@ -42,7 +43,7 @@ export const DarkInput: React.FC<DarkInputProps> = ({ error, style, ...rest }) =
 export const DarkLabel: React.FC<{ htmlFor?: string; children: ReactNode }> = ({ htmlFor, children }) => (
     <label
         htmlFor={htmlFor}
-        style={{ display: 'block', color: C.textMuted, fontSize: '0.8rem', marginBottom: '6px', fontFamily: F.sans, letterSpacing: '0.03em' }}
+        style={{ display: 'block', color: C.textMuted, fontSize: '0.875rem', marginBottom: '6px', fontFamily: F.sans, letterSpacing: '0.03em' }}
     >
         {children}
     </label>
@@ -52,7 +53,7 @@ export const DarkLabel: React.FC<{ htmlFor?: string; children: ReactNode }> = ({
 export const Field: React.FC<{ children: ReactNode; error?: string }> = ({ children, error }) => (
     <div style={{ marginBottom: '18px' }}>
         {children}
-        {error && <p style={{ color: C.danger, fontSize: '0.75rem', marginTop: '4px', fontFamily: F.sans }}>{error}</p>}
+        {error && <p style={{ color: C.danger, fontSize: '0.875rem', marginTop: '4px', fontFamily: F.sans }}>{error}</p>}
     </div>
 );
 
@@ -66,8 +67,12 @@ export const PrimaryButton: React.FC<BtnProps> = ({ loading, full, children, sty
         {...rest}
         disabled={loading || rest.disabled}
         style={{
-            display: 'block',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             width: full ? '100%' : undefined,
+            minHeight: '44px',
+            minWidth: '44px',
             padding: '10px 20px',
             background: 'rgba(79,255,176,0.12)',
             border: '1px solid rgba(79,255,176,0.3)',
@@ -93,13 +98,15 @@ export const GhostButton: React.FC<BtnProps & { danger?: boolean }> = ({ danger,
     <button
         {...rest}
         style={{
-            padding: '5px 12px',
+            minHeight: '44px',
+            minWidth: '44px',
+            padding: '8px 14px',
             background: danger ? C.dangerDim : C.accentDim,
             border: `1px solid ${danger ? C.dangerBorder : C.accentBorder}`,
             borderRadius: '8px',
             color: danger ? C.dangerText : C.accent,
             fontFamily: F.sans,
-            fontSize: '0.78rem',
+            fontSize: '0.875rem',
             fontWeight: 500,
             cursor: 'pointer',
             transition: 'background 0.15s, opacity 0.15s',
@@ -123,7 +130,7 @@ const ALERT_STYLES: Record<AlertVariant, { bg: string; border: string; color: st
 export const Alert: React.FC<{ variant?: AlertVariant; children: ReactNode }> = ({ variant = 'error', children }) => {
     const s = ALERT_STYLES[variant];
     return (
-        <div role="alert" style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: '10px', color: s.color, padding: '10px 14px', fontSize: '0.85rem', fontFamily: F.sans, marginBottom: '18px' }}>
+        <div role="alert" style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: '10px', color: s.color, padding: '10px 14px', fontSize: '0.875rem', fontFamily: F.sans, marginBottom: '18px' }}>
             {children}
         </div>
     );
@@ -141,11 +148,11 @@ interface RadioProps {
     label: string;
 }
 export const DarkRadio: React.FC<RadioProps> = ({ id, name, value, checked, onChange, label }) => (
-    <label htmlFor={id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontFamily: F.sans, fontSize: '0.88rem', color: checked ? C.accent : C.textMuted, transition: 'color 0.15s' }}>
+    <label htmlFor={id} style={{ minHeight: '44px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontFamily: F.sans, fontSize: '0.875rem', color: checked ? C.accent : C.textMuted, transition: 'color 0.15s' }}>
         <input
             type="radio" id={id} name={name} value={value}
             checked={checked} onChange={onChange}
-            style={{ accentColor: C.accent, width: '15px', height: '15px' }}
+            style={{ accentColor: C.accent, width: '20px', height: '20px' }}
         />
         {label}
     </label>

@@ -16,15 +16,25 @@ export const Layout: React.FC<LayoutProps> = ({ children, navLinks, fluid }) => 
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: C.bg }}>
             {navLinks && navLinks.length > 0 && <Navbar links={navLinks} />}
 
-            <main style={{ flex: 1, maxWidth: fluid ? undefined : '1100px', width: '100%', margin: '0 auto', padding: fluid ? 0 : '0 24px' }}>
+            <main
+                className={fluid
+                    ? 'flex-1 w-full min-w-0'
+                    : 'flex-1 w-full max-w-[1100px] mx-auto px-4 md:px-6 xl:px-0 min-w-0'}
+            >
                 {children}
             </main>
 
-            <footer style={{ borderTop: `1px solid ${C.border}`, padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: F.sans, fontSize: '0.75rem', color: C.textMuted }}>
-          © 2026 EduGraph
-        </span>
-                <Link to="/privacy" style={{ fontFamily: F.sans, fontSize: '0.75rem', color: C.textMuted, textDecoration: 'none' }}
+            <footer
+                className="flex flex-col gap-2 px-4 py-4 text-center md:flex-row md:items-center md:justify-between md:px-6 md:text-left"
+                style={{ borderTop: `1px solid ${C.border}` }}
+            >
+                <span style={{ fontFamily: F.sans, fontSize: '0.875rem', color: C.textMuted }}>
+                    © 2026 EduGraph
+                </span>
+                <Link
+                    to="/privacy"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center"
+                    style={{ fontFamily: F.sans, fontSize: '0.875rem', color: C.textMuted, textDecoration: 'none' }}
                       onMouseEnter={(e) => e.currentTarget.style.color = C.accent}
                       onMouseLeave={(e) => e.currentTarget.style.color = C.textMuted}
                 >

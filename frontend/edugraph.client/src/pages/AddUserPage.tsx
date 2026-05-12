@@ -15,7 +15,10 @@ const Tab: React.FC<{ active: boolean; onClick: () => void; children: React.Reac
     <button
         onClick={onClick}
         style={{
-            padding: '7px 20px',
+            width: '100%',
+            minHeight: '44px',
+            minWidth: '44px',
+            padding: '8px 16px',
             borderRadius: '8px',
             fontFamily: F.sans,
             fontSize: '0.85rem',
@@ -25,6 +28,7 @@ const Tab: React.FC<{ active: boolean; onClick: () => void; children: React.Reac
             border: `1px solid ${active ? C.accentBorder : 'transparent'}`,
             cursor: 'pointer',
             transition: 'all 0.15s',
+            whiteSpace: 'nowrap',
         }}
         onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = C.textPrimary; }}
         onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = C.textMuted; }}
@@ -59,7 +63,7 @@ const ManualForm: React.FC = () => {
 
             <Field>
                 <DarkLabel>Роль</DarkLabel>
-                <div style={{ display: 'flex', gap: '20px', padding: '10px 14px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px' }}>
+                <div className="flex flex-col gap-1 md:flex-row md:gap-5" style={{ padding: '10px 14px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px' }}>
                     <DarkRadio id="mStudent" name="mUserType" value="Student" checked={userType === 'Student'} onChange={handleTypeChange} label="Студент" />
                     <DarkRadio id="mTeacher" name="mUserType" value="Teacher" checked={userType === 'Teacher'} onChange={handleTypeChange} label="Викладач" />
                 </div>
@@ -82,10 +86,10 @@ const CsvForm: React.FC = () => (
     <div>
         {/* Drop zone */}
         <div
+            className="px-5 py-8 md:px-8 md:py-12"
             style={{
                 border: `2px dashed ${C.border}`,
                 borderRadius: '14px',
-                padding: '48px 32px',
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'border-color 0.2s, background 0.2s',
@@ -114,11 +118,11 @@ const CsvForm: React.FC = () => (
         </div>
 
         {/* Expected columns hint */}
-        <div style={{ marginTop: '20px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px', padding: '14px 18px' }}>
+        <div style={{ marginTop: '20px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '10px', padding: '14px 18px', overflowX: 'auto' }}>
             <p style={{ fontFamily: F.sans, fontSize: '0.75rem', color: C.textMuted, margin: '0 0 8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                 Приклад рядка CSV
             </p>
-            <code style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#67e8f9' }}>
+            <code style={{ display: 'block', fontFamily: 'monospace', fontSize: '0.875rem', color: '#67e8f9', whiteSpace: 'nowrap' }}>
                 ivan_petrenko,Петренко Іван Олегович,Student,ІО-21
             </code>
         </div>
@@ -136,20 +140,20 @@ export const AddUserPage: React.FC = () => {
 
     return (
         <Layout navLinks={NAV_LINKS}>
-            <div style={{ paddingTop: '36px', maxWidth: '480px', margin: '0 auto' }}>
+            <div className="mx-auto w-full max-w-[480px] pt-6 md:pt-9">
 
                 {/* Heading */}
                 <div style={{ marginBottom: '28px' }}>
                     <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '6px' }}>
                         Адміністрування
                     </p>
-                    <h1 style={{ fontFamily: F.display, fontSize: '1.6rem', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
+                    <h1 style={{ fontFamily: F.display, fontSize: 'clamp(1.35rem, 5vw, 1.6rem)', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
                         Додати користувача
                     </h1>
                 </div>
 
                 {/* Tab switcher */}
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '28px', padding: '5px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '11px', width: 'fit-content' }}>
+                <div className="grid w-full grid-cols-2 gap-2 md:w-fit" style={{ marginBottom: '28px', padding: '5px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: '11px' }}>
                     <Tab active={currentType === 'custom'} onClick={() => setSearchParams({ type: 'custom' })}>
                         Вручну
                     </Tab>
@@ -159,7 +163,7 @@ export const AddUserPage: React.FC = () => {
                 </div>
 
                 {/* Card */}
-                <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px', padding: '32px 28px' }}>
+                <div className="px-5 py-6 md:px-7 md:py-8" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px' }}>
                     {currentType === 'custom' ? <ManualForm /> : <CsvForm />}
                 </div>
             </div>

@@ -43,17 +43,186 @@ const NODE_COLOR = '#4fffb0';
 const NODE_HOVER_COLOR = '#67e8f9';
 const LINK_COLOR = 'rgba(79, 255, 176, 0.18)';
 const BG_COLOR = '#0a0d14';
-const DOCUMENT_NODE_WIDTH = 160;
-const DOCUMENT_NODE_HEIGHT = 44;
-const DOCUMENT_NODE_GAP = 22;
-const DOCUMENT_GROUP_GAP = 56;
-const ROOT_NODE_MIN_WIDTH = 92;
-const FOLDER_NODE_MIN_WIDTH = 120;
-const FOLDER_NODE_MAX_WIDTH = 240;
-const FOLDER_NODE_HORIZONTAL_PADDING = 34;
-const DOCUMENT_FOLDER_GAP = 76;
-const ROOT_DOCUMENT_GAP = 44;
 const TABLET_WIDTH = 768;
+const DESKTOP_WIDTH = 1280;
+
+interface GraphMetrics {
+    documentNodeWidth: number;
+    documentNodeHeight: number;
+    documentNodeGap: number;
+    documentGroupGap: number;
+    rootNodeMinWidth: number;
+    folderNodeMinWidth: number;
+    folderNodeMaxWidth: number;
+    titleHorizontalPadding: number;
+    documentFolderGap: number;
+    rootDocumentGap: number;
+    rootNodeHeight: number;
+    folderNodeHeight: number;
+    rootFontSize: number;
+    folderFontSize: number;
+    documentFontSize: number;
+    documentLineHeight: number;
+    rootRadius: number;
+    folderRadius: number;
+    leafRadius: number;
+    leafHoverRadius: number;
+    documentRadius: number;
+    titleRadius: number;
+    rootYOffsetMax: number;
+    rootYOffsetRatio: number;
+    firstBranchGap: number;
+    branchGapMin: number;
+    branchGapMax: number;
+    branchOffsetWithDocsMin: number;
+    branchOffsetWithDocsMax: number;
+    branchOffsetWithDocsRatio: number;
+    branchOffsetFoldersMin: number;
+    branchOffsetFoldersMax: number;
+    branchOffsetFoldersRatio: number;
+    rootDocumentCenterOffsetY: number;
+    folderDocumentCenterOffsetY: number;
+    folderChargeStrength: number;
+    resultChargeStrength: number;
+    folderLinkDistance: number;
+    resultLinkDistance: number;
+}
+
+const DESKTOP_GRAPH_METRICS: GraphMetrics = {
+    documentNodeWidth: 160,
+    documentNodeHeight: 44,
+    documentNodeGap: 22,
+    documentGroupGap: 56,
+    rootNodeMinWidth: 92,
+    folderNodeMinWidth: 120,
+    folderNodeMaxWidth: 240,
+    titleHorizontalPadding: 34,
+    documentFolderGap: 76,
+    rootDocumentGap: 44,
+    rootNodeHeight: 40,
+    folderNodeHeight: 44,
+    rootFontSize: 14,
+    folderFontSize: 12,
+    documentFontSize: 11,
+    documentLineHeight: 14,
+    rootRadius: 20,
+    folderRadius: 15,
+    leafRadius: 5.5,
+    leafHoverRadius: 8,
+    documentRadius: 11,
+    titleRadius: 13,
+    rootYOffsetMax: 260,
+    rootYOffsetRatio: 0.24,
+    firstBranchGap: 150,
+    branchGapMin: 56,
+    branchGapMax: 68,
+    branchOffsetWithDocsMin: 90,
+    branchOffsetWithDocsMax: 170,
+    branchOffsetWithDocsRatio: 0.07,
+    branchOffsetFoldersMin: 190,
+    branchOffsetFoldersMax: 280,
+    branchOffsetFoldersRatio: 0.16,
+    rootDocumentCenterOffsetY: 112,
+    folderDocumentCenterOffsetY: -24,
+    folderChargeStrength: -520,
+    resultChargeStrength: -350,
+    folderLinkDistance: 180,
+    resultLinkDistance: 120,
+};
+
+function getGraphMetrics(width: number): GraphMetrics {
+    if (width < TABLET_WIDTH) {
+        return {
+            ...DESKTOP_GRAPH_METRICS,
+            documentNodeWidth: 92,
+            documentNodeHeight: 30,
+            documentNodeGap: 10,
+            documentGroupGap: 8,
+            rootNodeMinWidth: 64,
+            folderNodeMinWidth: 80,
+            folderNodeMaxWidth: 112,
+            titleHorizontalPadding: 20,
+            documentFolderGap: 8,
+            rootDocumentGap: 12,
+            rootNodeHeight: 28,
+            folderNodeHeight: 30,
+            rootFontSize: 12,
+            folderFontSize: 10,
+            documentFontSize: 9,
+            documentLineHeight: 11,
+            rootRadius: 14,
+            folderRadius: 10,
+            leafRadius: 4,
+            leafHoverRadius: 6,
+            documentRadius: 8,
+            titleRadius: 9,
+            rootYOffsetMax: 120,
+            rootYOffsetRatio: 0.16,
+            firstBranchGap: 96,
+            branchGapMin: 38,
+            branchGapMax: 42,
+            branchOffsetWithDocsMin: 46,
+            branchOffsetWithDocsMax: 58,
+            branchOffsetWithDocsRatio: 0.18,
+            branchOffsetFoldersMin: 64,
+            branchOffsetFoldersMax: 84,
+            branchOffsetFoldersRatio: 0.26,
+            rootDocumentCenterOffsetY: 72,
+            folderDocumentCenterOffsetY: -10,
+            folderChargeStrength: -260,
+            resultChargeStrength: -220,
+            folderLinkDistance: 96,
+            resultLinkDistance: 82,
+        };
+    }
+
+    if (width < DESKTOP_WIDTH) {
+        return {
+            ...DESKTOP_GRAPH_METRICS,
+            documentNodeWidth: 100,
+            documentNodeHeight: 34,
+            documentNodeGap: 14,
+            documentGroupGap: 12,
+            rootNodeMinWidth: 76,
+            folderNodeMinWidth: 96,
+            folderNodeMaxWidth: 128,
+            titleHorizontalPadding: 26,
+            documentFolderGap: 12,
+            rootDocumentGap: 20,
+            rootNodeHeight: 34,
+            folderNodeHeight: 38,
+            rootFontSize: 13,
+            folderFontSize: 11,
+            documentFontSize: 10,
+            documentLineHeight: 12,
+            rootRadius: 16,
+            folderRadius: 12,
+            leafRadius: 4.5,
+            leafHoverRadius: 7,
+            documentRadius: 9,
+            titleRadius: 10,
+            rootYOffsetMax: 180,
+            rootYOffsetRatio: 0.2,
+            firstBranchGap: 120,
+            branchGapMin: 50,
+            branchGapMax: 58,
+            branchOffsetWithDocsMin: 44,
+            branchOffsetWithDocsMax: 52,
+            branchOffsetWithDocsRatio: 0.07,
+            branchOffsetFoldersMin: 100,
+            branchOffsetFoldersMax: 140,
+            branchOffsetFoldersRatio: 0.18,
+            rootDocumentCenterOffsetY: 88,
+            folderDocumentCenterOffsetY: -16,
+            folderChargeStrength: -360,
+            resultChargeStrength: -280,
+            folderLinkDistance: 130,
+            resultLinkDistance: 96,
+        };
+    }
+
+    return DESKTOP_GRAPH_METRICS;
+}
 
 let textMeasureContext: CanvasRenderingContext2D | null | undefined;
 const textWidthCache = new Map<string, number>();
@@ -178,35 +347,35 @@ function getDocumentLabelLines(ctx: CanvasRenderingContext2D, title: string, max
     });
 }
 
-function getFolderNodeWidth(title: string): number {
-    return getTitleNodeWidth(title, FOLDER_NODE_MIN_WIDTH);
+function getFolderNodeWidth(title: string, metrics: GraphMetrics): number {
+    return getTitleNodeWidth(title, metrics.folderNodeMinWidth, metrics.folderNodeMaxWidth, metrics.titleHorizontalPadding, metrics.folderFontSize);
 }
 
-function getRootNodeWidth(title: string): number {
-    return getTitleNodeWidth(title, ROOT_NODE_MIN_WIDTH);
+function getRootNodeWidth(title: string, metrics: GraphMetrics): number {
+    return getTitleNodeWidth(title, metrics.rootNodeMinWidth, metrics.folderNodeMaxWidth, metrics.titleHorizontalPadding, metrics.rootFontSize);
 }
 
-function getTitleNodeWidth(title: string, minWidth: number): number {
-    const measuredWidth = getNodeTextWidth(title);
+function getTitleNodeWidth(title: string, minWidth: number, maxWidth: number, horizontalPadding: number, fontSize: number): number {
+    const measuredWidth = getNodeTextWidth(title, fontSize);
 
     return Math.min(
-        FOLDER_NODE_MAX_WIDTH,
-        Math.max(minWidth, measuredWidth + FOLDER_NODE_HORIZONTAL_PADDING),
+        maxWidth,
+        Math.max(minWidth, measuredWidth + horizontalPadding),
     );
 }
 
-function getNodeTextWidth(title: string): number {
-    const cacheKey = `12:${title}`;
+function getNodeTextWidth(title: string, fontSize: number): number {
+    const cacheKey = `${fontSize}:${title}`;
     const cachedWidth = textWidthCache.get(cacheKey);
     if (cachedWidth !== undefined) return cachedWidth;
 
-    const width = measureCanvasTextWidth(title) ?? title.length * 9;
+    const width = measureCanvasTextWidth(title, fontSize) ?? title.length * fontSize * 0.75;
     textWidthCache.set(cacheKey, width);
 
     return width;
 }
 
-function measureCanvasTextWidth(title: string): number | null {
+function measureCanvasTextWidth(title: string, fontSize: number): number | null {
     if (typeof document === 'undefined') return null;
 
     if (textMeasureContext === undefined) {
@@ -215,21 +384,22 @@ function measureCanvasTextWidth(title: string): number | null {
 
     if (!textMeasureContext) return null;
 
-    textMeasureContext.font = "12px 'DM Sans', sans-serif";
+    textMeasureContext.font = `${fontSize}px 'DM Sans', sans-serif`;
     return textMeasureContext.measureText(title).width;
 }
 
 function resolveDocumentGroupCenters(
     documentGroups: Map<string, GraphNode[]>,
     positionById: Map<string, { x: number; y: number }>,
+    metrics: GraphMetrics,
 ): Map<string, number> {
     const groups = [...documentGroups.entries()]
         .map(([parentId, nodes]) => {
             const parentPosition = positionById.get(parentId);
-            const height = nodes.length * DOCUMENT_NODE_HEIGHT + Math.max(0, nodes.length - 1) * DOCUMENT_NODE_GAP;
+            const height = nodes.length * metrics.documentNodeHeight + Math.max(0, nodes.length - 1) * metrics.documentNodeGap;
 
             return parentPosition
-                ? { parentId, centerY: parentPosition.y + (parentId === 'root:g7' ? 112 : -24), height }
+                ? { parentId, centerY: parentPosition.y + (parentId === 'root:g7' ? metrics.rootDocumentCenterOffsetY : metrics.folderDocumentCenterOffsetY), height }
                 : null;
         })
         .filter((group): group is { parentId: string; centerY: number; height: number } => group !== null)
@@ -238,7 +408,7 @@ function resolveDocumentGroupCenters(
     for (let i = 1; i < groups.length; i++) {
         const previous = groups[i - 1];
         const current = groups[i];
-        const minCenterY = previous.centerY + previous.height / 2 + DOCUMENT_GROUP_GAP + current.height / 2;
+        const minCenterY = previous.centerY + previous.height / 2 + metrics.documentGroupGap + current.height / 2;
 
         if (current.centerY < minCenterY) {
             current.centerY = minCenterY;
@@ -251,19 +421,118 @@ function resolveDocumentGroupCenters(
     return centers;
 }
 
+function getDocumentGroupHeight(count: number, metrics: GraphMetrics): number {
+    if (count <= 0) return 0;
+
+    return count * metrics.documentNodeHeight + Math.max(0, count - 1) * metrics.documentNodeGap;
+}
+
 function applyGraphLayout(graph: GraphData, width: number, height: number): GraphData {
+    const metrics = getGraphMetrics(width);
     const root = graph.nodes.find((node) => node.type === 'root');
     const folders = graph.nodes.filter((node) => node.type === 'folder');
     const trunkNodes = graph.nodes.filter((node) => node.type === 'trunk');
     const documents = graph.nodes.filter((node) => node.type === 'document');
-    const rootY = -Math.min(260, height * 0.24);
-    const firstBranchY = rootY + 150;
-    const branchGap = Math.min(62, Math.max(46, (height * 0.55) / Math.max(folders.length, 1)));
-    const branchOffset = documents.length > 0
-        ? Math.min(170, Math.max(90, width * 0.07))
-        : Math.min(280, Math.max(190, width * 0.16));
+    const documentGroups = new Map<string, GraphNode[]>();
+    const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
+    documents.forEach((node) => {
+        const parentId = node.parentId ?? root?.id;
+        if (!parentId) return;
+        documentGroups.set(parentId, [...(documentGroups.get(parentId) ?? []), node]);
+    });
+    const rootY = -Math.min(metrics.rootYOffsetMax, height * metrics.rootYOffsetRatio);
+    const firstBranchY = rootY + metrics.firstBranchGap;
+    const hasDocumentResults = documents.length > 0;
 
     const positionById = new Map<string, { x: number; y: number }>();
+    if (root) {
+        positionById.set(root.id, { x: 0, y: rootY });
+    }
+
+    if (hasDocumentResults) {
+        const rootWidth = root ? getRootNodeWidth(root.title, metrics) : metrics.rootNodeMinWidth;
+        const maxFolderWidth = folders.reduce(
+            (maxWidth, node) => Math.max(maxWidth, getFolderNodeWidth(node.title, metrics)),
+            metrics.folderNodeMinWidth,
+        );
+        const rowGap = Math.max(18, metrics.documentGroupGap);
+        const branchOffset = Math.max(
+            metrics.branchOffsetWithDocsMin,
+            width * metrics.branchOffsetWithDocsRatio,
+            rootWidth / 2 + maxFolderWidth / 2 + 32,
+        );
+        const rootGroupHeight = getDocumentGroupHeight(documentGroups.get(root?.id ?? '')?.length ?? 0, metrics);
+        const groupCenterByParentId = new Map<string, number>();
+        let previousBottomY = Math.max(
+            rootY + metrics.rootNodeHeight / 2,
+            rootGroupHeight > 0 ? rootY + metrics.rootDocumentCenterOffsetY + rootGroupHeight / 2 : Number.NEGATIVE_INFINITY,
+        );
+
+        if (root && rootGroupHeight > 0) {
+            groupCenterByParentId.set(root.id, rootY + metrics.rootDocumentCenterOffsetY);
+        }
+
+        const positionedFolders = folders.map((node, index) => {
+            const groupHeight = getDocumentGroupHeight(documentGroups.get(node.id)?.length ?? 0, metrics);
+            const rowHeight = Math.max(metrics.folderNodeHeight, groupHeight);
+            const minCenterY = previousBottomY + rowGap + rowHeight / 2;
+            const y = index === 0 ? Math.max(firstBranchY, minCenterY) : minCenterY;
+            const side = index % 2 === 0 ? 1 : -1;
+            const x = side * branchOffset;
+
+            previousBottomY = y + rowHeight / 2;
+            positionById.set(node.id, { x, y });
+            groupCenterByParentId.set(node.id, y);
+
+            return { ...node, x, y, fx: x, fy: y };
+        });
+
+        const positionedTrunkNodes = trunkNodes.map((node, index) => {
+            const y = index < positionedFolders.length
+                ? positionedFolders[index].y ?? firstBranchY
+                : (positionedFolders[positionedFolders.length - 1]?.y ?? firstBranchY) + rowGap;
+
+            positionById.set(node.id, { x: 0, y });
+            return { ...node, x: 0, y, fx: 0, fy: y };
+        });
+
+        const positionedDocuments = documents.map((node) => {
+            const parentId = node.parentId ?? root?.id;
+            const parentPosition = parentId ? positionById.get(parentId) : undefined;
+            const siblings = parentId ? documentGroups.get(parentId) ?? [] : [];
+            const index = Math.max(0, siblings.findIndex((doc) => doc.id === node.id));
+            const groupCenterY = parentId
+                ? groupCenterByParentId.get(parentId) ?? parentPosition?.y ?? rootY
+                : rootY;
+            const parentTitle = parentId ? nodeById.get(parentId)?.title ?? '' : '';
+            const parentWidth = parentId === root?.id ? rootWidth : getFolderNodeWidth(parentTitle, metrics);
+            const side = parentId === root?.id ? 1 : Math.sign(parentPosition?.x ?? 1);
+            const yOffset = (index - (siblings.length - 1) / 2) * (metrics.documentNodeHeight + metrics.documentNodeGap);
+            const x = (parentPosition?.x ?? 0) + side * (
+                parentWidth / 2 + (parentId === root?.id ? metrics.rootDocumentGap : metrics.documentFolderGap) + metrics.documentNodeWidth / 2
+            );
+
+            return { ...node, x, y: groupCenterY + yOffset, fx: x, fy: groupCenterY + yOffset };
+        });
+
+        return {
+            nodes: [
+                ...(root ? [{ ...root, x: 0, y: rootY, fx: 0, fy: rootY }] : []),
+                ...positionedTrunkNodes,
+                ...positionedFolders,
+                ...positionedDocuments,
+            ],
+            links: graph.links,
+        };
+    }
+
+    const branchGap = Math.min(
+        metrics.branchGapMax,
+        Math.max(metrics.branchGapMin, (height * 0.58) / Math.max(folders.length, 1)),
+    );
+    const branchOffset = documents.length > 0
+        ? Math.min(metrics.branchOffsetWithDocsMax, Math.max(metrics.branchOffsetWithDocsMin, width * metrics.branchOffsetWithDocsRatio))
+        : Math.min(metrics.branchOffsetFoldersMax, Math.max(metrics.branchOffsetFoldersMin, width * metrics.branchOffsetFoldersRatio));
 
     const positionedFolders = folders.map((node, index) => {
         const side = index % 2 === 0 ? 1 : -1;
@@ -280,19 +549,7 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
         positionById.set(node.id, { x: 0, y });
         return { ...node, x: 0, y, fx: 0, fy: y };
     });
-    if (root) {
-        positionById.set(root.id, { x: 0, y: rootY });
-    }
-
-    const documentGroups = new Map<string, GraphNode[]>();
-    documents.forEach((node) => {
-        const parentId = node.parentId ?? root?.id;
-        if (!parentId) return;
-        documentGroups.set(parentId, [...(documentGroups.get(parentId) ?? []), node]);
-    });
-    const documentGroupCenters = resolveDocumentGroupCenters(documentGroups, positionById);
-    const nodeById = new Map(graph.nodes.map((node) => [node.id, node]));
-
+    const documentGroupCenters = resolveDocumentGroupCenters(documentGroups, positionById, metrics);
     const positionedDocuments = documents.map((node) => {
         const parentId = node.parentId ?? root?.id;
         const parentPosition = parentId ? positionById.get(parentId) : undefined;
@@ -308,14 +565,14 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
             : width < TABLET_WIDTH
                 ? (parentPosition.x >= 0 ? -1 : 1)
                 : (parentPosition.x >= 0 ? 1 : -1);
-        const groupCenterY = documentGroupCenters.get(parentId) ?? parentPosition.y + (parentId === root?.id ? 112 : -24);
-        const yOffset = (index - (siblings.length - 1) / 2) * (DOCUMENT_NODE_HEIGHT + DOCUMENT_NODE_GAP);
+        const groupCenterY = documentGroupCenters.get(parentId) ?? parentPosition.y + (parentId === root?.id ? metrics.rootDocumentCenterOffsetY : metrics.folderDocumentCenterOffsetY);
+        const yOffset = (index - (siblings.length - 1) / 2) * (metrics.documentNodeHeight + metrics.documentNodeGap);
         const parentTitle = parentId ? nodeById.get(parentId)?.title ?? '' : '';
-        const parentWidth = isRootParent ? getRootNodeWidth(parentTitle) : getFolderNodeWidth(parentTitle);
+        const parentWidth = isRootParent ? getRootNodeWidth(parentTitle, metrics) : getFolderNodeWidth(parentTitle, metrics);
         const x = parentPosition.x + side * (
             isRootParent
-                ? parentWidth / 2 + ROOT_DOCUMENT_GAP + DOCUMENT_NODE_WIDTH / 2
-                : parentWidth / 2 + DOCUMENT_FOLDER_GAP + DOCUMENT_NODE_WIDTH / 2
+                ? parentWidth / 2 + metrics.rootDocumentGap + metrics.documentNodeWidth / 2
+                : parentWidth / 2 + metrics.documentFolderGap + metrics.documentNodeWidth / 2
         );
         const y = groupCenterY + yOffset;
 
@@ -568,6 +825,7 @@ export const StudentSearchPage: React.FC = () => {
     const stepTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<any>(null);
+    const graphMetrics = useMemo(() => getGraphMetrics(dimensions.width), [dimensions.width]);
     const visibleGraphData = useMemo(() => {
         if (!graphData || dimensions.width <= 0 || dimensions.height <= 0) {
             return graphData;
@@ -672,10 +930,10 @@ export const StudentSearchPage: React.FC = () => {
     // Spread nodes out: increase repulsion and link distance
     useEffect(() => {
         if (!fgRef.current || !visibleGraphData) return;
-        fgRef.current.d3Force('charge').strength(pageState === 'folders' ? -520 : -350);
-        fgRef.current.d3Force('link').distance(pageState === 'folders' ? 180 : 120);
+        fgRef.current.d3Force('charge').strength(pageState === 'folders' ? graphMetrics.folderChargeStrength : graphMetrics.resultChargeStrength);
+        fgRef.current.d3Force('link').distance(pageState === 'folders' ? graphMetrics.folderLinkDistance : graphMetrics.resultLinkDistance);
         fgRef.current.d3ReheatSimulation();
-    }, [pageState, visibleGraphData]);
+    }, [graphMetrics, pageState, visibleGraphData]);
 
     // ── Graph callbacks ────────────────────────────────────────────────────────
 
@@ -725,7 +983,7 @@ export const StudentSearchPage: React.FC = () => {
             const isDocument = n.type === 'document';
             if (n.type === 'trunk') return;
 
-            const r = isRoot ? 20 : isFolder ? 15 : isHovered ? 8 : 5.5;
+            const r = isRoot ? graphMetrics.rootRadius : isFolder ? graphMetrics.folderRadius : isHovered ? graphMetrics.leafHoverRadius : graphMetrics.leafRadius;
 
             // Glow halo
             const glowR = isRoot || isFolder || isDocument ? r * 2.6 : r * 5;
@@ -734,7 +992,7 @@ export const StudentSearchPage: React.FC = () => {
             grd.addColorStop(1, 'rgba(79,255,176,0)');
             ctx.beginPath();
             if (isDocument) {
-                ctx.rect(x - DOCUMENT_NODE_WIDTH / 2, y - DOCUMENT_NODE_HEIGHT / 2, DOCUMENT_NODE_WIDTH, DOCUMENT_NODE_HEIGHT);
+                ctx.rect(x - graphMetrics.documentNodeWidth / 2, y - graphMetrics.documentNodeHeight / 2, graphMetrics.documentNodeWidth, graphMetrics.documentNodeHeight);
             } else {
                 ctx.arc(x, y, glowR, 0, Math.PI * 2);
             }
@@ -752,11 +1010,11 @@ export const StudentSearchPage: React.FC = () => {
             ctx.lineWidth = isRoot || isFolder || isDocument ? 1.5 : 1;
 
             if (isRoot || isFolder || isDocument) {
-                const w = isRoot ? getRootNodeWidth(n.title) : isFolder ? getFolderNodeWidth(n.title) : DOCUMENT_NODE_WIDTH;
-                const h = isRoot ? 40 : isFolder ? 44 : DOCUMENT_NODE_HEIGHT;
+                const w = isRoot ? getRootNodeWidth(n.title, graphMetrics) : isFolder ? getFolderNodeWidth(n.title, graphMetrics) : graphMetrics.documentNodeWidth;
+                const h = isRoot ? graphMetrics.rootNodeHeight : isFolder ? graphMetrics.folderNodeHeight : graphMetrics.documentNodeHeight;
                 const bx = x - w / 2;
                 const by = y - h / 2;
-                const br = isDocument ? 11 : 13;
+                const br = isDocument ? graphMetrics.documentRadius : graphMetrics.titleRadius;
                 ctx.beginPath();
                 ctx.moveTo(bx + br, by);
                 ctx.lineTo(bx + w - br, by);
@@ -778,20 +1036,20 @@ export const StudentSearchPage: React.FC = () => {
             }
 
             if (isRoot || isFolder || isDocument) {
-                ctx.font = `${isRoot ? 14 : isFolder ? 12 : 11}px 'DM Sans', sans-serif`;
+                ctx.font = `${isRoot ? graphMetrics.rootFontSize : isFolder ? graphMetrics.folderFontSize : graphMetrics.documentFontSize}px 'DM Sans', sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = isHovered ? NODE_HOVER_COLOR : '#e2e8f0';
 
                 if (isDocument) {
-                    const lines = getDocumentLabelLines(ctx, n.title, DOCUMENT_NODE_WIDTH - 24);
-                    const lineHeight = 14;
+                    const lines = getDocumentLabelLines(ctx, n.title, graphMetrics.documentNodeWidth - 18);
+                    const lineHeight = graphMetrics.documentLineHeight;
                     const firstLineY = y - ((lines.length - 1) * lineHeight) / 2;
                     lines.forEach((line, index) => {
                         ctx.fillText(line, x, firstLineY + index * lineHeight);
                     });
                 } else {
-                    const label = isFolder ? fitCanvasText(ctx, n.title, getFolderNodeWidth(n.title) - 22) : n.title;
+                    const label = isFolder ? fitCanvasText(ctx, n.title, getFolderNodeWidth(n.title, graphMetrics) - 18) : n.title;
                     ctx.fillText(label, x, y);
                 }
                 return;
@@ -844,7 +1102,7 @@ export const StudentSearchPage: React.FC = () => {
                 ctx.fillText(label, x, by + pad);
             }
         },
-        [],
+        [graphMetrics],
     );
 
     // Clickable area matches visual node size
@@ -854,8 +1112,8 @@ export const StudentSearchPage: React.FC = () => {
             if (n.type === 'trunk') return;
 
             if (n.type === 'root' || n.type === 'folder') {
-                const w = n.type === 'root' ? getRootNodeWidth(n.title) : getFolderNodeWidth(n.title);
-                const h = n.type === 'root' ? 40 : 44;
+                const w = n.type === 'root' ? getRootNodeWidth(n.title, graphMetrics) : getFolderNodeWidth(n.title, graphMetrics);
+                const h = n.type === 'root' ? graphMetrics.rootNodeHeight : graphMetrics.folderNodeHeight;
                 ctx.fillStyle = color;
                 ctx.fillRect((node.x ?? 0) - w / 2, (node.y ?? 0) - h / 2, w, h);
                 return;
@@ -863,10 +1121,10 @@ export const StudentSearchPage: React.FC = () => {
             if (n.type === 'document') {
                 ctx.fillStyle = color;
                 ctx.fillRect(
-                    (node.x ?? 0) - DOCUMENT_NODE_WIDTH / 2,
-                    (node.y ?? 0) - DOCUMENT_NODE_HEIGHT / 2,
-                    DOCUMENT_NODE_WIDTH,
-                    DOCUMENT_NODE_HEIGHT,
+                    (node.x ?? 0) - graphMetrics.documentNodeWidth / 2,
+                    (node.y ?? 0) - graphMetrics.documentNodeHeight / 2,
+                    graphMetrics.documentNodeWidth,
+                    graphMetrics.documentNodeHeight,
                 );
                 return;
             }
@@ -875,7 +1133,7 @@ export const StudentSearchPage: React.FC = () => {
             ctx.fillStyle = color;
             ctx.fill();
         },
-        [],
+        [graphMetrics],
     );
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -1072,7 +1330,7 @@ export const StudentSearchPage: React.FC = () => {
                 {/* ── Node count badge ───────────────────────────────────────────── */}
                 {(pageState === 'folders' || pageState === 'results') && graphData && (
                     <div
-                        className="absolute bottom-4 right-4 z-10 px-3 py-1.5 rounded-lg text-xs"
+                        className="absolute bottom-4 right-4 z-10 hidden rounded-lg px-3 py-1.5 text-xs xl:block"
                         style={{
                             background: 'rgba(10,13,20,0.7)',
                             border: '1px solid rgba(255,255,255,0.07)',

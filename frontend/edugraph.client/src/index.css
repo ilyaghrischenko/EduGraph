@@ -1,13 +1,36 @@
 @import "tailwindcss";
 
+/* Responsive convention: base utilities are mobile (>=320px), md is tablet
+   (>=768px), and xl is desktop (>=1280px). */
 *, *::before, *::after { box-sizing: border-box; }
 
+html {
+    min-width: 320px;
+    background-color: #0a0d14;
+}
+
 body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    overflow-x: hidden;
     background-color: #0a0d14;
     color: #e2e8f0;
     font-family: 'DM Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+    width: 100%;
+    min-height: 100vh;
+}
+
+img,
+video {
+    max-width: 100%;
+    height: auto;
+    display: block;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }

@@ -1,13 +1,12 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  min-height: 100vh;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  max-width: 100%;
+  height: clamp(4rem, 18vw, 6em);
+  padding: 1rem;
   will-change: filter;
   transition: filter 300ms;
 }
@@ -34,9 +33,19 @@
 }
 
 .card {
-  padding: 2em;
+  padding: 1rem;
 }
 
 .read-the-docs {
   color: #888;
+}
+
+@media (min-width: 768px) {
+  .logo {
+    padding: 1.5em;
+  }
+
+  .card {
+    padding: 2em;
+  }
 }
