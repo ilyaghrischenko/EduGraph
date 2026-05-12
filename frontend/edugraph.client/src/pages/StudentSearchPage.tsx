@@ -53,6 +53,7 @@ const FOLDER_NODE_MAX_WIDTH = 240;
 const FOLDER_NODE_HORIZONTAL_PADDING = 34;
 const DOCUMENT_FOLDER_GAP = 76;
 const ROOT_DOCUMENT_GAP = 44;
+const TABLET_WIDTH = 768;
 
 let textMeasureContext: CanvasRenderingContext2D | null | undefined;
 const textWidthCache = new Map<string, number>();
@@ -304,7 +305,7 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
         const isRootParent = parentId === root?.id;
         const side = isRootParent
             ? -1
-            : width < 640
+            : width < TABLET_WIDTH
                 ? (parentPosition.x >= 0 ? -1 : 1)
                 : (parentPosition.x >= 0 ? 1 : -1);
         const groupCenterY = documentGroupCenters.get(parentId) ?? parentPosition.y + (parentId === root?.id ? 112 : -24);
@@ -370,7 +371,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ currentStep }) => (
         </div>
 
         {/* Step list */}
-        <div className="flex flex-col gap-3 min-w-[280px]">
+        <div className="flex w-[calc(100vw-2rem)] max-w-[280px] flex-col gap-3">
             {LOADING_STEPS.map((step, i) => {
                 const isDone = i < currentStep;
                 const isActive = i === currentStep;
@@ -441,7 +442,7 @@ interface DocumentModalProps {
 
 const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
     <div
-        className="document-modal-backdrop fixed inset-0 z-30 flex items-center justify-center px-4 py-6"
+        className="document-modal-backdrop fixed inset-0 z-30 flex items-center justify-center px-4 py-4 md:py-6"
         style={{
             background: 'rgba(3,7,18,0.72)',
             backdropFilter: 'blur(12px)',
@@ -453,9 +454,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
             role="dialog"
             aria-modal="true"
             aria-labelledby="document-modal-title"
-            className="document-modal flex w-full max-w-2xl flex-col overflow-hidden rounded-2xl"
+            className="document-modal flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl md:max-h-[80vh]"
             style={{
-                maxHeight: 'min(78vh, 720px)',
                 background: 'linear-gradient(180deg, rgba(15,23,42,0.97) 0%, rgba(10,13,20,0.98) 100%)',
                 border: '1px solid rgba(79,255,176,0.24)',
                 boxShadow: '0 34px 110px rgba(0,0,0,0.58), 0 0 0 1px rgba(255,255,255,0.04), 0 0 64px rgba(79,255,176,0.08)',
@@ -463,7 +463,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
             onMouseDown={(event) => event.stopPropagation()}
         >
             <div
-                className="flex items-start justify-between gap-5 px-6 py-5"
+                className="flex items-start justify-between gap-3 px-4 py-4 md:gap-5 md:px-6 md:py-5"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
             >
                 <div className="min-w-0">
@@ -489,7 +489,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
                 <button
                     type="button"
                     onClick={onClose}
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl transition-colors"
+                    className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-colors"
                     style={{
                         background: 'rgba(255,255,255,0.04)',
                         border: '1px solid rgba(255,255,255,0.08)',
@@ -505,9 +505,9 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-5">
+            <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-5">
                 <div
-                    className="rounded-2xl px-5 py-4"
+                    className="rounded-2xl px-4 py-4 md:px-5"
                     style={{
                         background: 'rgba(255,255,255,0.035)',
                         border: '1px solid rgba(255,255,255,0.07)',
@@ -523,14 +523,14 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
             </div>
 
             <div
-                className="px-6 py-5"
+                className="px-4 py-4 md:px-6 md:py-5"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
             >
                 <a
                     href={document.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
+                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
                     style={{
                         background: 'rgba(79,255,176,0.13)',
                         border: '1px solid rgba(79,255,176,0.32)',
@@ -881,18 +881,19 @@ export const StudentSearchPage: React.FC = () => {
     // ── Render ────────────────────────────────────────────────────────────────
 
     return (
+        /* The graph canvas is viewport-bound; inner regions resize instead of allowing page-level horizontal scroll. */
         <div
-            className="flex flex-col h-screen overflow-hidden select-none"
+            className="flex h-[100dvh] min-h-[520px] flex-col overflow-hidden select-none"
             style={{ background: BG_COLOR, fontFamily: "'DM Sans', sans-serif" }}
         >
             {/* ── Header ────────────────────────────────────────────────────────── */}
             <header
-                className="flex items-center justify-between px-6 py-3 flex-shrink-0"
+                className="flex flex-shrink-0 items-center justify-between px-4 py-3 md:px-6"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
             >
                 <Link
                     to="/"
-                    className="font-bold text-lg tracking-tight"
+                    className="inline-flex min-h-11 items-center text-lg font-bold tracking-tight"
                     style={{
                         fontFamily: "'Syne', sans-serif",
                         color: '#4fffb0',
@@ -918,7 +919,7 @@ export const StudentSearchPage: React.FC = () => {
 
             {/* ── Search bar ────────────────────────────────────────────────────── */}
             <div
-                className="flex-shrink-0 px-6 pt-6 pb-5"
+                className="flex-shrink-0 px-4 pb-4 pt-4 md:px-6 md:pb-5 md:pt-6"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
             >
                 <div className="max-w-2xl mx-auto">
@@ -928,7 +929,7 @@ export const StudentSearchPage: React.FC = () => {
                     >
                         Пошук знань
                     </p>
-                    <div className="relative flex gap-2">
+                    <div className="relative flex flex-col gap-2 md:flex-row">
                         <div className="flex-1 relative">
                             {/* Glow behind input */}
                             <div
@@ -947,7 +948,7 @@ export const StudentSearchPage: React.FC = () => {
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                 placeholder="Що хочете знайти? Наприклад: алгоритми сортування..."
                                 disabled={pageState === 'loading'}
-                                className="w-full rounded-xl px-4 py-3 text-sm outline-none disabled:opacity-50"
+                                className="min-h-11 w-full rounded-xl px-4 py-3 text-base outline-none disabled:opacity-50 md:text-sm"
                                 style={{
                                     background: 'rgba(255,255,255,0.04)',
                                     border: '1px solid rgba(255,255,255,0.08)',
@@ -960,7 +961,7 @@ export const StudentSearchPage: React.FC = () => {
                         <button
                             onClick={handleSearch}
                             disabled={!query.trim() || pageState === 'loading'}
-                            className="px-5 py-3 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 md:w-auto"
                             style={{
                                 background: 'rgba(79,255,176,0.12)',
                                 border: '1px solid rgba(79,255,176,0.3)',
@@ -1024,7 +1025,7 @@ export const StudentSearchPage: React.FC = () => {
                         </div>
                         <button
                             onClick={pageState === 'foldersError' ? fetchFolders : handleSearch}
-                            className="text-xs px-3 py-1.5 rounded-lg transition-colors"
+                            className="min-h-11 min-w-11 rounded-lg px-4 text-sm transition-colors"
                             style={{ color: '#4fffb0', background: 'rgba(79,255,176,0.08)', border: '1px solid rgba(79,255,176,0.2)' }}
                         >
                             Спробувати знову
@@ -1044,7 +1045,7 @@ export const StudentSearchPage: React.FC = () => {
                 {/* ── Hovered node info strip ────────────────────────────────────── */}
                 {(pageState === 'folders' || pageState === 'results') && hoveredNode && hoveredNode.url && (
                     <div
-                        className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-xl text-sm flex items-center gap-2 pointer-events-none"
+                        className="absolute left-3 right-3 top-3 z-10 flex items-center gap-2 rounded-xl px-3 py-2 text-sm pointer-events-none md:left-1/2 md:right-auto md:-translate-x-1/2 md:px-4"
                         style={{
                             background: 'rgba(10,13,20,0.9)',
                             border: '1px solid rgba(79,255,176,0.25)',
@@ -1060,7 +1061,7 @@ export const StudentSearchPage: React.FC = () => {
                         <span style={{ color: '#4fffb0', flexShrink: 0 }}>◉</span>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{hoveredNode.title}</span>
                         <span
-                            className="ml-1 flex-shrink-0 text-xs"
+                            className="ml-1 hidden flex-shrink-0 text-xs md:inline"
                             style={{ color: 'rgba(79,255,176,0.5)' }}
                         >
               — {hoveredNode.type === 'document' ? 'клікніть щоб переглянути' : 'клікніть щоб відкрити'}
