@@ -60,6 +60,8 @@ class SearchRequest(BaseModel):
 
 class SearchResult(BaseModel):
     document_id: str
+    chunk_id: str
+    chunk_index: int
     title: str
     content: str
     url: str
@@ -97,6 +99,7 @@ def get_or_create_table():
             {
                 "document_id": "__init__",
                 "chunk_id": "__init__",
+                "chunk_index": 0,
                 "title": "__init__",
                 "content": "__init__",
                 "url": "__init__",
@@ -157,6 +160,7 @@ def upsert_documents(request: UpsertRequest):
                     {
                         "document_id": doc.id,
                         "chunk_id": f"{doc.id}:{index}",
+                        "chunk_index": index,
                         "title": doc.title,
                         "content": chunk,
                         "url": doc.url,
@@ -254,6 +258,7 @@ def search(request: SearchRequest):
                 {
                     "document_id": item["document_id"],
                     "chunk_id": chunk_id,
+                    "chunk_index": item["chunk_index"],
                     "title": item["title"],
                     "content": item["content"],
                     "url": item["url"],
@@ -316,6 +321,8 @@ def search(request: SearchRequest):
             results.append(
                 SearchResult(
                     document_id=document_id,
+                    chunk_id=item["chunk_id"],
+                    chunk_index=item["chunk_index"],
                     title=item["title"],
                     content=item["content"],
                     url=item["url"],

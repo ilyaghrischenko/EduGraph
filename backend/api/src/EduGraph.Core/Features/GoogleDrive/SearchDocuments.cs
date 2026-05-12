@@ -23,7 +23,10 @@ public static class SearchDocuments
         public required string Title { get; init; }
         public required string Url { get; init; }
         public string? FolderName { get; init; }
+        public required string Content { get; init; }
         public required double Score { get; init; }
+        public required string ChunkId { get; init; }
+        public required int ChunkIndex { get; init; }
     }
 
     public sealed class Validator : AbstractValidator<Request>
@@ -83,7 +86,10 @@ public static class SearchDocuments
                     Title = document.Title,
                     Url = document.Url,
                     FolderName = document.FolderName,
-                    Score = document.Score
+                    Content = document.Content,
+                    Score = document.Score,
+                    ChunkId = document.ChunkId,
+                    ChunkIndex = document.ChunkIndex
                 })
                 .ToList();
 

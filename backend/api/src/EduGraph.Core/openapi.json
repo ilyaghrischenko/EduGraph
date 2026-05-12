@@ -477,7 +477,10 @@
         "required": [
           "title",
           "url",
-          "score"
+          "content",
+          "score",
+          "chunkId",
+          "chunkIndex"
         ],
         "type": "object",
         "properties": {
@@ -491,9 +494,19 @@
             "type": "string",
             "nullable": true
           },
+          "content": {
+            "type": "string"
+          },
           "score": {
             "type": "number",
             "format": "double"
+          },
+          "chunkId": {
+            "type": "string"
+          },
+          "chunkIndex": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

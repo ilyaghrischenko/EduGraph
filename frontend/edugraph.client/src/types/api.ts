@@ -41,7 +41,10 @@ export interface SearchDocumentResponse {
     title: string;
     url: string;
     folderName: string | null;
+    content: string;
     score: number;
+    chunkId: string;
+    chunkIndex: number;
 }
 
 // /api/users/folders response

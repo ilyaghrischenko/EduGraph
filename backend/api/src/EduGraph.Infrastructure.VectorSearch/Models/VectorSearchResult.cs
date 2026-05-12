@@ -8,6 +8,12 @@ public sealed record VectorSearchResult
     [property: JsonPropertyName("document_id")]
     public required string DocumentId { get; init; }
     
+    [property: JsonPropertyName("chunk_id")]
+    public required string ChunkId { get; init; }
+
+    [property: JsonPropertyName("chunk_index")]
+    public required int ChunkIndex { get; init; }
+    
     [property: JsonPropertyName("title")]
     public required string Title { get; init; }
     
@@ -18,7 +24,7 @@ public sealed record VectorSearchResult
     public required string Url { get; init; }
     
     [property: JsonPropertyName("folder_name")]
-    public required string FolderName { get; init; }
+    public string? FolderName { get; init; }
     
     [property: JsonPropertyName("score")]
     public required double Score { get; init; }

@@ -12,6 +12,8 @@ interface GraphNode extends NodeObject {
     id: string;
     title: string;
     url?: string;
+    content?: string;
+    folderName?: string | null;
     parentId?: string;
     type: 'root' | 'folder' | 'document' | 'trunk';
 }
@@ -70,9 +72,11 @@ function buildGraph(folders: FolderResponse[], docs: SearchDocumentResponse[] = 
             : folderNodeIdByName.get(doc.folderName) ?? root.id;
 
         return {
-            id: `doc:${index}`,
+            id: `doc:${doc.chunkId || index}`,
             title: doc.title,
             url: doc.url,
+            content: doc.content,
+            folderName: doc.folderName,
             parentId,
             type: 'document' as const,
         };
@@ -298,7 +302,11 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
         const siblings = documentGroups.get(parentId) ?? [];
         const index = Math.max(0, siblings.findIndex((doc) => doc.id === node.id));
         const isRootParent = parentId === root?.id;
-        const side = isRootParent ? -1 : parentPosition.x >= 0 ? 1 : -1;
+        const side = isRootParent
+            ? -1
+            : width < 640
+                ? (parentPosition.x >= 0 ? -1 : 1)
+                : (parentPosition.x >= 0 ? 1 : -1);
         const groupCenterY = documentGroupCenters.get(parentId) ?? parentPosition.y + (parentId === root?.id ? 112 : -24);
         const yOffset = (index - (siblings.length - 1) / 2) * (DOCUMENT_NODE_HEIGHT + DOCUMENT_NODE_GAP);
         const parentTitle = parentId ? nodeById.get(parentId)?.title ?? '' : '';
@@ -426,6 +434,103 @@ const DotDotDot: React.FC = () => {
     return <span>{'.'.repeat(dots)}&nbsp;</span>;
 };
 
+interface DocumentPanelProps {
+    document: GraphNode;
+    onClose: () => void;
+}
+
+const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, onClose }) => (
+    <aside
+        className="document-panel absolute right-4 top-4 bottom-4 z-20 flex flex-col"
+        style={{
+            width: 'min(420px, calc(100% - 32px))',
+            background: 'rgba(10,13,20,0.94)',
+            border: '1px solid rgba(79,255,176,0.22)',
+            borderRadius: '18px',
+            boxShadow: '0 24px 70px rgba(0,0,0,0.42), 0 0 42px rgba(79,255,176,0.06)',
+            backdropFilter: 'blur(14px)',
+            fontFamily: "'DM Sans', sans-serif",
+        }}
+        aria-label="Вміст документа"
+    >
+        <div
+            className="flex items-start justify-between gap-4 px-5 py-4"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        >
+            <div className="min-w-0">
+                <p
+                    className="mb-2 text-xs uppercase"
+                    style={{ color: 'rgba(79,255,176,0.55)', fontFamily: "'Syne', sans-serif", letterSpacing: '0.12em' }}
+                >
+                    Фрагмент документа
+                </p>
+                <h2
+                    className="text-base font-medium leading-snug"
+                    style={{ color: '#e2e8f0', overflowWrap: 'anywhere' }}
+                >
+                    {document.title}
+                </h2>
+                {document.folderName && (
+                    <p className="mt-2 text-xs" style={{ color: 'rgba(226,232,240,0.45)' }}>
+                        {document.folderName}
+                    </p>
+                )}
+            </div>
+            <button
+                type="button"
+                onClick={onClose}
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors"
+                style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: 'rgba(226,232,240,0.72)',
+                    cursor: 'pointer',
+                }}
+                aria-label="Закрити панель"
+            >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+            <p
+                className="whitespace-pre-wrap text-sm leading-6"
+                style={{ color: 'rgba(226,232,240,0.86)', overflowWrap: 'anywhere' }}
+            >
+                {document.content}
+            </p>
+        </div>
+
+        <div
+            className="px-5 py-4"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+        >
+            <a
+                href={document.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
+                style={{
+                    background: 'rgba(79,255,176,0.13)',
+                    border: '1px solid rgba(79,255,176,0.32)',
+                    color: '#4fffb0',
+                    textDecoration: 'none',
+                }}
+            >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 3h7v7" />
+                    <path d="M10 14 21 3" />
+                    <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+                </svg>
+                Відкрити оригінал у Google Диск
+            </a>
+        </div>
+    </aside>
+);
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export const StudentSearchPage: React.FC = () => {
@@ -436,6 +541,7 @@ export const StudentSearchPage: React.FC = () => {
     const [graphData, setGraphData] = useState<GraphData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
+    const [selectedDocument, setSelectedDocument] = useState<GraphNode | null>(null);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -487,6 +593,7 @@ export const StudentSearchPage: React.FC = () => {
     const fetchFolders = useCallback(async () => {
         setPageState('foldersLoading');
         setError(null);
+        setSelectedDocument(null);
         try {
             const loadedFolders = await usersApi.getFolders();
             setFolders(loadedFolders);
@@ -504,6 +611,7 @@ export const StudentSearchPage: React.FC = () => {
         setPageState('loading');
         setError(null);
         setGraphData(null);
+        setSelectedDocument(null);
         startLoadingSteps();
 
         try {
@@ -554,6 +662,11 @@ export const StudentSearchPage: React.FC = () => {
 
     const handleNodeClick = useCallback((node: NodeObject) => {
         const n = node as GraphNode;
+        if (n.type === 'document') {
+            setSelectedDocument(n);
+            return;
+        }
+
         if (n.url) window.open(n.url, '_blank', 'noopener,noreferrer');
     }, []);
 
@@ -561,7 +674,7 @@ export const StudentSearchPage: React.FC = () => {
         const n = node ? (node as GraphNode) : null;
         hoveredNodeRef.current = n;
         setHoveredNode(n);
-        document.body.style.cursor = n?.url ? 'pointer' : 'default';
+        document.body.style.cursor = n?.url || n?.type === 'document' ? 'pointer' : 'default';
     }, []);
 
     // Custom canvas node painter — uses ref to avoid re-creating on every hover
@@ -913,7 +1026,7 @@ export const StudentSearchPage: React.FC = () => {
                             className="ml-1 flex-shrink-0 text-xs"
                             style={{ color: 'rgba(79,255,176,0.5)' }}
                         >
-              — клікніть щоб відкрити
+              — {hoveredNode.type === 'document' ? 'клікніть щоб переглянути' : 'клікніть щоб відкрити'}
             </span>
                     </div>
                 )}
@@ -955,6 +1068,13 @@ export const StudentSearchPage: React.FC = () => {
                         onEngineStop={() => {/* graph has settled */}}
                     />
                 )}
+
+                {(pageState === 'results') && selectedDocument && (
+                    <DocumentPanel
+                        document={selectedDocument}
+                        onClose={() => setSelectedDocument(null)}
+                    />
+                )}
             </div>
 
             {/* ── Global styles injection (Syne + DM Sans + pulse keyframe) ─────── */}
@@ -963,6 +1083,16 @@ export const StudentSearchPage: React.FC = () => {
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.6; transform: scale(0.85); }
+        }
+        @media (max-width: 768px) {
+          .document-panel {
+            left: 12px;
+            right: 12px;
+            top: auto;
+            bottom: 12px;
+            width: auto !important;
+            max-height: min(70vh, 560px);
+          }
         }
       `}</style>
         </div>
