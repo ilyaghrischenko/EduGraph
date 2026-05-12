@@ -774,7 +774,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
                         className="whitespace-pre-wrap text-sm leading-6"
                         style={{ color: 'rgba(226,232,240,0.88)', overflowWrap: 'anywhere' }}
                     >
-                        {document.content}
+                        ...{document.content}...
                     </p>
                 </div>
             </div>
