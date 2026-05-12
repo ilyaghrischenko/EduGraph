@@ -54,6 +54,7 @@ const FOLDER_NODE_HORIZONTAL_PADDING = 34;
 const DOCUMENT_FOLDER_GAP = 76;
 const ROOT_DOCUMENT_GAP = 44;
 const DOCUMENT_PANEL_WIDTH = 440;
+const DOCUMENT_PANEL_TRANSITION_MS = 360;
 
 let textMeasureContext: CanvasRenderingContext2D | null | undefined;
 const textWidthCache = new Map<string, number>();
@@ -437,98 +438,105 @@ const DotDotDot: React.FC = () => {
 
 interface DocumentPanelProps {
     document: GraphNode;
+    isOpen: boolean;
     onClose: () => void;
 }
 
-const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, onClose }) => (
+const DocumentPanel: React.FC<DocumentPanelProps> = ({ document, isOpen, onClose }) => (
     <aside
-        className="document-panel relative z-20 flex h-full flex-shrink-0 flex-col"
+        className="document-panel relative z-20 flex h-full flex-shrink-0 overflow-hidden"
         style={{
-            width: `${DOCUMENT_PANEL_WIDTH}px`,
+            width: isOpen ? `${DOCUMENT_PANEL_WIDTH}px` : 0,
+            opacity: isOpen ? 1 : 0,
+            transform: isOpen ? 'translateX(0)' : 'translateX(28px)',
             background: 'rgba(10,13,20,0.94)',
             border: '1px solid rgba(79,255,176,0.24)',
             borderRight: 0,
             boxShadow: '-22px 0 70px rgba(0,0,0,0.38), inset 1px 0 0 rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(79,255,176,0.10), 0 0 42px rgba(79,255,176,0.06)',
             backdropFilter: 'blur(14px)',
             fontFamily: "'DM Sans', sans-serif",
-            animation: 'slide-panel-in 0.2s ease-out',
+            transition: `width ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${DOCUMENT_PANEL_TRANSITION_MS}ms ease, transform ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`,
         }}
         aria-label="Вміст документа"
+        aria-hidden={!isOpen}
+        data-open={isOpen}
     >
-        <div
-            className="flex items-start justify-between gap-4 px-5 py-4"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
-        >
-            <div className="min-w-0">
-                <p
-                    className="mb-2 text-xs uppercase"
-                    style={{ color: 'rgba(79,255,176,0.55)', fontFamily: "'Syne', sans-serif", letterSpacing: '0.12em' }}
-                >
-                    Фрагмент документа
-                </p>
-                <h2
-                    className="text-base font-medium leading-snug"
-                    style={{ color: '#e2e8f0', overflowWrap: 'anywhere' }}
-                >
-                    {document.title}
-                </h2>
-                {document.folderName && (
-                    <p className="mt-2 text-xs" style={{ color: 'rgba(226,232,240,0.45)' }}>
-                        {document.folderName}
+        <div className="flex h-full flex-col" style={{ width: `${DOCUMENT_PANEL_WIDTH}px`, minWidth: `${DOCUMENT_PANEL_WIDTH}px` }}>
+            <div
+                className="flex items-start justify-between gap-4 px-5 py-4"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+            >
+                <div className="min-w-0">
+                    <p
+                        className="mb-2 text-xs uppercase"
+                        style={{ color: 'rgba(79,255,176,0.55)', fontFamily: "'Syne', sans-serif", letterSpacing: '0.12em' }}
+                    >
+                        Фрагмент документа
                     </p>
-                )}
+                    <h2
+                        className="text-base font-medium leading-snug"
+                        style={{ color: '#e2e8f0', overflowWrap: 'anywhere' }}
+                    >
+                        {document.title}
+                    </h2>
+                    {document.folderName && (
+                        <p className="mt-2 text-xs" style={{ color: 'rgba(226,232,240,0.45)' }}>
+                            {document.folderName}
+                        </p>
+                    )}
+                </div>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors"
+                    style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'rgba(226,232,240,0.72)',
+                        cursor: 'pointer',
+                    }}
+                    aria-label="Закрити панель"
+                >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
             </div>
-            <button
-                type="button"
-                onClick={onClose}
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-colors"
-                style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(226,232,240,0.72)',
-                    cursor: 'pointer',
-                }}
-                aria-label="Закрити панель"
-            >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                </svg>
-            </button>
-        </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-            <p
-                className="whitespace-pre-wrap text-sm leading-6"
-                style={{ color: 'rgba(226,232,240,0.86)', overflowWrap: 'anywhere' }}
-            >
-                {document.content}
-            </p>
-        </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+                <p
+                    className="whitespace-pre-wrap text-sm leading-6"
+                    style={{ color: 'rgba(226,232,240,0.86)', overflowWrap: 'anywhere' }}
+                >
+                    {document.content}
+                </p>
+            </div>
 
-        <div
-            className="px-5 py-4"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-        >
-            <a
-                href={document.url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
-                style={{
-                    background: 'rgba(79,255,176,0.13)',
-                    border: '1px solid rgba(79,255,176,0.32)',
-                    color: '#4fffb0',
-                    textDecoration: 'none',
-                }}
+            <div
+                className="px-5 py-4"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
             >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 3h7v7" />
-                    <path d="M10 14 21 3" />
-                    <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
-                </svg>
-                Відкрити оригінал у Google Drive
-            </a>
+                <a
+                    href={document.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
+                    style={{
+                        background: 'rgba(79,255,176,0.13)',
+                        border: '1px solid rgba(79,255,176,0.32)',
+                        color: '#4fffb0',
+                        textDecoration: 'none',
+                    }}
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 3h7v7" />
+                        <path d="M10 14 21 3" />
+                        <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+                    </svg>
+                    Відкрити оригінал у Google Drive
+                </a>
+            </div>
         </div>
     </aside>
 );
@@ -544,11 +552,13 @@ export const StudentSearchPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
     const [selectedDocument, setSelectedDocument] = useState<GraphNode | null>(null);
+    const [isDocumentPanelOpen, setIsDocumentPanelOpen] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const hoveredNodeRef = useRef<GraphNode | null>(null);
     const stepTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const documentPanelCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<any>(null);
     const visibleGraphData = useMemo(() => {
@@ -595,6 +605,7 @@ export const StudentSearchPage: React.FC = () => {
     const fetchFolders = useCallback(async () => {
         setPageState('foldersLoading');
         setError(null);
+        setIsDocumentPanelOpen(false);
         setSelectedDocument(null);
         try {
             const loadedFolders = await usersApi.getFolders();
@@ -613,6 +624,7 @@ export const StudentSearchPage: React.FC = () => {
         setPageState('loading');
         setError(null);
         setGraphData(null);
+        setIsDocumentPanelOpen(false);
         setSelectedDocument(null);
         startLoadingSteps();
 
@@ -633,6 +645,11 @@ export const StudentSearchPage: React.FC = () => {
     }, [clearStepTimers, folders, pageState, query, startLoadingSteps]);
 
     useEffect(() => () => clearStepTimers(), [clearStepTimers]);
+    useEffect(() => () => {
+        if (documentPanelCloseTimerRef.current) {
+            clearTimeout(documentPanelCloseTimerRef.current);
+        }
+    }, []);
     useEffect(() => {
         let ignore = false;
 
@@ -664,26 +681,42 @@ export const StudentSearchPage: React.FC = () => {
         if (!fgRef.current || !visibleGraphData || dimensions.width <= 0) return;
 
         const isDesktopPanel = pageState === 'results'
-            && selectedDocument
+            && isDocumentPanelOpen
             && typeof window !== 'undefined'
             && window.innerWidth > 768;
         const currentCenter = fgRef.current.centerAt();
         const zoom = fgRef.current.zoom?.() ?? 1;
         const targetX = isDesktopPanel ? DOCUMENT_PANEL_WIDTH / 2 / zoom : 0;
 
-        fgRef.current.centerAt(targetX, currentCenter.y, 180);
-    }, [dimensions.width, pageState, selectedDocument, visibleGraphData]);
+        fgRef.current.centerAt(targetX, currentCenter.y, DOCUMENT_PANEL_TRANSITION_MS);
+    }, [dimensions.width, isDocumentPanelOpen, pageState, visibleGraphData]);
 
     // ── Graph callbacks ────────────────────────────────────────────────────────
 
     const handleNodeClick = useCallback((node: NodeObject) => {
         const n = node as GraphNode;
         if (n.type === 'document') {
+            if (documentPanelCloseTimerRef.current) {
+                clearTimeout(documentPanelCloseTimerRef.current);
+                documentPanelCloseTimerRef.current = null;
+            }
             setSelectedDocument(n);
+            requestAnimationFrame(() => setIsDocumentPanelOpen(true));
             return;
         }
 
         if (n.url) window.open(n.url, '_blank', 'noopener,noreferrer');
+    }, []);
+
+    const closeDocumentPanel = useCallback(() => {
+        setIsDocumentPanelOpen(false);
+        if (documentPanelCloseTimerRef.current) {
+            clearTimeout(documentPanelCloseTimerRef.current);
+        }
+        documentPanelCloseTimerRef.current = setTimeout(() => {
+            setSelectedDocument(null);
+            documentPanelCloseTimerRef.current = null;
+        }, DOCUMENT_PANEL_TRANSITION_MS);
     }, []);
 
     const handleNodeHover = useCallback((node: NodeObject | null) => {
@@ -1091,7 +1124,8 @@ export const StudentSearchPage: React.FC = () => {
                 {(pageState === 'results') && selectedDocument && (
                     <DocumentPanel
                         document={selectedDocument}
-                        onClose={() => setSelectedDocument(null)}
+                        isOpen={isDocumentPanelOpen}
+                        onClose={closeDocumentPanel}
                     />
                 )}
             </div>
@@ -1102,10 +1136,6 @@ export const StudentSearchPage: React.FC = () => {
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.6; transform: scale(0.85); }
-        }
-        @keyframes slide-panel-in {
-          from { transform: translateX(24px); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
         }
         @media (max-width: 768px) {
           .student-search-main {
@@ -1118,12 +1148,15 @@ export const StudentSearchPage: React.FC = () => {
             border-left: 0 !important;
             border-top: 1px solid rgba(79,255,176,0.22);
             box-shadow: 0 -22px 70px rgba(0,0,0,0.42), 0 0 42px rgba(79,255,176,0.06) !important;
-            animation: slide-panel-up 0.2s ease-out;
+            transform: translateY(0) !important;
+            transition: height ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), max-height ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${DOCUMENT_PANEL_TRANSITION_MS}ms ease, transform ${DOCUMENT_PANEL_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) !important;
           }
-        }
-        @keyframes slide-panel-up {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
+          .document-panel[data-open="false"] {
+            height: 0 !important;
+            max-height: 0;
+            transform: translateY(24px) !important;
+            pointer-events: none;
+          }
         }
       `}</style>
         </div>
