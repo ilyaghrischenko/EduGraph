@@ -1,9 +1,14 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 string pythonAppDirectory = Path.GetFullPath("../../../../vector-search/EduGraph.VectorSearch");
-string certifiPath = Path.Combine(
-    pythonAppDirectory,
-    ".venv/lib/python3.13/site-packages/certifi/cacert.pem");
+string certifiPath = Directory
+    .GetFiles(
+        Path.Combine(pythonAppDirectory, ".venv/lib"),
+        "cacert.pem",
+        SearchOption.AllDirectories)
+#pragma warning disable CA1307
+    .First(path => path.Contains("certifi"));
+#pragma warning restore CA1307
 
 var vectorSearchApi = builder
     .AddExecutable(
