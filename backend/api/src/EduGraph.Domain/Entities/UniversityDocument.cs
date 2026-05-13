@@ -127,6 +127,7 @@ public sealed class UniversityDocument : BaseEntity
         Link = link;
         ContentHash = contentHash;
         FolderName = folderName;
+        MarkAsNotIndexed();
         
         return Result.Success();
     }

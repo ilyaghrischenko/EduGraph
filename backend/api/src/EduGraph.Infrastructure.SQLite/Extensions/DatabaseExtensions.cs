@@ -31,7 +31,7 @@ public static class DatabaseExtensions
     
     private static async Task EnsureRoleExist(string role, RoleManager<IdentityRole<int>> roleManager)
     {
-        var existingRole = await roleManager.FindByNameAsync(role);
+        IdentityRole<int>? existingRole = await roleManager.FindByNameAsync(role);
         if (existingRole == null)
         {
             var identityResult = await roleManager.CreateAsync(new IdentityRole<int>
