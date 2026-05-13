@@ -682,7 +682,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ currentStep }) => (
         </div>
 
         <p className="mt-8 text-xs" style={{ color: '#334155', fontFamily: "'DM Sans', sans-serif" }}>
-            це може зайняти до 30–60 секунд
+            це може зайняти певний час
         </p>
     </div>
 );
