@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace EduGraph.Core.Features.Admins;
+namespace EduGraph.Core.Features.SignUpApplications;
 
 public static class ApproveSignUpApplication
 {
@@ -21,9 +21,9 @@ public static class ApproveSignUpApplication
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("admins/sign-up-applications/{applicationId:int}/approve", Handle)
+            app.MapPost("sign-up-applications/{applicationId:int}/approve", Handle)
                 .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
-                .WithTags("Admins")
+                .WithTags("SignUpApplications")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status500InternalServerError);

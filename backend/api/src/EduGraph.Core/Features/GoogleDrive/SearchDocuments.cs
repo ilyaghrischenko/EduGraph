@@ -44,9 +44,9 @@ public static class SearchDocuments
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapGet("users/search-documents", Handle)
+            app.MapGet("google-drive/search-documents", Handle)
                 .RequireAuthorization(AuthorizationRoles.All)
-                .WithTags("Users")
+                .WithTags("GoogleDrive")
                 .Produces<IReadOnlyCollection<Response>>()
                 .ProducesValidationProblem()
                 .ProducesProblem(StatusCodes.Status400BadRequest)

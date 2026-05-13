@@ -1,4 +1,3 @@
-using EduGraph.Core.Features.Common;
 using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Dto;
 using EduGraph.Core.Features.Common.Endpoints;
@@ -11,7 +10,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace EduGraph.Core.Features.Admins;
+namespace EduGraph.Core.Features.SignUpApplications;
 
 public static class GetPendingApplications
 {
@@ -30,9 +29,9 @@ public static class GetPendingApplications
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapGet("admins/sign-up-applications", Handle)
+            app.MapGet("sign-up-applications", Handle)
                 .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
-                .WithTags("Admins");
+                .WithTags("SignUpApplications");
         }
 
         private static async Task<Ok<Pagination<Response>>> Handle(

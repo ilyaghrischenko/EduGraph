@@ -1,6 +1,5 @@
 using EduGraph.Core.Extensions;
 using EduGraph.Core.Factories;
-using EduGraph.Core.Features.Common;
 using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Domain.Entities;
@@ -9,7 +8,7 @@ using EduGraph.SharedKernel.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace EduGraph.Core.Features.Admins;
+namespace EduGraph.Core.Features.SignUpApplications;
 
 public static class RejectSignUpApplication
 {
@@ -17,9 +16,9 @@ public static class RejectSignUpApplication
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("admins/sign-up-applications/{applicationId:int}/reject", Handle)
+            app.MapPost("sign-up-applications/{applicationId:int}/reject", Handle)
                 .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
-                .WithTags("Admins")
+                .WithTags("SignUpApplications")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound);

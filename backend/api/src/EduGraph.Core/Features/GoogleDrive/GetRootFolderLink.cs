@@ -15,9 +15,9 @@ public static class GetRootFolderLink
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             //todo: поменять роут и WithTags потому что не правильно сейчас + поправить это на фронте потом
-            app.MapGet("users/root-folder-link", Handle)
+            app.MapGet("google-drive/root-folder-link", Handle)
                 .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
-                .WithTags("Users")
+                .WithTags("GoogleDrive")
                 .Produces<string>()
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status500InternalServerError);

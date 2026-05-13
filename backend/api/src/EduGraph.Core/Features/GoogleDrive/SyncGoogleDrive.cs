@@ -4,7 +4,7 @@ using EduGraph.Core.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EduGraph.Core.Features.Admins;
+namespace EduGraph.Core.Features.GoogleDrive;
 
 public static class SyncGoogleDrive
 {
@@ -14,10 +14,9 @@ public static class SyncGoogleDrive
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("/admins/google-drive/sync", Handle)
+            app.MapPost("google-drive/sync", Handle)
                 .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
-                .WithTags("Admins")
-                .WithName("SyncGoogleDrive")
+                .WithTags("GoogleDrive")
                 .Produces(StatusCodes.Status202Accepted);
         }
 

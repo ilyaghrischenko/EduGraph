@@ -1,21 +1,17 @@
-using System.Net;
 using EduGraph.Core.Extensions;
-using EduGraph.Core.Features.Common;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Core.Features.Common.ValidationRules;
 using EduGraph.Infrastructure.SQLite;
 using EduGraph.Infrastructure.SQLite.Entities;
-using EduGraph.SharedKernel;
 using EduGraph.SharedKernel.Interfaces;
 using EduGraph.SharedKernel.Models;
 using FluentValidation;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
-namespace EduGraph.Core.Features.Users;
+namespace EduGraph.Core.Features.Auth;
 
 public static class LogIn
 {
@@ -41,8 +37,8 @@ public static class LogIn
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapPost("users/login", Handle)
-                .WithTags("Users")
+            app.MapPost("auth/login", Handle)
+                .WithTags("Auth")
                 .WithRequestValidation<Request>()
                 .Produces<string>()
                 .ProducesProblem(StatusCodes.Status400BadRequest);

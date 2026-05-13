@@ -2,12 +2,11 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using EduGraph.Core.Options;
-using EduGraph.SharedKernel;
 using EduGraph.SharedKernel.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace EduGraph.Core.Features.Users;
+namespace EduGraph.Core.Features.Auth;
 
 public sealed class JwtService(IOptions<JwtOptions> jwtOptions) : IScopedType
 {
