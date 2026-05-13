@@ -1,5 +1,6 @@
 using System.Net;
 using EduGraph.Core.Extensions;
+using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Domain.Entities;
 using EduGraph.Infrastructure.SQLite;
@@ -21,6 +22,7 @@ public static class ApproveSignUpApplication
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("admins/sign-up-applications/{applicationId:int}/approve", Handle)
+                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
                 .WithTags("Admins")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)

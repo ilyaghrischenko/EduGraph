@@ -1,6 +1,7 @@
 using EduGraph.Core.Extensions;
 using EduGraph.Core.Factories;
 using EduGraph.Core.Features.Common;
+using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Domain.Entities;
 using EduGraph.Infrastructure.SQLite;
@@ -17,6 +18,7 @@ public static class RejectSignUpApplication
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("admins/sign-up-applications/{applicationId:int}/reject", Handle)
+                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
                 .WithTags("Admins")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)

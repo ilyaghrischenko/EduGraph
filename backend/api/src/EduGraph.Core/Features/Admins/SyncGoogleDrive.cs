@@ -1,3 +1,4 @@
+using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Core.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -14,6 +15,7 @@ public static class SyncGoogleDrive
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("/admins/google-drive/sync", Handle)
+                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
                 .WithTags("Admins")
                 .WithName("SyncGoogleDrive")
                 .Produces(StatusCodes.Status202Accepted);

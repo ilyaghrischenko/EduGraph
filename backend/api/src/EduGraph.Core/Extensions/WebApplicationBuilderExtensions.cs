@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Authentication;
 using System.Text;
 using EduGraph.Core.BackgroundServices;
+using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Options;
 using EduGraph.Infrastructure.GoogleDrive.Extensions;
 using EduGraph.Infrastructure.VectorSearch.Extensions;
@@ -10,6 +11,7 @@ using EduGraph.Infrastructure.SQLite.Entities;
 using EduGraph.ServiceDefaults;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
@@ -25,8 +27,8 @@ public static class WebApplicationBuilderExtensions
         
         builder.Services.AddSingleton(TimeProvider.System);
         
-        builder.Services.AddAuthentication();
-        builder.Services.AddAuthorization();
+        // builder.Services.AddAuthentication();
+        // builder.Services.AddAuthorization();
 
         builder.Services.AddOpenApi();
         builder.Services.AddEndpointsApiExplorer();
@@ -105,7 +107,12 @@ public static class WebApplicationBuilderExtensions
             options.Lifetime = int.Parse(lifetime, CultureInfo.InvariantCulture);
         });
         
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(options =>
             {
                 //todo: добавить настройки валидации jwt token
@@ -121,11 +128,18 @@ public static class WebApplicationBuilderExtensions
                 };
             });
 
-        //todo
-        //services.AddAuthorizationBuilder()
-        //    .AddPoliciesByRoles();
+        builder.Services.AddAuthorizationBuilder()
+            .AddPoliciesByRoles();
         
         return builder;
+    }
+
+    private static void AddPoliciesByRoles(this AuthorizationBuilder builder)
+    {
+        foreach (string role in AuthorizationRoles.All)
+        {
+            builder.AddPolicy(role, policy => policy.RequireRole(role));
+        }
     }
     
     private static WebApplicationBuilder AddResponseCompression(this WebApplicationBuilder builder)

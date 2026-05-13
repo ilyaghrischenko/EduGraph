@@ -1,4 +1,5 @@
 using EduGraph.Core.Features.Common;
+using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Dto;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Core.Features.Common.Extensions;
@@ -30,6 +31,7 @@ public static class GetPendingApplications
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("admins/sign-up-applications", Handle)
+                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
                 .WithTags("Admins");
         }
 

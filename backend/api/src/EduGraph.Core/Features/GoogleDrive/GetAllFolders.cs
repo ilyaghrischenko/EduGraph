@@ -1,5 +1,6 @@
 using System.Net;
 using EduGraph.Core.Extensions;
+using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Infrastructure.GoogleDrive;
 using EduGraph.Infrastructure.GoogleDrive.Models;
@@ -20,6 +21,7 @@ public static class GetAllFolders
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("users/folders", Handle)
+                .RequireAuthorization(AuthorizationRoles.All)
                 .WithTags("Users")
                 .Produces<IReadOnlyCollection<Response>>()
                 .ProducesProblem(StatusCodes.Status500InternalServerError);

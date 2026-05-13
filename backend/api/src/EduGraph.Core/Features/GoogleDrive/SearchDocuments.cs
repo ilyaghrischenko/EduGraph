@@ -1,4 +1,5 @@
 using EduGraph.Core.Extensions;
+using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Infrastructure.VectorSearch;
 using EduGraph.Infrastructure.VectorSearch.Models;
@@ -13,7 +14,6 @@ using Microsoft.EntityFrameworkCore;
 namespace EduGraph.Core.Features.GoogleDrive;
 
 #pragma warning disable CA1056
-#pragma warning disable CA1054
 public static class SearchDocuments
 {
     public sealed record Request(string Query);
@@ -45,6 +45,7 @@ public static class SearchDocuments
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("users/search-documents", Handle)
+                .RequireAuthorization(AuthorizationRoles.All)
                 .WithTags("Users")
                 .Produces<IReadOnlyCollection<Response>>()
                 .ProducesValidationProblem()
@@ -98,4 +99,3 @@ public static class SearchDocuments
     }
 }
 #pragma warning restore CA1056
-#pragma warning restore CA1054

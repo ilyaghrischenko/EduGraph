@@ -40,7 +40,7 @@ public static class SignUp
                 .NotEmpty();
             RuleFor(x => x.Group)
                 .NotEmpty()
-                .When(x => x.UserType == Roles.Student)
+                .When(x => x.UserType == UserRoles.Student)
                 .WithMessage("Група обовʼязкова для студентів");
             RuleFor(x => x.Login)
                 .NotEmpty()

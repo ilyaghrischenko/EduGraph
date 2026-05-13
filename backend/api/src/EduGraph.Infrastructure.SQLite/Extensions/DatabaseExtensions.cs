@@ -19,7 +19,7 @@ public static class DatabaseExtensions
         RoleManager<IdentityRole<int>> roleManager,
         CancellationToken cancellationToken = default)
     {
-        foreach (string role in Roles.All)
+        foreach (string role in UserRoles.All)
         {
             await EnsureRoleExist(role, roleManager);
         }
@@ -52,7 +52,7 @@ public static class DatabaseExtensions
     {
         List<IdentityRole<int>> allInvalidRoles = await db.Roles
             .AsNoTracking()
-            .Where(role => !Roles.All.Contains(role.Name))
+            .Where(role => !UserRoles.All.Contains(role.Name))
             .ToListAsync();
 
         foreach (var invalidRole in allInvalidRoles)

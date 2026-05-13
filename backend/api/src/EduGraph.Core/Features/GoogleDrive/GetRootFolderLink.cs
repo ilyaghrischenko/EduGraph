@@ -1,4 +1,5 @@
 using EduGraph.Core.Extensions;
+using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Infrastructure.GoogleDrive;
 using EduGraph.SharedKernel.Interfaces;
@@ -15,6 +16,7 @@ public static class GetRootFolderLink
         {
             //todo: поменять роут и WithTags потому что не правильно сейчас + поправить это на фронте потом
             app.MapGet("users/root-folder-link", Handle)
+                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
                 .WithTags("Users")
                 .Produces<string>()
                 .ProducesProblem(StatusCodes.Status404NotFound)
