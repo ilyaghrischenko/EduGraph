@@ -3,9 +3,11 @@ using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Infrastructure.GoogleDrive;
 using EduGraph.Infrastructure.GoogleDrive.Models;
+using EduGraph.Infrastructure.SQLite;
 using EduGraph.SharedKernel.Interfaces;
 using EduGraph.SharedKernel.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EduGraph.Core.Features.GoogleDrive;
 
@@ -24,61 +26,15 @@ public static class GetAllFolders
         }
 
         private static async Task<IResult> Handle(
-            [FromServices] Handler handler,
+            [FromServices] EduGraphContext db,
             CancellationToken cancellationToken)
         {
-            Result<IReadOnlyCollection<Response>> getAllFoldersResult = await handler.HandleAsync(cancellationToken);
-
-            if (getAllFoldersResult.IsFailure)
-            {
-                return getAllFoldersResult.ToHttpFailure();
-            }
-
-            return TypedResults.Ok(getAllFoldersResult.Value);
-        }
-    }
-
-    public sealed class Handler(GoogleDriveService googleDriveService) : IScopedType
-    {
-        public async Task<Result<IReadOnlyCollection<Response>>> HandleAsync(CancellationToken cancellationToken)
-        {
-            List<Result<GoogleDriveFolder>> getRootFoldersResult = await googleDriveService.GetRootFoldersAsync(cancellationToken);
-
-            if (getRootFoldersResult.Count == 0)
-            {
-                return Result<IReadOnlyCollection<Response>>.Success([]);
-            }
-
-            List<string> errorMessages = [];
-
-            foreach (Result<GoogleDriveFolder> googleDriveFolderResult in getRootFoldersResult)
-            {
-                if (googleDriveFolderResult.IsFailure)
-                {
-                    errorMessages.Add(googleDriveFolderResult.ErrorDetails!.ErrorMessage);
-                }
-            }
-
-            if (errorMessages.Count > 0)
-            {
-                string errorMessage = string.Join("; ", errorMessages);
-                return Result<IReadOnlyCollection<Response>>.Failure(errorMessage, HttpStatusCode.InternalServerError);
-            }
-
-            List<Response> response = [];
-
-            foreach (Result<GoogleDriveFolder> googleDriveFolderResult in getRootFoldersResult)
-            {
-                GoogleDriveFolder googleDriveFolder = googleDriveFolderResult.Value!;
-
-                response.Add(new Response(
-                    googleDriveFolder.Id,
-                    googleDriveFolder.Name,
-                    googleDriveFolder.Link
-                ));
-            }
-
-            return response;
+            List<Response> response = await db.UniversityFolders
+                .AsNoTracking()
+                .Select(folder => new Response(folder.GoogleDriveId, folder.Name, folder.Link))
+                .ToListAsync(cancellationToken);
+            
+            return TypedResults.Ok(response);
         }
     }
 }

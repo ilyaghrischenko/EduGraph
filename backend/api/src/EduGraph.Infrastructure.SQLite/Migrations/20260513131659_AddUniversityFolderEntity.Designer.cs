@@ -3,6 +3,7 @@ using System;
 using EduGraph.Infrastructure.SQLite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduGraph.Infrastructure.SQLite.Migrations
 {
     [DbContext(typeof(EduGraphContext))]
-    partial class EduGraphContextModelSnapshot : ModelSnapshot
+    [Migration("20260513131659_AddUniversityFolderEntity")]
+    partial class AddUniversityFolderEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.11");

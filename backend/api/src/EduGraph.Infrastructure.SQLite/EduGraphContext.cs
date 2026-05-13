@@ -16,6 +16,8 @@ public sealed class EduGraphContext : IdentityDbContext<User, IdentityRole<int>,
     public DbSet<SignUpApplication> SignUpApplications { get; set; }
     
     public DbSet<UniversityDocument> UniversityDocuments { get; set; }
+    
+    public DbSet<UniversityFolder> UniversityFolders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

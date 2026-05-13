@@ -8,14 +8,13 @@ using EduGraph.Infrastructure.VectorSearch.Models;
 using EduGraph.SharedKernel.Helpers;
 using EduGraph.SharedKernel.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EduGraph.Core.BackgroundServices;
 
-public sealed partial class FetchDocumentsBackgroundService(
+public sealed partial class FetchGoogleDriveBackgroundService(
     IServiceProvider serviceProvider,
     TimeProvider timeProvider,
-    ILogger<FetchDocumentsBackgroundService> logger) : BackgroundService
+    ILogger<FetchGoogleDriveBackgroundService> logger) : BackgroundService
 {
     [LoggerMessage(1, LogLevel.Error, "Error while fetching Google Drive documents")]
     private partial void LogGoogleDriveError(Exception ex);
@@ -40,13 +39,63 @@ public sealed partial class FetchDocumentsBackgroundService(
 
                 try
                 {
+                    List<Result<GoogleDriveFolder>> getRootFoldersResult = await googleDriveService.GetRootFoldersAsync(stoppingToken);
+
+                    List<GoogleDriveFolder> googleDriveFolders = getRootFoldersResult
+                        .Where(result => result.IsSuccess)
+                        .Select(result => result.Value!)
+                        .DistinctBy(folder => folder.Id)
+                        .ToList();
+                    
+                    List<string> folderIds = googleDriveFolders
+                        .Select(folder => folder.Id)
+                        .ToList();
+                    
+                    List<UniversityFolder> existingFolders = await db.UniversityFolders
+                        .Where(folder => folderIds.Contains(folder.GoogleDriveId))
+                        .ToListAsync(stoppingToken);
+                    
+                    List<UniversityFolder> newUniversityFolders = [];
+                    
+                    foreach (GoogleDriveFolder googleDriveFolder in googleDriveFolders)
+                    {
+                        UniversityFolder? existingFolder = existingFolders.FirstOrDefault(folder => folder.GoogleDriveId == googleDriveFolder.Id);
+
+                        if (existingFolder is not null)
+                        {
+                            existingFolder.Update(googleDriveFolder.Id, googleDriveFolder.Name, googleDriveFolder.Link);
+                        }
+                        else
+                        {
+                            Result<UniversityFolder> createUniversityFolderResult = UniversityFolder.Create(
+                                googleDriveFolder.Id,
+                                googleDriveFolder.Name,
+                                googleDriveFolder.Link
+                            );
+
+                            if (createUniversityFolderResult.IsSuccess)
+                            {
+                                newUniversityFolders.Add(createUniversityFolderResult.Value!);
+                            }
+                        }
+                    }
+                    
+                    await db.UniversityFolders.AddRangeAsync(newUniversityFolders, stoppingToken);
+                    await db.SaveChangesAsync(stoppingToken);
+                    db.ChangeTracker.Clear();
+                    
                     HashSet<string> syncedIds = [];
                     
                     await foreach (List<Result<GoogleDriveDocument>> batchDocumentsResults in googleDriveService.GetDocumentsStreamAsync(stoppingToken))
                     {
-                        List<string> batchIds = batchDocumentsResults
+                        List<GoogleDriveDocument> googleDriveDocuments = batchDocumentsResults
                             .Where(result => result.IsSuccess)
-                            .Select(result => result.Value!.Id)
+                            .Select(result => result.Value!)
+                            .DistinctBy(document => document.Id)
+                            .ToList();
+
+                        List<string> batchIds = googleDriveDocuments
+                            .Select(document => document.Id)
                             .ToList();
                         
                         syncedIds.UnionWith(batchIds);
@@ -55,20 +104,18 @@ public sealed partial class FetchDocumentsBackgroundService(
                             .Where(document => batchIds.Contains(document.GoogleDriveId))
                             .ToListAsync(stoppingToken);
                         
-                        List<UniversityDocument> newUniversityDocuments = new(batchIds.Count - existingDocuments.Count);
+                        List<UniversityDocument> newUniversityDocuments = [];
                         
-                        foreach (Result<GoogleDriveDocument> documentResult in batchDocumentsResults)
+                        foreach (GoogleDriveDocument googleDriveDocument in googleDriveDocuments)
                         {
-                            if (documentResult.IsFailure)
-                            {
-                                continue;
-                            }
+                            UniversityDocument? existingDocument = existingDocuments
+                                .FirstOrDefault(document => document.GoogleDriveId == googleDriveDocument.Id);
 
-                            GoogleDriveDocument googleDriveDocument = documentResult.Value!;
-
-                            UniversityDocument? existingDocument = existingDocuments.FirstOrDefault(document => document.GoogleDriveId == googleDriveDocument.Id);
-
-                            UpdateOrInsertDocument(newUniversityDocuments, existingDocument, googleDriveDocument);
+                            UpdateOrInsertDocument(
+                                newUniversityDocuments,
+                                existingDocument,
+                                googleDriveDocument
+                            );
                         }
                         
                         await db.UniversityDocuments.AddRangeAsync(newUniversityDocuments, stoppingToken);
@@ -228,7 +275,10 @@ public sealed partial class FetchDocumentsBackgroundService(
                 folderName
             );
 
-            universityDocuments.Add(createUniversityDocumentResult.Value!);
+            if (createUniversityDocumentResult.IsSuccess)
+            {
+                universityDocuments.Add(createUniversityDocumentResult.Value!);
+            }
         }
     }
 }

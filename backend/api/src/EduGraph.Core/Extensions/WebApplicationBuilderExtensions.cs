@@ -63,7 +63,7 @@ public static class WebApplicationBuilderExtensions
 
         builder.Services.AddTypesToDi();
 
-        builder.Services.AddHostedService<FetchDocumentsBackgroundService>();
+        builder.Services.AddHostedService<FetchGoogleDriveBackgroundService>();
         
         return builder;
     }
