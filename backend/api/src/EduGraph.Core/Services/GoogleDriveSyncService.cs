@@ -67,6 +67,13 @@ public sealed class GoogleDriveSyncService(
         await db.UniversityFolders.AddRangeAsync(newUniversityFolders, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         db.ChangeTracker.Clear();
+        
+        if (folderIds.Count > 0)
+        {
+            await db.UniversityFolders
+                .Where(folder => !folderIds.Contains(folder.GoogleDriveId))
+                .ExecuteDeleteAsync(cancellationToken);
+        }
 
         HashSet<string> syncedIds = [];
 
