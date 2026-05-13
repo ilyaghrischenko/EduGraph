@@ -19,8 +19,8 @@ interface GraphNode extends NodeObject {
 }
 
 interface GraphLink {
-    source: string;
-    target: string;
+    source: string | GraphNode;
+    target: string | GraphNode;
 }
 
 interface GraphData {
@@ -443,6 +443,11 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
     const rootY = -Math.min(metrics.rootYOffsetMax, height * metrics.rootYOffsetRatio);
     const firstBranchY = rootY + metrics.firstBranchGap;
     const hasDocumentResults = documents.length > 0;
+    const links = graph.links.map((link) => ({
+        ...link,
+        source: typeof link.source === 'object' ? link.source.id ?? '' : link.source,
+        target: typeof link.target === 'object' ? link.target.id ?? '' : link.target,
+    }));
 
     const positionById = new Map<string, { x: number; y: number }>();
     if (root) {
@@ -522,7 +527,7 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
                 ...positionedFolders,
                 ...positionedDocuments,
             ],
-            links: graph.links,
+            links,
         };
     }
 
@@ -586,7 +591,7 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
             ...positionedFolders,
             ...positionedDocuments,
         ],
-        links: graph.links,
+        links,
     };
 }
 
