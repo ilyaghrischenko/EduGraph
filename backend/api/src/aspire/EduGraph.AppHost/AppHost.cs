@@ -1,9 +1,9 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-string pythonAppDirectory = Path.GetFullPath("../../../../search-ai/FastAPIProject");
+string pythonAppDirectory = Path.GetFullPath("../../../../vector-search/EduGraph.VectorSearch");
 string certifiPath = Path.Combine(
     pythonAppDirectory,
-    ".venv/lib/python3.12/site-packages/certifi/cacert.pem");
+    ".venv/lib/python3.13/site-packages/certifi/cacert.pem");
 
 var vectorSearchApi = builder
     .AddExecutable(

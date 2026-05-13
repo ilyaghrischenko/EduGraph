@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ea4f35e4-4c8e-4809-8722-7e4fcf37331d" name="Changes" comment="feat(api): add error handling to endpoints and update text chunking logic for better performance">
+      <change beforePath="$PROJECT_DIR$/../../api/src/aspire/EduGraph.AppHost/AppHost.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../api/src/aspire/EduGraph.AppHost/AppHost.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../main-api/.idea/.idea.EduGraph/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/.idea/FastAPIProject.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/main.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/test_main.http" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/FastAPIProject/utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/.idea/.name" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/.idea/edugraph.search.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/main.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/123_bac_2024.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК 13_Robocha_programa_OOP_2024.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК 15_КЛ_Robocha_programa_KL_2024.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК 20_Robocha_programa_OBD_2024.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК13_ООП/ООК 13 ООП/Метод Програмування ЛР.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК13_ООП/ООК 13 ООП/ООП_Java_Лб_ч1_DM.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК15_Компютерна_логіка/ООК 15 Компютерна логіка/КЛ_ЛР_1ч_24.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК15_Компютерна_логіка/ООК 15 Компютерна логіка/КЛ_ЛР_2ч_24.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК15_Компютерна_логіка/ООК 15 Компютерна логіка/КЛ_РГР_2024.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК20_ОБД/ООК 20 ОБД/ОБД_Курсова робота_2025.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК20_ОБД/ООК 20 ОБД/ОБД_Лабораторні_Частина 1_2025.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК20_ОБД/ООК 20 ОБД/ОБД_Лабораторні_Частина 2_2025.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК20_ОБД/ООК 20 ОБД/ОБД_Лабораторні_Частина 3_2025.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../search-ai/edugraph.search/university_docs/ООК20_ОБД/ООК 20 ОБД/ОБД_Лабораторні_Частина 4_2025.docx" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="90" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="FastAPI main" />
+        <option value="FastAPI test_main" />
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/../../.." value="develop" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;ilyaghrischenko&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/ilyaghrischenko/EduGraph.git&quot;,
+    &quot;accountId&quot;: &quot;90e0e51d-dc90-48e3-b518-1a56acd94f68&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2yCA4UN0SFjHI0lHGNZYHbNQA9T" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "FastAPI.FastAPIProject.executor": "Debug",
+    "HTTP Request.generated-requests | #1.executor": "Run",
+    "HTTP Request.generated-requests | #2.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "deletionFromPopupRequiresConfirmation": "false",
+    "git-widget-placeholder": "feature/mobile-and-tablet-version",
+    "last_opened_file_path": "/Users/admin/Documents/GitHub/EduGraph/backend/vector-search/FastAPIProject",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="EduGraph.VectorSearch" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Autodetect">
+      <module name="EduGraph.VectorSearch" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <module name="EduGraph.VectorSearch" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-PY-261.23567.174" />
+        <option value="bundled-python-sdk-024ed6589d45-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.23567.174" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ea4f35e4-4c8e-4809-8722-7e4fcf37331d" name="Changes" comment="" />
+      <created>1749327990895</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1749327990895</updated>
+      <workItem from="1749327991903" duration="2324000" />
+      <workItem from="1749483884874" duration="1305000" />
+      <workItem from="1749905816969" duration="11000" />
+      <workItem from="1764756587926" duration="3447000" />
+      <workItem from="1776974205098" duration="20042000" />
+      <workItem from="1778107070671" duration="4335000" />
+      <workItem from="1778157018611" duration="3879000" />
+      <workItem from="1778162052492" duration="10116000" />
+      <workItem from="1778239710630" duration="4003000" />
+      <workItem from="1778286008340" duration="4495000" />
+      <workItem from="1778342636778" duration="7577000" />
+      <workItem from="1778602357146" duration="3540000" />
+      <workItem from="1778631093052" duration="1097000" />
+    </task>
+    <task id="LOCAL-00001" summary="chore: remove unused files and initial migration from SQLite implementation&#10;&#10;- Deleted .dockerignore, .editorconfig, and .gitignore files.&#10;- Removed the initial SQLite migration files to clean up unused database scaffolding.">
+      <option name="closed" value="true" />
+      <created>1764759037044</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1764759037044</updated>
+    </task>
+    <task id="LOCAL-00002" summary="chore(university-docs): remove outdated university documents">
+      <option name="closed" value="true" />
+      <created>1778107920606</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1778107920606</updated>
+    </task>
+    <task id="LOCAL-00003" summary="feat(api): adjust default scores and update text chunking parameters for improved search performance">
+      <option name="closed" value="true" />
+      <created>1778351486796</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1778351486797</updated>
+    </task>
+    <task id="LOCAL-00004" summary="feat(api): add error handling to endpoints and update text chunking logic for better performance">
+      <option name="closed" value="true" />
+      <created>1778352717220</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1778352717220</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="chore: remove unused files and initial migration from SQLite implementation&#10;&#10;- Deleted .dockerignore, .editorconfig, and .gitignore files.&#10;- Removed the initial SQLite migration files to clean up unused database scaffolding." />
+    <MESSAGE value="chore(university-docs): remove outdated university documents" />
+    <MESSAGE value="feat(api): adjust default scores and update text chunking parameters for improved search performance" />
+    <MESSAGE value="feat(api): add error handling to endpoints and update text chunking logic for better performance" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(api): add error handling to endpoints and update text chunking logic for better performance" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/FastAPIProject$FastAPIProject.coverage" NAME="FastAPIProject Coverage Results" MODIFIED="1764759437948" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+  </component>
+</project>
