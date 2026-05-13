@@ -21,7 +21,7 @@ public static class GetAllFolders
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("google-drive/folders", Handle)
-                .RequireAuthorization(AuthorizationRoles.All)
+                .RequireAuthorization(AuthorizationPolicies.AnyRole)
                 .WithTags("GoogleDrive")
                 .Produces<IReadOnlyCollection<Response>>()
                 .ProducesProblem(StatusCodes.Status500InternalServerError);

@@ -15,7 +15,7 @@ public static class SyncGoogleDrive
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("google-drive/sync", Handle)
-                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
                 .WithTags("GoogleDrive")
                 .Produces(StatusCodes.Status202Accepted);
         }

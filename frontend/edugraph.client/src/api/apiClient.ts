@@ -4,7 +4,7 @@ import { getStoredToken } from '../utils/auth';
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
 /**
- * Извлекает токен авторизации из sessionStorage
+ * Извлекает сохраненный токен авторизации
  */
 export const getToken = (): string | null => getStoredToken();
 

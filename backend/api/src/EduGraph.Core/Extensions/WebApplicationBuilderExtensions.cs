@@ -27,9 +27,6 @@ public static class WebApplicationBuilderExtensions
         builder.AddServiceDefaults();
         
         builder.Services.AddSingleton(TimeProvider.System);
-        
-        // builder.Services.AddAuthentication();
-        // builder.Services.AddAuthorization();
 
         //todo: написать заметку про это (чтобы в опен апи документации показывало какие ендпоинты требуют авторизации)
         builder.Services.AddOpenApi(options =>
@@ -126,12 +123,18 @@ public static class WebApplicationBuilderExtensions
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    
                     ValidateAudience = true,
+                    ValidAudience = audience,
+                    
                     ValidateLifetime = true,
+                    
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
                     
-                    RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                    RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+                    ClockSkew = TimeSpan.Zero
                 };
             });
 
@@ -143,10 +146,13 @@ public static class WebApplicationBuilderExtensions
 
     private static void AddPoliciesByRoles(this AuthorizationBuilder builder)
     {
-        foreach (string role in AuthorizationRoles.All)
+        foreach (string role in UserRoles.All)
         {
             builder.AddPolicy(role, policy => policy.RequireRole(role));
         }
+
+        builder.AddPolicy(AuthorizationPolicies.AnyRole, policy => policy.RequireRole(UserRoles.All));
+        builder.AddPolicy(AuthorizationPolicies.TeacherOrAdmin, policy => policy.RequireRole(UserRoles.Teacher, UserRoles.Admin));
     }
     
     private static WebApplicationBuilder AddResponseCompression(this WebApplicationBuilder builder)

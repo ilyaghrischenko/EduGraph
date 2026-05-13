@@ -20,6 +20,7 @@ public static class GetPendingApplications
     );
     
     public sealed record Response(
+        int Id,
         string FullName,
         string UserType,
         string? Group
@@ -30,7 +31,7 @@ public static class GetPendingApplications
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("sign-up-applications", Handle)
-                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
                 .WithTags("SignUpApplications");
         }
 
@@ -57,6 +58,7 @@ public static class GetPendingApplications
                 .ToPagedListAsync(
                     paginationParams,
                     application => new Response(
+                        application.Id,
                         application.FullName,
                         application.Type.ToString(),
                         application.Group

@@ -18,8 +18,6 @@ export interface SignUpApplicationResponse {
     fullName: string;
     userType: string;
     group: string | null;
-    login: string;
-    createdAt: string;
 }
 
 export interface PaginationResponse<T> {
@@ -36,7 +34,7 @@ export interface ProblemDetails {
     instance?: string | null;
 }
 
-// /api/users/search-documents response
+// /api/google-drive/search-documents response
 export interface SearchDocumentResponse {
     title: string;
     url: string;
@@ -47,7 +45,7 @@ export interface SearchDocumentResponse {
     chunkIndex: number;
 }
 
-// /api/users/folders response
+// /api/google-drive/folders response
 export interface FolderResponse {
     id: string;
     name: string;

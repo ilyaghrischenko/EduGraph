@@ -17,7 +17,7 @@ public static class RejectSignUpApplication
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("sign-up-applications/{applicationId:int}/reject", Handle)
-                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
                 .WithTags("SignUpApplications")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status400BadRequest)

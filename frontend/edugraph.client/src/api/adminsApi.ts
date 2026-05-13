@@ -14,23 +14,23 @@ export const adminsApi = {
             PageSize: pageSize.toString(),
             Descending: descending.toString(),
         });
-        return apiFetch<PaginationResponse<SignUpApplicationResponse>>(`/api/admins/sign-up-applications?${params.toString()}`);
+        return apiFetch<PaginationResponse<SignUpApplicationResponse>>(`/api/sign-up-applications?${params.toString()}`);
     },
 
     approveApplication: (applicationId: number): Promise<void> => {
-        return apiFetch<void>(`/api/admins/sign-up-applications/${applicationId}/approve`, {
+        return apiFetch<void>(`/api/sign-up-applications/${applicationId}/approve`, {
             method: 'POST',
         });
     },
 
     rejectApplication: (applicationId: number): Promise<void> => {
-        return apiFetch<void>(`/api/admins/sign-up-applications/${applicationId}/reject`, {
+        return apiFetch<void>(`/api/sign-up-applications/${applicationId}/reject`, {
             method: 'POST',
         });
     },
 
     syncGoogleDrive: (): Promise<void> => {
-        return apiFetch<void>('/api/admins/google-drive/sync', {
+        return apiFetch<void>('/api/google-drive/sync', {
             method: 'POST',
         });
     },

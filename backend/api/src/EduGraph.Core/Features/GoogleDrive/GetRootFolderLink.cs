@@ -16,7 +16,7 @@ public static class GetRootFolderLink
         {
             //todo: поменять роут и WithTags потому что не правильно сейчас + поправить это на фронте потом
             app.MapGet("google-drive/root-folder-link", Handle)
-                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
                 .WithTags("GoogleDrive")
                 .Produces<string>()
                 .ProducesProblem(StatusCodes.Status404NotFound)

@@ -10,20 +10,20 @@ interface JwtPayload {
 const TOKEN_KEY = 'token';
 
 export function getStoredToken(): string | null {
-    const token = sessionStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) return token;
 
-    const legacyToken = localStorage.getItem(TOKEN_KEY);
+    const legacyToken = sessionStorage.getItem(TOKEN_KEY);
     if (!legacyToken) return null;
 
-    sessionStorage.setItem(TOKEN_KEY, legacyToken);
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.setItem(TOKEN_KEY, legacyToken);
+    sessionStorage.removeItem(TOKEN_KEY);
     return legacyToken;
 }
 
 export function setStoredToken(token: string): void {
-    sessionStorage.setItem(TOKEN_KEY, token);
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.removeItem(TOKEN_KEY);
 }
 
 export function clearStoredToken(): void {

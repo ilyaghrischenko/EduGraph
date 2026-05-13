@@ -15,14 +15,6 @@ const NAV_LINKS = [
     { label: 'Додати користувача', href: '/admin/add-user' },
 ];
 
-const SortIcon: React.FC<{ descending: boolean }> = ({ descending }) => (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ marginLeft: '5px', verticalAlign: 'middle' }}>
-        {descending
-            ? <path d="M6 9L1 3h10L6 9z" fill="currentColor" />
-            : <path d="M6 3l5 6H1L6 3z" fill="currentColor" />}
-    </svg>
-);
-
 const GoogleDriveIcon: React.FC = () => (
     <svg width="25" height="22" viewBox="0 0 87.3 78" aria-hidden="true" focusable="false">
         <path d="M6.6 66.9 10.8 74.2c.9 1.6 2.3 2.8 3.9 3.4l15-26H0c0 1.8.5 3.6 1.4 5.2l5.2 10.1z" fill="#0066da" />
@@ -37,7 +29,6 @@ const GoogleDriveIcon: React.FC = () => (
 export const SignUpApplicationsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const page        = parseInt(searchParams.get('page') || '1', 10);
-    const isDescending = searchParams.get('descending') === 'true';
 
     const [data, setData]           = useState<PaginationResponse<SignUpApplicationResponse> | null>(null);
     const [error, setError]         = useState<string | null>(null);
@@ -54,7 +45,7 @@ export const SignUpApplicationsPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const res = await adminsApi.getApplications(page, 30, isDescending);
+            const res = await adminsApi.getApplications(page, 30);
             if (applicationsRequestIdRef.current !== requestId) return;
             setData(res);
         } catch (err: unknown) {
@@ -63,7 +54,7 @@ export const SignUpApplicationsPage: React.FC = () => {
         } finally {
             if (applicationsRequestIdRef.current === requestId) setIsLoading(false);
         }
-    }, [page, isDescending]);
+    }, [page]);
 
     useEffect(() => {
         fetchApplications();
@@ -80,8 +71,7 @@ export const SignUpApplicationsPage: React.FC = () => {
         return () => { ignore = true; };
     }, []);
 
-    const toggleSort  = () => setSearchParams({ page: '1', descending: (!isDescending).toString() });
-    const changePage  = (p: number) => setSearchParams({ page: p.toString(), descending: isDescending.toString() });
+    const changePage  = (p: number) => setSearchParams({ page: p.toString() });
 
     const handleApprove = async (id: number) => {
         setActionId(id); setError(null);
@@ -245,19 +235,13 @@ export const SignUpApplicationsPage: React.FC = () => {
                         {/* Table uses an inner horizontal scroller so all columns remain available on mobile. */}
                         <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', overflow: 'hidden' }}>
                             <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', minWidth: '760px', borderCollapse: 'collapse' }}>
+                                <table style={{ width: '100%', minWidth: '560px', borderCollapse: 'collapse' }}>
                                     <thead>
                                     <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                                         <th style={thStyle}>ID</th>
                                         <th style={thStyle}>ПІБ</th>
                                         <th style={thStyle}>Тип</th>
                                         <th style={thStyle}>Група</th>
-                                        <th style={thStyle}>Логін</th>
-                                        <th style={{ ...thStyle, cursor: 'pointer' }} onClick={toggleSort}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', color: isDescending ? C.accent : C.textMuted, transition: 'color 0.15s' }}>
-                          Дата заявки <SortIcon descending={isDescending} />
-                        </span>
-                                        </th>
                                         <th style={{ ...thStyle, width: '150px' }}>Дії</th>
                                     </tr>
                                     </thead>
@@ -283,10 +267,6 @@ export const SignUpApplicationsPage: React.FC = () => {
                           </span>
                                             </td>
                                             <td style={{ ...tdStyle, color: C.textMuted }}>{app.group ?? '—'}</td>
-                                            <td style={tdStyle}>{app.login}</td>
-                                            <td style={{ ...tdStyle, color: C.textMuted }}>
-                                                {new Date(app.createdAt).toLocaleString('uk-UA')}
-                                            </td>
                                             <td style={tdStyle}>
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
                                                     <GhostButton onClick={() => handleApprove(app.id)} disabled={actionId === app.id}>

@@ -22,7 +22,7 @@ public static class ApproveSignUpApplication
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("sign-up-applications/{applicationId:int}/approve", Handle)
-                .RequireAuthorization(AuthorizationRoles.Teacher, AuthorizationRoles.Admin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
                 .WithTags("SignUpApplications")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)

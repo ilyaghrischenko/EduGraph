@@ -545,12 +545,17 @@
       },
       "Response": {
         "required": [
+          "id",
           "fullName",
           "userType",
           "group"
         ],
         "type": "object",
         "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
           "fullName": {
             "type": "string"
           },
