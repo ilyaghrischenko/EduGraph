@@ -42,10 +42,11 @@ var api = builder
     .WithEnvironment("VectorSearch__BaseUrl", vectorSearchApi.GetEndpoint("http"))
     .WaitFor(vectorSearchApi);
 
+string frontendAppDirectory = Path.GetFullPath("../../../../../frontend/edugraph.client");
 var frontend = builder
     .AddViteApp(
         name: "frontend",
-        appDirectory: "../../../../../frontend/edugraph.client")
+        appDirectory: frontendAppDirectory)
     .WithReference(api)
     .WaitFor(api)
     .WithNpm()
