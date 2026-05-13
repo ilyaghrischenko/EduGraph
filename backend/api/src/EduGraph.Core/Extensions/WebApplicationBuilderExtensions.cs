@@ -3,6 +3,7 @@ using System.Security.Authentication;
 using System.Text;
 using EduGraph.Core.BackgroundServices;
 using EduGraph.Core.Features.Common.Auth;
+using EduGraph.Core.OpenApiTransformers;
 using EduGraph.Core.Options;
 using EduGraph.Infrastructure.GoogleDrive.Extensions;
 using EduGraph.Infrastructure.VectorSearch.Extensions;
@@ -30,7 +31,13 @@ public static class WebApplicationBuilderExtensions
         // builder.Services.AddAuthentication();
         // builder.Services.AddAuthorization();
 
-        builder.Services.AddOpenApi();
+        //todo: написать заметку про это (чтобы в опен апи документации показывало какие ендпоинты требуют авторизации)
+        builder.Services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+            options.AddOperationTransformer<AuthorizationOperationTransformer>();
+        });
+        
         builder.Services.AddEndpointsApiExplorer();
         
         if (builder.Environment.IsDevelopment())
