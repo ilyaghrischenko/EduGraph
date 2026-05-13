@@ -353,6 +353,19 @@
           }
         }
       }
+    },
+    "/api/admins/google-drive/sync": {
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "operationId": "SyncGoogleDrive",
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      }
     }
   },
   "components": {
