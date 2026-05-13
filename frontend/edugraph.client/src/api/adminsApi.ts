@@ -28,4 +28,10 @@ export const adminsApi = {
             method: 'POST',
         });
     },
+
+    syncGoogleDrive: (): Promise<void> => {
+        return apiFetch<void>('/api/admins/google-drive/sync', {
+            method: 'POST',
+        });
+    },
 };

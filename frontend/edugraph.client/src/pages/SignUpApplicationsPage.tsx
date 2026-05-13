@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
-import { Alert, GhostButton } from '../components/ui';
+import { Alert, GhostButton, PrimaryButton } from '../components/ui';
 import { adminsApi } from '../api/adminsApi';
 import { usersApi } from '../api/usersApi';
 import type { PaginationResponse, SignUpApplicationResponse } from '../types/api';
@@ -42,6 +42,8 @@ export const SignUpApplicationsPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [actionId, setActionId]   = useState<number | null>(null);
     const [driveLink, setDriveLink] = useState<string | null>(null);
+    const [syncLoading, setSyncLoading] = useState(false);
+    const [syncSuccess, setSyncSuccess] = useState<string | null>(null);
 
     const fetchApplications = useCallback(async () => {
         setIsLoading(true);
@@ -85,6 +87,20 @@ export const SignUpApplicationsPage: React.FC = () => {
         finally { setActionId(null); }
     };
 
+    const handleSyncGoogleDrive = async () => {
+        setSyncLoading(true);
+        setError(null);
+        setSyncSuccess(null);
+        try {
+            await adminsApi.syncGoogleDrive();
+            setSyncSuccess('Синхронізація успішно запущена');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Помилка синхронізації');
+        } finally {
+            setSyncLoading(false);
+        }
+    };
+
     const hasItems = data && data.items && data.items.length > 0;
 
     // ── th style helper ───────────────────────────────────────────────────────
@@ -123,42 +139,84 @@ export const SignUpApplicationsPage: React.FC = () => {
                             Заявки на реєстрацію
                         </h1>
                     </div>
-                    <a
-                        href={driveLink ?? undefined}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Відкрити Google Drive"
-                        title="Відкрити Google Drive"
-                        onClick={(e) => { if (!driveLink) e.preventDefault(); }}
+                    <div
+                        className="flex w-full items-center gap-3 sm:w-auto"
                         style={{
-                            width: '44px',
-                            height: '44px',
-                            flex: '0 0 44px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: '10px',
-                            background: 'rgba(255,255,255,0.04)',
+                            padding: '8px',
+                            background: 'rgba(255,255,255,0.03)',
                             border: `1px solid ${C.border}`,
-                            opacity: driveLink ? 1 : 0.45,
-                            cursor: driveLink ? 'pointer' : 'not-allowed',
-                            transition: 'border-color 0.15s, background 0.15s',
-                        }}
-                        onMouseEnter={(e) => {
-                            if (!driveLink) return;
-                            e.currentTarget.style.borderColor = C.borderHi;
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.07)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = C.border;
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                            borderRadius: '14px',
                         }}
                     >
-                        <GoogleDriveIcon />
-                    </a>
+                        <div
+                            style={{
+                                width: '44px',
+                                height: '44px',
+                                flex: '0 0 44px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: '10px',
+                                background: 'rgba(255,255,255,0.04)',
+                                border: `1px solid ${C.border}`,
+                            }}
+                        >
+                            <GoogleDriveIcon />
+                        </div>
+                        <div className="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:flex sm:flex-none">
+                            <PrimaryButton
+                                type="button"
+                                loading={syncLoading}
+                                onClick={handleSyncGoogleDrive}
+                                style={{ whiteSpace: 'nowrap' }}
+                            >
+                                Синхронізувати
+                            </PrimaryButton>
+                            <a
+                                href={driveLink ?? undefined}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Відкрити Google Drive"
+                                title="Відкрити Google Drive"
+                                onClick={(e) => { if (!driveLink) e.preventDefault(); }}
+                                style={{
+                                    minHeight: '44px',
+                                    minWidth: '44px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '10px 16px',
+                                    borderRadius: '10px',
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${C.border}`,
+                                    color: driveLink ? C.textPrimary : C.textMuted,
+                                    fontFamily: F.sans,
+                                    fontSize: '0.9rem',
+                                    fontWeight: 500,
+                                    opacity: driveLink ? 1 : 0.45,
+                                    cursor: driveLink ? 'pointer' : 'not-allowed',
+                                    textDecoration: 'none',
+                                    whiteSpace: 'nowrap',
+                                    transition: 'border-color 0.15s, background 0.15s',
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!driveLink) return;
+                                    e.currentTarget.style.borderColor = C.borderHi;
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.07)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = C.border;
+                                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                                }}
+                            >
+                                Відкрити
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 {error && <Alert variant="error">{error}</Alert>}
+                {syncSuccess && <Alert variant="success">{syncSuccess}</Alert>}
 
                 {isLoading && !data ? (
                     /* Skeleton rows */

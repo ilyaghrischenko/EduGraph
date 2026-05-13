@@ -15,10 +15,14 @@ async function handleResponse<T>(response: Response): Promise<T> {
         if (response.status === 204) return null as T; // No Content
 
         const contentType = response.headers.get("content-type");
+        const body = await response.text();
+
+        if (!body) return null as T;
+
         if (contentType && contentType.includes("application/json")) {
-            return response.json() as Promise<T>;
+            return JSON.parse(body) as T;
         }
-        return response.text() as Promise<T>; // Для JWT токена, который возвращается как строка
+        return body as T; // Для JWT токена, который возвращается как строка
     }
 
     let errorMsg = 'Сталася невідома помилка';
