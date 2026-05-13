@@ -1,11 +1,13 @@
 // src/pages/SignUpApplicationsPage.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { Seo } from '../components/Seo';
 import { Alert, GhostButton, PrimaryButton } from '../components/ui';
 import { adminsApi } from '../api/adminsApi';
 import { usersApi } from '../api/usersApi';
 import type { PaginationResponse, SignUpApplicationResponse } from '../types/api';
+import { getSafeGoogleDriveUrl } from '../utils/safeUrl';
 import { C, F } from '../styles/tokens';
 
 const NAV_LINKS = [
@@ -44,27 +46,35 @@ export const SignUpApplicationsPage: React.FC = () => {
     const [driveLink, setDriveLink] = useState<string | null>(null);
     const [syncLoading, setSyncLoading] = useState(false);
     const [syncSuccess, setSyncSuccess] = useState<string | null>(null);
+    const applicationsRequestIdRef = useRef(0);
 
     const fetchApplications = useCallback(async () => {
+        const requestId = applicationsRequestIdRef.current + 1;
+        applicationsRequestIdRef.current = requestId;
         setIsLoading(true);
         setError(null);
         try {
             const res = await adminsApi.getApplications(page, 30, isDescending);
+            if (applicationsRequestIdRef.current !== requestId) return;
             setData(res);
         } catch (err: unknown) {
+            if (applicationsRequestIdRef.current !== requestId) return;
             setError(err instanceof Error ? err.message : 'Помилка запиту');
         } finally {
-            setIsLoading(false);
+            if (applicationsRequestIdRef.current === requestId) setIsLoading(false);
         }
     }, [page, isDescending]);
 
-    useEffect(() => { fetchApplications(); }, [fetchApplications]);
+    useEffect(() => {
+        fetchApplications();
+        return () => { applicationsRequestIdRef.current += 1; };
+    }, [fetchApplications]);
 
     useEffect(() => {
         let ignore = false;
 
         usersApi.getRootFolderLink()
-            .then((link) => { if (!ignore) setDriveLink(link); })
+            .then((link) => { if (!ignore) setDriveLink(getSafeGoogleDriveUrl(link)); })
             .catch(() => { if (!ignore) setDriveLink(null); });
 
         return () => { ignore = true; };
@@ -128,6 +138,11 @@ export const SignUpApplicationsPage: React.FC = () => {
 
     return (
         <Layout navLinks={NAV_LINKS}>
+            <Seo
+                title="Заявки на реєстрацію | EduGraph"
+                description="Адміністративна сторінка перегляду заявок на реєстрацію в EduGraph."
+                noindex
+            />
             <div className="pt-6 md:pt-9">
                 {/* Page heading */}
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between" style={{ marginBottom: '24px' }}>

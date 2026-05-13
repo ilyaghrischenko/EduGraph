@@ -1,11 +1,12 @@
 import type {ProblemDetails} from '../types/api';
+import { getStoredToken } from '../utils/auth';
 
-const BASE_URL = 'http://localhost:5074';
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
 /**
- * Извлекает токен авторизации из localStorage
+ * Извлекает токен авторизации из sessionStorage
  */
-export const getToken = (): string | null => localStorage.getItem('token');
+export const getToken = (): string | null => getStoredToken();
 
 /**
  * Универсальный обработчик ошибок API. Выбрасывает строку с описанием ошибки.

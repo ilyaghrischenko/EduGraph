@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { Seo } from '../components/Seo';
 import { DarkInput, DarkLabel, Field, PrimaryButton, Alert } from '../components/ui';
 import { authApi } from '../api/authApi';
-import { getRoleFromToken } from '../utils/auth';
+import { getRoleFromToken, setStoredToken } from '../utils/auth';
 import { C, F } from '../styles/tokens';
 
 const NAV_LINKS = [
@@ -30,7 +31,7 @@ export const LoginPage: React.FC = () => {
         setLoading(true);
         try {
             const token = await authApi.login({ login, password });
-            localStorage.setItem('token', token);
+            setStoredToken(token);
             navigate(getRedirectPath(token));
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Невідома помилка');
@@ -41,6 +42,11 @@ export const LoginPage: React.FC = () => {
 
     return (
         <Layout navLinks={NAV_LINKS}>
+            <Seo
+                title="Вхід в систему | EduGraph"
+                description="Сторінка входу в EduGraph для студентів та викладачів."
+                noindex
+            />
             <div className="flex min-h-[calc(100svh-120px)] items-center justify-center py-6 md:min-h-[calc(100vh-120px)]">
                 <div style={{ width: '100%', maxWidth: '400px' }}>
                     <div className="px-5 py-7 md:px-8 md:py-9" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px' }}>

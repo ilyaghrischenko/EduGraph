@@ -1,7 +1,8 @@
 // src/pages/SignUpPage.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { Seo } from '../components/Seo';
 import { DarkInput, DarkLabel, Field, PrimaryButton, Alert, DarkRadio } from '../components/ui';
 import { authApi } from '../api/authApi';
 import type { SignUpRequest } from '../types/api';
@@ -14,12 +15,17 @@ const NAV_LINKS = [
 
 export const SignUpPage: React.FC = () => {
     const navigate = useNavigate();
+    const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [formData, setFormData] = useState({ login: '', password: '', confirmPassword: '', fullName: '', group: '' });
     const [userType, setUserType] = useState<'Student' | 'Teacher'>('Student');
     const [error, setError]       = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const [loading, setLoading]   = useState(false);
+
+    useEffect(() => () => {
+        if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -61,7 +67,7 @@ export const SignUpPage: React.FC = () => {
             };
             await authApi.signUp(payload);
             setSuccessMsg('Заявку надіслано! Очікуйте підтвердження адміністратора.');
-            setTimeout(() => navigate('/login'), 2500);
+            redirectTimerRef.current = setTimeout(() => navigate('/login'), 2500);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Невідома помилка');
         } finally {
@@ -71,6 +77,11 @@ export const SignUpPage: React.FC = () => {
 
     return (
         <Layout navLinks={NAV_LINKS}>
+            <Seo
+                title="Заявка на реєстрацію | EduGraph"
+                description="Сторінка подання заявки на реєстрацію в EduGraph."
+                noindex
+            />
             <div className="flex items-start justify-center py-6 md:py-12">
                 <div style={{ width: '100%', maxWidth: '420px' }}>
 

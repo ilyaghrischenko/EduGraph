@@ -3,8 +3,10 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import ForceGraph2D from 'react-force-graph-2d';
 import type { NodeObject } from 'react-force-graph-2d';
 import { Link } from 'react-router-dom';
+import { Seo } from '../components/Seo';
 import { usersApi } from '../api/usersApi';
 import type { FolderResponse, SearchDocumentResponse } from '../types/api';
+import { getSafeGoogleDriveUrl } from '../utils/safeUrl';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -244,7 +246,7 @@ function buildGraph(folders: FolderResponse[], docs: SearchDocumentResponse[] = 
         return {
             id: `doc:${doc.chunkId || index}`,
             title: doc.title,
-            url: doc.url,
+            url: getSafeGoogleDriveUrl(doc.url) ?? undefined,
             content: doc.content,
             folderName: doc.folderName,
             parentId,
@@ -267,7 +269,7 @@ function buildGraph(folders: FolderResponse[], docs: SearchDocumentResponse[] = 
         ...folders.map((folder) => ({
             id: `folder:${folder.id}`,
             title: folder.name,
-            url: folder.link,
+            url: getSafeGoogleDriveUrl(folder.link) ?? undefined,
             type: 'folder' as const,
         })),
         ...documentNodes,
@@ -788,25 +790,27 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
                 className="px-4 py-4 md:px-6 md:py-5"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
             >
-                <a
-                    href={document.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
-                    style={{
-                        background: 'rgba(79,255,176,0.13)',
-                        border: '1px solid rgba(79,255,176,0.32)',
-                        color: '#4fffb0',
-                        textDecoration: 'none',
-                    }}
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 3h7v7" />
-                        <path d="M10 14 21 3" />
-                        <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
-                    </svg>
-                    Відкрити оригінал у Google Drive
-                </a>
+                {document.url && (
+                    <a
+                        href={document.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
+                        style={{
+                            background: 'rgba(79,255,176,0.13)',
+                            border: '1px solid rgba(79,255,176,0.32)',
+                            color: '#4fffb0',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 3h7v7" />
+                            <path d="M10 14 21 3" />
+                            <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+                        </svg>
+                        Відкрити оригінал у Google Drive
+                    </a>
+                )}
             </div>
         </section>
     </div>
@@ -1146,9 +1150,14 @@ export const StudentSearchPage: React.FC = () => {
     return (
         /* The graph canvas is viewport-bound; inner regions resize instead of allowing page-level horizontal scroll. */
         <div
-            className="flex h-[100dvh] min-h-[520px] flex-col overflow-hidden select-none"
+            className="flex min-h-[100dvh] flex-col overflow-y-auto select-none md:h-[100dvh] md:min-h-[520px] md:overflow-hidden"
             style={{ background: BG_COLOR, fontFamily: "'DM Sans', sans-serif" }}
         >
+            <Seo
+                title="Пошук знань | EduGraph"
+                description="Пошук навчальних матеріалів у EduGraph."
+                noindex
+            />
             {/* ── Header ────────────────────────────────────────────────────────── */}
             <header
                 className="flex flex-shrink-0 items-center justify-between px-4 py-3 md:px-6"
@@ -1257,8 +1266,8 @@ export const StudentSearchPage: React.FC = () => {
             </div>
 
             {/* ── Main area ─────────────────────────────────────────────────────── */}
-            <div className="student-search-main flex-1 min-h-0 flex overflow-hidden">
-                <div ref={containerRef} className="graph-pane flex-1 relative min-h-0 min-w-0">
+            <div className="student-search-main flex min-h-[420px] flex-1 overflow-hidden md:min-h-0">
+                <div ref={containerRef} className="graph-pane relative min-h-[420px] min-w-0 flex-1 md:min-h-0">
 
                 {/* ── Idle state ─────────────────────────────────────────────────── */}
                 {pageState === 'foldersLoading' && (
