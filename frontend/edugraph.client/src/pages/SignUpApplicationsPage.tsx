@@ -12,7 +12,7 @@ import { C, F } from '../styles/tokens';
 
 const NAV_LINKS = [
     { label: 'Заявки', href: '/admin/sign-up-applications' },
-    { label: 'Додати користувача', href: '/admin/add-user' },
+    { label: 'Студенти', href: '/admin/add-user' },
 ];
 
 const GoogleDriveIcon: React.FC = () => (

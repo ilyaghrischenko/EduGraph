@@ -20,6 +20,22 @@ export interface SignUpApplicationResponse {
     group: string | null;
 }
 
+export interface CreateStudentRequest {
+    fullName: string;
+    group: string;
+    login: string;
+    password: string;
+    confirmPassword: string;
+}
+
+export interface StudentResponse {
+    id: number;
+    fullName: string;
+    type: string;
+    group: string | null;
+    lastLoginDate: string | null;
+}
+
 export interface PaginationResponse<T> {
     items: T[];
     currentPage: number;
