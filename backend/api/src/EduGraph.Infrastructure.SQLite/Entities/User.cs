@@ -6,6 +6,7 @@ namespace EduGraph.Infrastructure.SQLite.Entities;
 
 public sealed class User : IdentityUser<int>
 {
+    //todo: разбить отдельно FullName(ФИО) и Login
     public string FullName { get; private set; } = null!;
     
     public UserType Type { get; private set; }

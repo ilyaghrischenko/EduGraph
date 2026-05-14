@@ -15,6 +15,8 @@ public sealed class UserEntityConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Type)
             .IsRequired()
             .HasConversion<string>();
+
+        builder.HasIndex(u => u.Type);
         
         builder.Property(u => u.Group)
             .IsRequired(false);
