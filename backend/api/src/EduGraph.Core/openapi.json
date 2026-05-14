@@ -5,6 +5,183 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/teachers": {
+      "post": {
+        "tags": [
+          "Teachers"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Teachers"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationOfResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/teachers/{id}": {
+      "delete": {
+        "tags": [
+          "Teachers"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/students": {
       "post": {
         "tags": [
@@ -14,7 +191,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Request"
+                "$ref": "#/components/schemas/Request2"
               }
             }
           },
@@ -109,7 +286,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginationOfResponse"
+                  "$ref": "#/components/schemas/PaginationOfResponse2"
                 }
               }
             }
@@ -287,7 +464,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginationOfResponse2"
+                  "$ref": "#/components/schemas/PaginationOfResponse3"
                 }
               }
             }
@@ -373,7 +550,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Response3"
+                    "$ref": "#/components/schemas/Response4"
                   }
                 }
               }
@@ -476,7 +653,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Response4"
+                    "$ref": "#/components/schemas/Response5"
                   }
                 }
               }
@@ -548,7 +725,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Request2"
+                "$ref": "#/components/schemas/Request3"
               }
             }
           },
@@ -587,7 +764,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Request3"
+                "$ref": "#/components/schemas/Request4"
               }
             }
           },
@@ -671,6 +848,30 @@
           }
         }
       },
+      "PaginationOfResponse3": {
+        "required": [
+          "items",
+          "currentPage",
+          "totalPages"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Response3"
+            }
+          },
+          "currentPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -700,6 +901,29 @@
       "Request": {
         "required": [
           "fullName",
+          "login",
+          "password",
+          "confirmPassword"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "login": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "confirmPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "Request2": {
+        "required": [
+          "fullName",
           "group",
           "login",
           "password",
@@ -724,7 +948,7 @@
           }
         }
       },
-      "Request2": {
+      "Request3": {
         "required": [
           "login",
           "password"
@@ -739,7 +963,7 @@
           }
         }
       },
-      "Request3": {
+      "Request4": {
         "required": [
           "fullName",
           "userType",
@@ -775,8 +999,6 @@
         "required": [
           "id",
           "fullName",
-          "type",
-          "group",
           "lastLoginDate"
         ],
         "type": "object",
@@ -788,7 +1010,27 @@
           "fullName": {
             "type": "string"
           },
-          "type": {
+          "lastLoginDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        }
+      },
+      "Response2": {
+        "required": [
+          "id",
+          "fullName",
+          "group",
+          "lastLoginDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fullName": {
             "type": "string"
           },
           "group": {
@@ -802,7 +1044,7 @@
           }
         }
       },
-      "Response2": {
+      "Response3": {
         "required": [
           "id",
           "fullName",
@@ -827,7 +1069,7 @@
           }
         }
       },
-      "Response3": {
+      "Response4": {
         "required": [
           "id",
           "name",
@@ -846,7 +1088,7 @@
           }
         }
       },
-      "Response4": {
+      "Response5": {
         "required": [
           "title",
           "url",
@@ -894,6 +1136,9 @@
     }
   },
   "tags": [
+    {
+      "name": "Teachers"
+    },
     {
       "name": "Students"
     },
