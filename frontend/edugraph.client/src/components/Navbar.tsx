@@ -37,18 +37,21 @@ export const Navbar: React.FC<NavbarProps> = ({ links, showGoogleDriveControls }
             backdropFilter: 'blur(12px)',
         }}>
             <div className="mx-auto flex min-h-14 max-w-[1100px] items-center justify-between gap-4 px-4 py-2 md:px-6 xl:px-0">
-                {/* Logo */}
-                <Link
-                    to="/"
-                    className="inline-flex min-h-11 items-center"
-                    style={{ fontFamily: F.display, fontWeight: 700, fontSize: '1.1rem', color: C.accent, textDecoration: 'none', letterSpacing: '-0.02em' }}
-                    onClick={() => setMenuOpen(false)}
-                >
-                    EduGraph
-                </Link>
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+                    {/* Logo */}
+                    <Link
+                        to="/"
+                        className="inline-flex min-h-11 items-center"
+                        style={{ fontFamily: F.display, fontWeight: 700, fontSize: '1.1rem', color: C.accent, textDecoration: 'none', letterSpacing: '-0.02em' }}
+                        onClick={() => setMenuOpen(false)}
+                    >
+                        EduGraph
+                    </Link>
+                    {showGoogleDriveControls && <GoogleDriveControls />}
+                </div>
 
                 {/* Desktop links */}
-                <div className="hidden items-center gap-3 md:flex">
+                <div className="hidden flex-shrink-0 items-center md:flex">
                     <ul className="flex" style={{ gap: '4px', listStyle: 'none', margin: 0, padding: 0 }}>
                         {links.map((link) => {
                             const active = pathname === link.href;
@@ -80,7 +83,6 @@ export const Navbar: React.FC<NavbarProps> = ({ links, showGoogleDriveControls }
                             );
                         })}
                     </ul>
-                    {showGoogleDriveControls && <GoogleDriveControls />}
                 </div>
 
                 <button
@@ -147,11 +149,6 @@ export const Navbar: React.FC<NavbarProps> = ({ links, showGoogleDriveControls }
                                 </li>
                             );
                         })}
-                        {showGoogleDriveControls && (
-                            <li style={{ paddingTop: '6px' }}>
-                                <GoogleDriveControls />
-                            </li>
-                        )}
                     </ul>
                 </div>
             )}

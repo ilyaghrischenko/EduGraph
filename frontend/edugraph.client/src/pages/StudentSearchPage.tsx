@@ -1186,17 +1186,20 @@ export const StudentSearchPage: React.FC = () => {
                 className="flex flex-shrink-0 flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
             >
-                <Link
-                    to="/"
-                    className="inline-flex min-h-11 items-center text-lg font-bold tracking-tight"
-                    style={{
-                        fontFamily: "'Syne', sans-serif",
-                        color: '#4fffb0',
-                        letterSpacing: '-0.02em',
-                    }}
-                >
-                    EduGraph
-                </Link>
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
+                    <Link
+                        to="/"
+                        className="inline-flex min-h-11 items-center text-lg font-bold tracking-tight"
+                        style={{
+                            fontFamily: "'Syne', sans-serif",
+                            color: '#4fffb0',
+                            letterSpacing: '-0.02em',
+                        }}
+                    >
+                        EduGraph
+                    </Link>
+                    {panelNavLinks.length > 0 && <GoogleDriveControls />}
+                </div>
                 <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
                     {panelNavLinks.length > 0 && (
                         <nav aria-label="Навігація панелі">
@@ -1224,7 +1227,6 @@ export const StudentSearchPage: React.FC = () => {
                             </ul>
                         </nav>
                     )}
-                    {panelNavLinks.length > 0 && <GoogleDriveControls />}
           <span
               className="text-xs px-2 py-0.5 rounded-full"
               style={{
