@@ -39,6 +39,7 @@
 
     <ItemGroup>
       <Folder Include="Features\Students\" />
+      <Folder Include="Features\Teachers\" />
       <Folder Include="wwwroot\" />
     </ItemGroup>
 
