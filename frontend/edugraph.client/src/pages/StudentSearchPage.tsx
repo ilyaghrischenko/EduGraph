@@ -4,6 +4,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import type { NodeObject } from 'react-force-graph-2d';
 import { Link, useLocation } from 'react-router-dom';
 import { Seo } from '../components/Seo';
+import { GoogleDriveControls } from '../components/GoogleDriveControls';
 import { usersApi } from '../api/usersApi';
 import type { FolderResponse, SearchDocumentResponse } from '../types/api';
 import { getSafeGoogleDriveUrl } from '../utils/safeUrl';
@@ -1223,6 +1224,7 @@ export const StudentSearchPage: React.FC = () => {
                             </ul>
                         </nav>
                     )}
+                    {panelNavLinks.length > 0 && <GoogleDriveControls />}
           <span
               className="text-xs px-2 py-0.5 rounded-full"
               style={{

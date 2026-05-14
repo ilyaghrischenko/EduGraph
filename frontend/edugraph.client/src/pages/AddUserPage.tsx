@@ -160,7 +160,7 @@ export const AddUserPage: React.FC = () => {
     };
 
     return (
-        <Layout navLinks={navLinks}>
+        <Layout navLinks={navLinks} showGoogleDriveControls>
             <Seo
                 title="Студенти | EduGraph"
                 description="Адміністративна сторінка керування студентами EduGraph."

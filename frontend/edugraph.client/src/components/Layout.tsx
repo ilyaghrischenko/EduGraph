@@ -7,14 +7,15 @@ import { C, F } from '../styles/tokens';
 interface LayoutProps {
     children: ReactNode;
     navLinks?: NavLinkDef[];
+    showGoogleDriveControls?: boolean;
     /** Remove max-width constraint (for full-bleed pages) */
     fluid?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, navLinks, fluid }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, navLinks, showGoogleDriveControls, fluid }) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: C.bg }}>
-            {navLinks && navLinks.length > 0 && <Navbar links={navLinks} />}
+            {navLinks && navLinks.length > 0 && <Navbar links={navLinks} showGoogleDriveControls={showGoogleDriveControls} />}
 
             <main
                 className={fluid

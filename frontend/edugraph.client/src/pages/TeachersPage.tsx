@@ -149,7 +149,7 @@ export const TeachersPage: React.FC = () => {
     };
 
     return (
-        <Layout navLinks={NAV_LINKS}>
+        <Layout navLinks={NAV_LINKS} showGoogleDriveControls>
             <Seo
                 title="Викладачі | EduGraph"
                 description="Адміністративна сторінка керування викладачами EduGraph."

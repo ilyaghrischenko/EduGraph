@@ -1,6 +1,7 @@
 // src/components/Navbar.tsx
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { GoogleDriveControls } from './GoogleDriveControls';
 import { C, F } from '../styles/tokens';
 
 export interface NavLinkDef {
@@ -10,9 +11,10 @@ export interface NavLinkDef {
 
 interface NavbarProps {
     links: NavLinkDef[];
+    showGoogleDriveControls?: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ links }) => {
+export const Navbar: React.FC<NavbarProps> = ({ links, showGoogleDriveControls }) => {
     const { pathname } = useLocation();
     const [menuOpen, setMenuOpen] = useState(false);
     const mobileMenuId = 'mobile-navigation-menu';
@@ -34,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ links }) => {
             background: 'rgba(10,13,20,0.85)',
             backdropFilter: 'blur(12px)',
         }}>
-            <div className="mx-auto flex h-14 max-w-[1100px] items-center justify-between px-4 md:px-6 xl:px-0">
+            <div className="mx-auto flex min-h-14 max-w-[1100px] items-center justify-between gap-4 px-4 py-2 md:px-6 xl:px-0">
                 {/* Logo */}
                 <Link
                     to="/"
@@ -46,37 +48,40 @@ export const Navbar: React.FC<NavbarProps> = ({ links }) => {
                 </Link>
 
                 {/* Desktop links */}
-                <ul className="hidden md:flex" style={{ gap: '4px', listStyle: 'none', margin: 0, padding: 0 }}>
-                    {links.map((link) => {
-                        const active = pathname === link.href;
-                        return (
-                            <li key={link.href}>
-                                <Link
-                                    to={link.href}
-                                    style={{
-                                        display: 'inline-flex',
-                                        minHeight: '44px',
-                                        alignItems: 'center',
-                                        padding: '0 14px',
-                                        borderRadius: '8px',
-                                        fontFamily: F.sans,
-                                        fontSize: '0.85rem',
-                                        fontWeight: active ? 500 : 400,
-                                        color: active ? C.accent : C.textMuted,
-                                        background: active ? C.accentDim : 'transparent',
-                                        border: `1px solid ${active ? C.accentBorder : 'transparent'}`,
-                                        textDecoration: 'none',
-                                        transition: 'color 0.15s, background 0.15s',
-                                    }}
-                                    onMouseEnter={(e) => { if (!active) { e.currentTarget.style.color = C.textPrimary; e.currentTarget.style.background = C.surface; } }}
-                                    onMouseLeave={(e) => { if (!active) { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.background = 'transparent'; } }}
-                                >
-                                    {link.label}
-                                </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
+                <div className="hidden items-center gap-3 md:flex">
+                    <ul className="flex" style={{ gap: '4px', listStyle: 'none', margin: 0, padding: 0 }}>
+                        {links.map((link) => {
+                            const active = pathname === link.href;
+                            return (
+                                <li key={link.href}>
+                                    <Link
+                                        to={link.href}
+                                        style={{
+                                            display: 'inline-flex',
+                                            minHeight: '44px',
+                                            alignItems: 'center',
+                                            padding: '0 14px',
+                                            borderRadius: '8px',
+                                            fontFamily: F.sans,
+                                            fontSize: '0.85rem',
+                                            fontWeight: active ? 500 : 400,
+                                            color: active ? C.accent : C.textMuted,
+                                            background: active ? C.accentDim : 'transparent',
+                                            border: `1px solid ${active ? C.accentBorder : 'transparent'}`,
+                                            textDecoration: 'none',
+                                            transition: 'color 0.15s, background 0.15s',
+                                        }}
+                                        onMouseEnter={(e) => { if (!active) { e.currentTarget.style.color = C.textPrimary; e.currentTarget.style.background = C.surface; } }}
+                                        onMouseLeave={(e) => { if (!active) { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.background = 'transparent'; } }}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                    {showGoogleDriveControls && <GoogleDriveControls />}
+                </div>
 
                 <button
                     type="button"
@@ -142,6 +147,11 @@ export const Navbar: React.FC<NavbarProps> = ({ links }) => {
                                 </li>
                             );
                         })}
+                        {showGoogleDriveControls && (
+                            <li style={{ paddingTop: '6px' }}>
+                                <GoogleDriveControls />
+                            </li>
+                        )}
                     </ul>
                 </div>
             )}
