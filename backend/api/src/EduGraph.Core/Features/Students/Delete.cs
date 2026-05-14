@@ -16,17 +16,6 @@ namespace EduGraph.Core.Features.Students;
 
 internal static class Delete
 {
-    internal sealed record Request(int Id);
-
-    internal sealed class Validator : AbstractValidator<Request>
-    {
-        public Validator()
-        {
-            RuleFor(x => x.Id)
-                .GreaterThan(0);
-        }
-    }
-
     internal sealed class Endpoint : IEndpoint
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
@@ -34,27 +23,17 @@ internal static class Delete
             app.MapDelete("students/{id:int}", Handle)
                 .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
                 .WithTags("Students")
-                .WithRequestValidation<Request>()
                 .Produces(StatusCodes.Status204NoContent)
-                .ProducesProblem(StatusCodes.Status400BadRequest)
                 .ProducesProblem(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status500InternalServerError);
         }
 
         private static async Task<IResult> Handle(
-            [AsParameters] Request request,
-            [FromServices] IValidator<Request> validator,
+            [FromRoute] int id,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
         {
-            ValidationResult validateDeleteStudentRequestResult = await validator.ValidateAsync(request, cancellationToken);
-
-            if (!validateDeleteStudentRequestResult.IsValid)
-            {
-                return Results.ValidationProblem(validateDeleteStudentRequestResult.ToDictionary());
-            }
-
-            Result deleteStudentResult = await handler.HandleAsync(request, cancellationToken);
+            Result deleteStudentResult = await handler.HandleAsync(id, cancellationToken);
 
             if (deleteStudentResult.IsFailure)
             {
@@ -67,9 +46,11 @@ internal static class Delete
 
     internal sealed class Handler(UserManager<User> userManager) : IScopedType
     {
-        public async Task<Result> HandleAsync(Request request, CancellationToken cancellationToken)
+        public async Task<Result> HandleAsync(int id, CancellationToken cancellationToken)
         {
-            User? user = await userManager.FindByIdAsync(request.Id.ToString());
+#pragma warning disable CA1305
+            User? user = await userManager.FindByIdAsync(id.ToString());
+#pragma warning restore CA1305
 
             if (user is null)
             {
