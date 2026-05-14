@@ -26,7 +26,7 @@ internal static class GetAll
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("students", Handle)
-                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdminOrSuperAdmin)
                 .WithTags("Students")
                 .Produces<Pagination<Response>>();
         }

@@ -52,7 +52,7 @@ internal static class Create
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("students", Handle)
-                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdminOrSuperAdmin)
                 .WithTags("Students")
                 .WithRequestValidation<Request>()
                 .Produces<int>(StatusCodes.Status201Created)

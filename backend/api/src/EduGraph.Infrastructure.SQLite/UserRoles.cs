@@ -5,6 +5,7 @@ public static class UserRoles
     public const string Student = nameof(Student);
     public const string Teacher = nameof(Teacher);
     public const string Admin = nameof(Admin);
+    public const string SuperAdmin = nameof(SuperAdmin);
 
-    public static readonly IReadOnlyCollection<string> All = [Student, Teacher, Admin];
+    public static readonly IReadOnlyCollection<string> All = [Student, Teacher, Admin, SuperAdmin];
 }

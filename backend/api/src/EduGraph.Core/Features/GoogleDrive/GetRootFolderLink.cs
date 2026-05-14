@@ -17,7 +17,7 @@ public static class GetRootFolderLink
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("google-drive/root-folder-link", Handle)
-                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdminOrSuperAdmin)
                 .WithTags("GoogleDrive")
                 .Produces<string>()
                 .ProducesProblem(StatusCodes.Status404NotFound)

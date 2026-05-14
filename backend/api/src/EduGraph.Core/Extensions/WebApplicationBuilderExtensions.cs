@@ -5,6 +5,7 @@ using EduGraph.Core.BackgroundServices;
 using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.OpenApiTransformers;
 using EduGraph.Core.Options;
+using EduGraph.Domain.Enums;
 using EduGraph.Infrastructure.GoogleDrive.Extensions;
 using EduGraph.Infrastructure.VectorSearch.Extensions;
 using EduGraph.Infrastructure.SQLite;
@@ -151,8 +152,10 @@ public static class WebApplicationBuilderExtensions
             builder.AddPolicy(role, policy => policy.RequireRole(role));
         }
 
-        builder.AddPolicy(AuthorizationPolicies.AnyRole, policy => policy.RequireRole(UserRoles.All));
-        builder.AddPolicy(AuthorizationPolicies.TeacherOrAdmin, policy => policy.RequireRole(UserRoles.Teacher, UserRoles.Admin));
+        builder.AddPolicy(AuthorizationPolicies.AnyRole, policy =>
+            policy.RequireRole(UserRoles.All));
+        builder.AddPolicy(AuthorizationPolicies.TeacherOrAdminOrSuperAdmin, policy =>
+            policy.RequireRole(UserRoles.Teacher, UserRoles.Admin, UserRoles.SuperAdmin));
     }
     
     private static WebApplicationBuilder AddResponseCompression(this WebApplicationBuilder builder)

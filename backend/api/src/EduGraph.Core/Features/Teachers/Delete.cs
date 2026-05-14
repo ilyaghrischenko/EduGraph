@@ -19,7 +19,7 @@ internal static class Delete
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapDelete("teachers/{id:int}", Handle)
-                .RequireAuthorization(AuthorizationPolicies.Admin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdminOrSuperAdmin)
                 .WithTags("Teachers")
                 .Produces(StatusCodes.Status204NoContent)
                 .ProducesProblem(StatusCodes.Status404NotFound)

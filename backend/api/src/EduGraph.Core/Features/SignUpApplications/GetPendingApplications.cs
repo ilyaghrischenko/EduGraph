@@ -31,7 +31,7 @@ public static class GetPendingApplications
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapGet("sign-up-applications", Handle)
-                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdmin)
+                .RequireAuthorization(AuthorizationPolicies.TeacherOrAdminOrSuperAdmin)
                 .WithTags("SignUpApplications");
         }
 
