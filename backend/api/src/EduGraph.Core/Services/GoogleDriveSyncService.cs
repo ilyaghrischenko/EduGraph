@@ -40,20 +40,28 @@ public sealed class GoogleDriveSyncService(
 
         List<UniversityFolder> newUniversityFolders = [];
         
-        Result<string> getRootFolderLinkResult = await googleDriveService.GetRootFolderLinkAsync(cancellationToken);
+        UniversityFolder? mainFolder = await db.UniversityFolders
+            .AsNoTracking()
+            .Where(folder => folder.IsMain)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (getRootFolderLinkResult.IsSuccess)
+        if (mainFolder is null)
         {
-            Result<UniversityFolder> createUniversityFolderResult = UniversityFolder.Create(
-                googleDriveId: Guid.CreateVersion7().ToString(),
-                name: "G7",
-                link: getRootFolderLinkResult.Value!,
-                isMain: true
-            );
+            Result<string> getRootFolderLinkResult = await googleDriveService.GetRootFolderLinkAsync(cancellationToken);
 
-            if (createUniversityFolderResult.IsSuccess)
+            if (getRootFolderLinkResult.IsSuccess)
             {
-                newUniversityFolders.Add(createUniversityFolderResult.Value!);
+                Result<UniversityFolder> createUniversityFolderResult = UniversityFolder.Create(
+                    googleDriveId: Guid.CreateVersion7().ToString(),
+                    name: "G7",
+                    link: getRootFolderLinkResult.Value!,
+                    isMain: true
+                );
+
+                if (createUniversityFolderResult.IsSuccess)
+                {
+                    newUniversityFolders.Add(createUniversityFolderResult.Value!);
+                }
             }
         }
 
