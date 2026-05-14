@@ -201,7 +201,7 @@ public static class WebApplicationBuilderExtensions
 
     private static WebApplicationBuilder AddFluentValidation(this WebApplicationBuilder builder)
     {
-        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>(includeInternalTypes: true);
         
         return builder;
     }
