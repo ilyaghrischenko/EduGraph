@@ -49,8 +49,6 @@ internal static class Create
 
     internal sealed class Endpoint : IEndpoint
     {
-        public Endpoint() { }
-
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
             app.MapPost("students", Handle)
@@ -65,9 +63,17 @@ internal static class Create
 
         private static async Task<IResult> Handle(
             [FromBody] Request request,
+            [FromServices] IValidator<Request> validator,
             [FromServices] Handler handler,
             CancellationToken cancellationToken)
         {
+            ValidationResult validateSearchDocumentsRequest = await validator.ValidateAsync(request, cancellationToken);
+
+            if (!validateSearchDocumentsRequest.IsValid)
+            {
+                return Results.ValidationProblem(validateSearchDocumentsRequest.ToDictionary());
+            }
+            
             Result<int> createStudentResult = await handler.HandleAsync(request, cancellationToken);
 
             if (createStudentResult.IsFailure)
@@ -127,7 +133,7 @@ internal static class Create
                 );
             }
 
-            IdentityResult addUserToRoleResult = await userManager.AddToRoleAsync(user, UserType.Student.ToString());
+            IdentityResult addUserToRoleResult = await userManager.AddToRoleAsync(user, nameof(UserType.Student));
 
             if (addUserToRoleResult.Succeeded is false)
             {
