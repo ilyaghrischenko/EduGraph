@@ -5,22 +5,34 @@ import { LoginPage }              from '../pages/LoginPage';
 import { SignUpPage }             from '../pages/SignUpPage';
 import { SignUpApplicationsPage } from '../pages/SignUpApplicationsPage';
 import { AddUserPage }            from '../pages/AddUserPage';
+import { TeachersPage }           from '../pages/TeachersPage';
 import { StudentSearchPage }      from '../pages/StudentSearchPage';
 import { Layout }                 from '../components/Layout';
 import { Seo }                    from '../components/Seo';
 import { C, F }                   from '../styles/tokens';
 import { getStoredRole }          from '../utils/auth';
 
+type UserRole = 'Student' | 'Teacher' | 'Admin';
+const USER_ROLES: UserRole[] = ['Student', 'Teacher', 'Admin'];
+
 interface ProtectedRouteProps {
-    allow: 'student' | 'admin';
+    roles: UserRole[];
     children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allow, children }) => {
+const isUserRole = (role: string): role is UserRole => USER_ROLES.includes(role as UserRole);
+
+const getDefaultPath = (role: string | null): string => {
+    if (role === 'Admin') return '/admin/search';
+    if (role === 'Teacher') return '/teacher/search';
+    return '/student/search';
+};
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles, children }) => {
     const role = getStoredRole();
     if (!role) return <Navigate to="/login" replace />;
-    if (allow === 'student' && role !== 'Student') return <Navigate to="/admin/sign-up-applications" replace />;
-    if (allow === 'admin' && role === 'Student') return <Navigate to="/student/search" replace />;
+    if (!isUserRole(role)) return <Navigate to="/login" replace />;
+    if (!roles.includes(role)) return <Navigate to={getDefaultPath(role)} replace />;
     return <>{children}</>;
 };
 
@@ -66,9 +78,14 @@ export const AppRouter: React.FC = () => (
             <Route path="/"                           element={<Navigate to="/login" replace />} />
             <Route path="/login"                      element={<LoginPage />} />
             <Route path="/signup"                     element={<SignUpPage />} />
-            <Route path="/admin/sign-up-applications" element={<ProtectedRoute allow="admin"><SignUpApplicationsPage /></ProtectedRoute>} />
-            <Route path="/admin/add-user"             element={<ProtectedRoute allow="admin"><AddUserPage /></ProtectedRoute>} />
-            <Route path="/student/search"             element={<ProtectedRoute allow="student"><StudentSearchPage /></ProtectedRoute>} />
+            <Route path="/admin/search"               element={<ProtectedRoute roles={['Admin']}><StudentSearchPage /></ProtectedRoute>} />
+            <Route path="/admin/sign-up-applications" element={<ProtectedRoute roles={['Admin']}><SignUpApplicationsPage /></ProtectedRoute>} />
+            <Route path="/admin/add-user"             element={<ProtectedRoute roles={['Admin']}><AddUserPage /></ProtectedRoute>} />
+            <Route path="/admin/teachers"             element={<ProtectedRoute roles={['Admin']}><TeachersPage /></ProtectedRoute>} />
+            <Route path="/teacher/search"             element={<ProtectedRoute roles={['Teacher']}><StudentSearchPage /></ProtectedRoute>} />
+            <Route path="/teacher/sign-up-applications" element={<ProtectedRoute roles={['Teacher']}><SignUpApplicationsPage /></ProtectedRoute>} />
+            <Route path="/teacher/add-user"           element={<ProtectedRoute roles={['Teacher']}><AddUserPage /></ProtectedRoute>} />
+            <Route path="/student/search"             element={<ProtectedRoute roles={['Student']}><StudentSearchPage /></ProtectedRoute>} />
             <Route path="/privacy"                    element={<PrivacyPage />} />
             <Route path="*"                           element={<NotFoundPage />} />
         </Routes>

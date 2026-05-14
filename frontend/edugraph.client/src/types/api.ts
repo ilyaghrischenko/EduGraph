@@ -36,6 +36,19 @@ export interface StudentResponse {
     lastLoginDate: string | null;
 }
 
+export interface CreateTeacherRequest {
+    fullName: string;
+    login: string;
+    password: string;
+    confirmPassword: string;
+}
+
+export interface TeacherResponse {
+    id: number;
+    fullName: string;
+    lastLoginDate: string | null;
+}
+
 export interface PaginationResponse<T> {
     items: T[];
     currentPage: number;

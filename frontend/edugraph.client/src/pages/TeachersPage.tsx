@@ -1,30 +1,22 @@
-// src/pages/AddUserPage.tsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Seo } from '../components/Seo';
 import { Alert, DarkInput, DarkLabel, Field, GhostButton, PrimaryButton } from '../components/ui';
-import { studentsApi } from '../api/studentsApi';
-import type { CreateStudentRequest, PaginationResponse, StudentResponse } from '../types/api';
-import { getStoredRole } from '../utils/auth';
+import { teachersApi } from '../api/teachersApi';
+import type { CreateTeacherRequest, PaginationResponse, TeacherResponse } from '../types/api';
 import { C, F } from '../styles/tokens';
 
-const ADMIN_NAV_LINKS = [
+const NAV_LINKS = [
     { label: 'Пошук', href: '/admin/search' },
     { label: 'Заявки', href: '/admin/sign-up-applications' },
     { label: 'Студенти', href: '/admin/add-user' },
     { label: 'Викладачі', href: '/admin/teachers' },
 ];
-const TEACHER_NAV_LINKS = [
-    { label: 'Пошук', href: '/teacher/search' },
-    { label: 'Заявки', href: '/teacher/sign-up-applications' },
-    { label: 'Студенти', href: '/teacher/add-user' },
-];
 
 const EMPTY_FORM = {
     login: '',
     fullName: '',
-    group: '',
     password: '',
     confirmPassword: '',
 };
@@ -34,42 +26,41 @@ const formatLastLogin = (value: string | null): string => {
     return new Intl.DateTimeFormat('uk-UA').format(new Date(value));
 };
 
-export const AddUserPage: React.FC = () => {
-    const navLinks = getStoredRole() === 'Teacher' ? TEACHER_NAV_LINKS : ADMIN_NAV_LINKS;
+export const TeachersPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const page = parseInt(searchParams.get('page') || '1', 10);
 
     const [formData, setFormData] = useState(EMPTY_FORM);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-    const [students, setStudents] = useState<PaginationResponse<StudentResponse> | null>(null);
+    const [teachers, setTeachers] = useState<PaginationResponse<TeacherResponse> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [createLoading, setCreateLoading] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
-    const studentsRequestIdRef = useRef(0);
+    const teachersRequestIdRef = useRef(0);
 
-    const fetchStudents = useCallback(async () => {
-        const requestId = studentsRequestIdRef.current + 1;
-        studentsRequestIdRef.current = requestId;
+    const fetchTeachers = useCallback(async () => {
+        const requestId = teachersRequestIdRef.current + 1;
+        teachersRequestIdRef.current = requestId;
         setIsLoading(true);
         setError(null);
         try {
-            const res = await studentsApi.getStudents(page, 30);
-            if (studentsRequestIdRef.current !== requestId) return;
-            setStudents(res);
+            const res = await teachersApi.getTeachers(page, 30);
+            if (teachersRequestIdRef.current !== requestId) return;
+            setTeachers(res);
         } catch (err: unknown) {
-            if (studentsRequestIdRef.current !== requestId) return;
+            if (teachersRequestIdRef.current !== requestId) return;
             setError(err instanceof Error ? err.message : 'Помилка запиту');
         } finally {
-            if (studentsRequestIdRef.current === requestId) setIsLoading(false);
+            if (teachersRequestIdRef.current === requestId) setIsLoading(false);
         }
     }, [page]);
 
     useEffect(() => {
-        fetchStudents();
-        return () => { studentsRequestIdRef.current += 1; };
-    }, [fetchStudents]);
+        fetchTeachers();
+        return () => { teachersRequestIdRef.current += 1; };
+    }, [fetchTeachers]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -81,7 +72,6 @@ export const AddUserPage: React.FC = () => {
         const errors: Record<string, string> = {};
         if (!formData.login.trim()) errors.login = 'Обовʼязкове поле';
         if (!formData.fullName.trim()) errors.fullName = 'Обовʼязкове поле';
-        if (!formData.group.trim()) errors.group = 'Обовʼязкове поле';
         if (!formData.password) errors.password = 'Обовʼязкове поле';
         if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Паролі не збігаються';
         setValidationErrors(errors);
@@ -96,45 +86,44 @@ export const AddUserPage: React.FC = () => {
 
         setCreateLoading(true);
         try {
-            const payload: CreateStudentRequest = {
+            const payload: CreateTeacherRequest = {
                 login: formData.login.trim(),
                 fullName: formData.fullName.trim(),
-                group: formData.group.trim(),
                 password: formData.password,
                 confirmPassword: formData.confirmPassword,
             };
-            const id = await studentsApi.createStudent(payload);
+            const id = await teachersApi.createTeacher(payload);
             setFormData(EMPTY_FORM);
-            setSuccessMsg(`Студента створено. ID: ${id}`);
+            setSuccessMsg(`Викладача створено. ID: ${id}`);
             if (page !== 1) setSearchParams({ page: '1' });
-            else await fetchStudents();
+            else await fetchTeachers();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Помилка створення студента');
+            setError(err instanceof Error ? err.message : 'Помилка створення викладача');
         } finally {
             setCreateLoading(false);
         }
     };
 
-    const handleDelete = async (student: StudentResponse) => {
-        const confirmed = window.confirm(`Видалити студента "${student.fullName}"?`);
+    const handleDelete = async (teacher: TeacherResponse) => {
+        const confirmed = window.confirm(`Видалити викладача "${teacher.fullName}"?`);
         if (!confirmed) return;
 
-        setDeleteId(student.id);
+        setDeleteId(teacher.id);
         setError(null);
         setSuccessMsg(null);
         try {
-            await studentsApi.deleteStudent(student.id);
-            setSuccessMsg('Студента видалено.');
-            await fetchStudents();
+            await teachersApi.deleteTeacher(teacher.id);
+            setSuccessMsg('Викладача видалено.');
+            await fetchTeachers();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Помилка видалення студента');
+            setError(err instanceof Error ? err.message : 'Помилка видалення викладача');
         } finally {
             setDeleteId(null);
         }
     };
 
     const changePage = (p: number) => setSearchParams({ page: p.toString() });
-    const hasStudents = students && students.items && students.items.length > 0;
+    const hasTeachers = teachers && teachers.items && teachers.items.length > 0;
 
     const thStyle: React.CSSProperties = {
         padding: '12px 14px',
@@ -160,10 +149,10 @@ export const AddUserPage: React.FC = () => {
     };
 
     return (
-        <Layout navLinks={navLinks}>
+        <Layout navLinks={NAV_LINKS}>
             <Seo
-                title="Студенти | EduGraph"
-                description="Адміністративна сторінка керування студентами EduGraph."
+                title="Викладачі | EduGraph"
+                description="Адміністративна сторінка керування викладачами EduGraph."
                 noindex
             />
             <div className="pt-6 md:pt-9">
@@ -172,7 +161,7 @@ export const AddUserPage: React.FC = () => {
                         Адміністрування
                     </p>
                     <h1 style={{ fontFamily: F.display, fontSize: 'clamp(1.35rem, 5vw, 1.6rem)', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
-                        Студенти
+                        Викладачі
                     </h1>
                 </div>
 
@@ -182,7 +171,7 @@ export const AddUserPage: React.FC = () => {
                 <div className="grid min-w-0 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
                     <div className="px-5 py-6 md:px-7 md:py-8" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px' }}>
                         <h2 style={{ fontFamily: F.display, fontSize: '1rem', fontWeight: 700, color: C.textPrimary, margin: '0 0 18px' }}>
-                            Додати студента
+                            Додати викладача
                         </h2>
 
                         <form onSubmit={handleSubmit}>
@@ -196,11 +185,6 @@ export const AddUserPage: React.FC = () => {
                                 <DarkInput id="fullName" name="fullName" type="text" value={formData.fullName} onChange={handleChange} required placeholder="Іванов Іван Іванович" error={!!validationErrors.fullName} />
                             </Field>
 
-                            <Field error={validationErrors.group}>
-                                <DarkLabel htmlFor="group">Група</DarkLabel>
-                                <DarkInput id="group" name="group" type="text" value={formData.group} onChange={handleChange} required placeholder="ІО-21" error={!!validationErrors.group} />
-                            </Field>
-
                             <Field error={validationErrors.password}>
                                 <DarkLabel htmlFor="password">Пароль</DarkLabel>
                                 <DarkInput id="password" name="password" type="password" value={formData.password} onChange={handleChange} required placeholder="••••••••" error={!!validationErrors.password} />
@@ -212,46 +196,44 @@ export const AddUserPage: React.FC = () => {
                             </Field>
 
                             <PrimaryButton type="submit" loading={createLoading} full style={{ marginTop: '8px' }}>
-                                Створити студента
+                                Створити викладача
                             </PrimaryButton>
                         </form>
                     </div>
 
                     <div className="min-w-0">
-                        {isLoading && !students ? (
+                        {isLoading && !teachers ? (
                             <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', padding: '32px', textAlign: 'center', fontFamily: F.sans, color: C.textMuted, fontSize: '0.85rem' }}>
                                 Завантаження…
                             </div>
-                        ) : !hasStudents ? (
-                            <Alert variant="info">Студентів ще немає.</Alert>
+                        ) : !hasTeachers ? (
+                            <Alert variant="info">Викладачів ще немає.</Alert>
                         ) : (
                             <>
                                 <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', overflow: 'hidden' }}>
                                     <div style={{ overflowX: 'auto' }}>
-                                        <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse' }}>
+                                        <table style={{ width: '100%', minWidth: '560px', borderCollapse: 'collapse' }}>
                                             <thead>
                                             <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                                                 <th style={thStyle}>ID</th>
                                                 <th style={thStyle}>ПІБ</th>
-                                                <th style={thStyle}>Група</th>
                                                 <th style={thStyle}>Останній вхід</th>
                                                 <th style={{ ...thStyle, width: '120px' }}>Дії</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {students!.items.map((student, idx) => (
+                                            {teachers!.items.map((teacher, idx) => (
                                                 <tr
-                                                    key={student.id}
+                                                    key={teacher.id}
                                                     style={{ background: idx % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background 0.1s' }}
                                                     onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(79,255,176,0.04)')}
                                                     onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent')}
                                                 >
-                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{student.id}</td>
-                                                    <td style={tdStyle}>{student.fullName}</td>
-                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{student.group ?? '—'}</td>
-                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{formatLastLogin(student.lastLoginDate)}</td>
+                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{teacher.id}</td>
+                                                    <td style={tdStyle}>{teacher.fullName}</td>
+                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{formatLastLogin(teacher.lastLoginDate)}</td>
                                                     <td style={tdStyle}>
-                                                        <GhostButton danger onClick={() => handleDelete(student)} disabled={deleteId === student.id}>
+                                                        <GhostButton danger onClick={() => handleDelete(teacher)} disabled={deleteId === teacher.id}>
                                                             Видалити
                                                         </GhostButton>
                                                     </td>
@@ -287,12 +269,12 @@ export const AddUserPage: React.FC = () => {
                                     </button>
 
                                     <span style={{ fontFamily: F.sans, fontSize: '0.8rem', color: C.textMuted, padding: '0 8px' }}>
-                                        {students!.currentPage} / {students!.totalPages}
+                                        {teachers!.currentPage} / {teachers!.totalPages}
                                     </span>
 
                                     <button
                                         onClick={() => changePage(page + 1)}
-                                        disabled={page === students!.totalPages || students!.totalPages === 0}
+                                        disabled={page === teachers!.totalPages || teachers!.totalPages === 0}
                                         style={{
                                             minHeight: '44px',
                                             minWidth: '44px',
@@ -302,12 +284,12 @@ export const AddUserPage: React.FC = () => {
                                             fontSize: '0.82rem',
                                             background: C.surface,
                                             border: `1px solid ${C.border}`,
-                                            color: (page === students!.totalPages || students!.totalPages === 0) ? C.textMuted : C.textPrimary,
-                                            cursor: (page === students!.totalPages || students!.totalPages === 0) ? 'not-allowed' : 'pointer',
-                                            opacity: (page === students!.totalPages || students!.totalPages === 0) ? 0.4 : 1,
+                                            color: (page === teachers!.totalPages || teachers!.totalPages === 0) ? C.textMuted : C.textPrimary,
+                                            cursor: (page === teachers!.totalPages || teachers!.totalPages === 0) ? 'not-allowed' : 'pointer',
+                                            opacity: (page === teachers!.totalPages || teachers!.totalPages === 0) ? 0.4 : 1,
                                             transition: 'background 0.15s',
                                         }}
-                                        onMouseEnter={(e) => { if (page !== students!.totalPages) e.currentTarget.style.borderColor = C.borderHi; }}
+                                        onMouseEnter={(e) => { if (page !== teachers!.totalPages) e.currentTarget.style.borderColor = C.borderHi; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
                                     >
                                         Наступна →

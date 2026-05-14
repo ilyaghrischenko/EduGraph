@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { NodeObject } from 'react-force-graph-2d';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { usersApi } from '../api/usersApi';
 import type { FolderResponse, SearchDocumentResponse } from '../types/api';
 import { getSafeGoogleDriveUrl } from '../utils/safeUrl';
+import { getStoredRole } from '../utils/auth';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -47,6 +48,23 @@ const LINK_COLOR = 'rgba(79, 255, 176, 0.18)';
 const BG_COLOR = '#0a0d14';
 const TABLET_WIDTH = 768;
 const DESKTOP_WIDTH = 1280;
+const ADMIN_NAV_LINKS = [
+    { label: 'Пошук', href: '/admin/search' },
+    { label: 'Заявки', href: '/admin/sign-up-applications' },
+    { label: 'Студенти', href: '/admin/add-user' },
+    { label: 'Викладачі', href: '/admin/teachers' },
+];
+const TEACHER_NAV_LINKS = [
+    { label: 'Пошук', href: '/teacher/search' },
+    { label: 'Заявки', href: '/teacher/sign-up-applications' },
+    { label: 'Студенти', href: '/teacher/add-user' },
+];
+
+const ROLE_LABELS: Record<string, string> = {
+    Admin: 'Адміністратор',
+    Teacher: 'Викладач',
+    Student: 'Студент',
+};
 
 interface GraphMetrics {
     documentNodeWidth: number;
@@ -819,6 +837,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export const StudentSearchPage: React.FC = () => {
+    const { pathname } = useLocation();
+    const role = getStoredRole();
+    const roleLabel = ROLE_LABELS[role ?? ''] ?? 'Студент';
+    const panelNavLinks = role === 'Admin' ? ADMIN_NAV_LINKS : role === 'Teacher' ? TEACHER_NAV_LINKS : [];
     const [query, setQuery] = useState('');
     const [pageState, setPageState] = useState<PageState>('foldersLoading');
     const [loadingStep, setLoadingStep] = useState(0);
@@ -1160,7 +1182,7 @@ export const StudentSearchPage: React.FC = () => {
             />
             {/* ── Header ────────────────────────────────────────────────────────── */}
             <header
-                className="flex flex-shrink-0 items-center justify-between px-4 py-3 md:px-6"
+                className="flex flex-shrink-0 flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
             >
                 <Link
@@ -1174,7 +1196,33 @@ export const StudentSearchPage: React.FC = () => {
                 >
                     EduGraph
                 </Link>
-                <div className="flex items-center gap-2">
+                <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
+                    {panelNavLinks.length > 0 && (
+                        <nav aria-label="Навігація панелі">
+                            <ul className="flex flex-wrap gap-2" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                                {panelNavLinks.map((link) => {
+                                    const active = pathname === link.href;
+                                    return (
+                                        <li key={link.href}>
+                                            <Link
+                                                to={link.href}
+                                                className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm"
+                                                style={{
+                                                    background: active ? 'rgba(79,255,176,0.12)' : 'rgba(255,255,255,0.04)',
+                                                    border: `1px solid ${active ? 'rgba(79,255,176,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                                                    color: active ? '#4fffb0' : 'rgba(226,232,240,0.68)',
+                                                    fontFamily: "'DM Sans', sans-serif",
+                                                    textDecoration: 'none',
+                                                }}
+                                            >
+                                                {link.label}
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </nav>
+                    )}
           <span
               className="text-xs px-2 py-0.5 rounded-full"
               style={{
@@ -1182,9 +1230,10 @@ export const StudentSearchPage: React.FC = () => {
                   color: '#4fffb0',
                   border: '1px solid rgba(79,255,176,0.2)',
                   fontFamily: "'DM Sans', sans-serif",
+                  width: 'fit-content',
               }}
           >
-            Студент
+            {roleLabel}
           </span>
                 </div>
             </header>

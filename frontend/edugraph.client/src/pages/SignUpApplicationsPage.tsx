@@ -8,11 +8,19 @@ import { adminsApi } from '../api/adminsApi';
 import { usersApi } from '../api/usersApi';
 import type { PaginationResponse, SignUpApplicationResponse } from '../types/api';
 import { getSafeGoogleDriveUrl } from '../utils/safeUrl';
+import { getStoredRole } from '../utils/auth';
 import { C, F } from '../styles/tokens';
 
-const NAV_LINKS = [
+const ADMIN_NAV_LINKS = [
+    { label: 'Пошук', href: '/admin/search' },
     { label: 'Заявки', href: '/admin/sign-up-applications' },
     { label: 'Студенти', href: '/admin/add-user' },
+    { label: 'Викладачі', href: '/admin/teachers' },
+];
+const TEACHER_NAV_LINKS = [
+    { label: 'Пошук', href: '/teacher/search' },
+    { label: 'Заявки', href: '/teacher/sign-up-applications' },
+    { label: 'Студенти', href: '/teacher/add-user' },
 ];
 
 const GoogleDriveIcon: React.FC = () => (
@@ -27,6 +35,7 @@ const GoogleDriveIcon: React.FC = () => (
 );
 
 export const SignUpApplicationsPage: React.FC = () => {
+    const navLinks = getStoredRole() === 'Teacher' ? TEACHER_NAV_LINKS : ADMIN_NAV_LINKS;
     const [searchParams, setSearchParams] = useSearchParams();
     const page        = parseInt(searchParams.get('page') || '1', 10);
 
@@ -127,7 +136,7 @@ export const SignUpApplicationsPage: React.FC = () => {
     };
 
     return (
-        <Layout navLinks={NAV_LINKS}>
+        <Layout navLinks={navLinks}>
             <Seo
                 title="Заявки на реєстрацію | EduGraph"
                 description="Адміністративна сторінка перегляду заявок на реєстрацію в EduGraph."

@@ -15,7 +15,9 @@ const NAV_LINKS = [
 
 function getRedirectPath(token: string): string {
     const role = getRoleFromToken(token);
-    return role === 'Student' ? '/student/search' : '/admin/sign-up-applications';
+    if (role === 'Admin') return '/admin/search';
+    if (role === 'Teacher') return '/teacher/search';
+    return '/student/search';
 }
 
 export const LoginPage: React.FC = () => {
