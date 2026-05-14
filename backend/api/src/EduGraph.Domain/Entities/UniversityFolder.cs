@@ -11,16 +11,19 @@ public sealed class UniversityFolder : BaseEntity
 
     public string Link { get; private set; } = null!;
 
+    public bool IsMain { get; private set; }
+
     private UniversityFolder() { }
 
-    private UniversityFolder(string googleDriveId, string name, string link)
+    private UniversityFolder(string googleDriveId, string name, string link, bool isMain = false)
     {
         GoogleDriveId = googleDriveId;
         Name = name;
         Link = link;
+        IsMain = isMain;
     }
 
-    public static Result<UniversityFolder> Create(string googleDriveId, string name, string link)
+    public static Result<UniversityFolder> Create(string googleDriveId, string name, string link, bool isMain = false)
     {
         if (string.IsNullOrWhiteSpace(googleDriveId))
         {
@@ -37,7 +40,7 @@ public sealed class UniversityFolder : BaseEntity
             return new ErrorDetails($"{nameof(link)} не може бути пустим");
         }
         
-        return new UniversityFolder(googleDriveId, name, link);
+        return new UniversityFolder(googleDriveId, name, link, isMain);
     }
 
     public Result Update(string googleDriveId, string name, string link)

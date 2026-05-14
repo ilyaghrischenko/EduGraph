@@ -39,6 +39,23 @@ public sealed class GoogleDriveSyncService(
             .ToListAsync(cancellationToken);
 
         List<UniversityFolder> newUniversityFolders = [];
+        
+        Result<string> getRootFolderLinkResult = await googleDriveService.GetRootFolderLinkAsync(cancellationToken);
+
+        if (getRootFolderLinkResult.IsSuccess)
+        {
+            Result<UniversityFolder> createUniversityFolderResult = UniversityFolder.Create(
+                googleDriveId: Guid.CreateVersion7().ToString(),
+                name: "G7",
+                link: getRootFolderLinkResult.Value!,
+                isMain: true
+            );
+
+            if (createUniversityFolderResult.IsSuccess)
+            {
+                newUniversityFolders.Add(createUniversityFolderResult.Value!);
+            }
+        }
 
         foreach (GoogleDriveFolder googleDriveFolder in googleDriveFolders)
         {
@@ -71,7 +88,7 @@ public sealed class GoogleDriveSyncService(
         if (folderIds.Count > 0)
         {
             await db.UniversityFolders
-                .Where(folder => !folderIds.Contains(folder.GoogleDriveId))
+                .Where(folder => folder.IsMain == false && !folderIds.Contains(folder.GoogleDriveId))
                 .ExecuteDeleteAsync(cancellationToken);
         }
 

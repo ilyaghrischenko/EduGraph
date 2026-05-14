@@ -2,9 +2,11 @@ using EduGraph.Core.Extensions;
 using EduGraph.Core.Features.Common.Auth;
 using EduGraph.Core.Features.Common.Endpoints;
 using EduGraph.Infrastructure.GoogleDrive;
+using EduGraph.Infrastructure.SQLite;
 using EduGraph.SharedKernel.Interfaces;
 using EduGraph.SharedKernel.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EduGraph.Core.Features.GoogleDrive;
 
@@ -23,17 +25,21 @@ public static class GetRootFolderLink
         }
 
         private static async Task<IResult> Handle(
-            [FromServices] GoogleDriveService googleDriveService,
+            [FromServices] EduGraphContext db,
             CancellationToken cancellationToken)
         {
-            Result<string> getRootFolderLinkResult = await googleDriveService.GetRootFolderLinkAsync(cancellationToken);
+            string? link = await db.UniversityFolders
+                .AsNoTracking()
+                .Where(folder => folder.IsMain)
+                .Select(folder => folder.Link)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (getRootFolderLinkResult.IsFailure)
+            if (link is null)
             {
-                return getRootFolderLinkResult.ToHttpFailure();
+                return TypedResults.NotFound("Головна папка не знайдена");
             }
 
-            return TypedResults.Ok(getRootFolderLinkResult.Value);
+            return TypedResults.Ok(link);
         }
     }
 }

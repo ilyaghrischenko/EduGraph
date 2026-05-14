@@ -23,5 +23,12 @@ public sealed class UniversityFolderEntityConfiguration : IEntityTypeConfigurati
 
         builder.Property(x => x.Link)
             .IsRequired();
+
+        builder.Property(x => x.IsMain)
+            .IsRequired();
+
+        builder.HasIndex(x => x.IsMain)
+            .IsUnique()
+            .HasFilter($"{nameof(UniversityFolder.IsMain)} = 1");
     }
 }
