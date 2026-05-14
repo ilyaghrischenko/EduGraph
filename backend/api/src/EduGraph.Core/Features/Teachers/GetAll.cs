@@ -17,7 +17,6 @@ internal static class GetAll
     internal sealed record Response(
         int Id,
         string FullName,
-        string Type,
         DateOnly? LastLoginDate
     );
 
@@ -47,7 +46,6 @@ internal static class GetAll
                     user => new Response(
                         user.Id,
                         user.FullName,
-                        user.Type.ToString(),
                         user.LastLoginDate
                     ),
                     cancellationToken

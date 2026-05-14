@@ -30,23 +30,8 @@ internal static class Delete
 
         private static async Task<IResult> Handle(
             [FromRoute] int id,
-            [FromServices] Handler handler,
+            [FromServices] UserManager<User> userManager,
             CancellationToken cancellationToken)
-        {
-            Result deleteStudentResult = await handler.HandleAsync(id, cancellationToken);
-
-            if (deleteStudentResult.IsFailure)
-            {
-                return deleteStudentResult.ToHttpFailure();
-            }
-
-            return TypedResults.NoContent();
-        }
-    }
-
-    internal sealed class Handler(UserManager<User> userManager) : IScopedType
-    {
-        public async Task<Result> HandleAsync(int id, CancellationToken cancellationToken)
         {
 #pragma warning disable CA1305
             User? user = await userManager.FindByIdAsync(id.ToString());
@@ -54,31 +39,22 @@ internal static class Delete
 
             if (user is null)
             {
-                return new ErrorDetails(
-                    "Студента не знайдено",
-                    HttpStatusCode.NotFound
-                );
+                return TypedResults.NotFound($"Студента з id: {id} не знайдено");
             }
 
             if (user.Type != UserType.Student)
             {
-                return new ErrorDetails(
-                    "Студента не знайдено",
-                    HttpStatusCode.NotFound
-                );
+                return TypedResults.NotFound($"Студента з id: {id} не знайдено");
             }
 
             IdentityResult deleteStudentResult = await userManager.DeleteAsync(user);
 
             if (deleteStudentResult.Succeeded is false)
             {
-                return new ErrorDetails(
-                    deleteStudentResult.GetErrorMessage(),
-                    HttpStatusCode.InternalServerError
-                );
+                return TypedResults.InternalServerError(deleteStudentResult.GetErrorMessage());
             }
 
-            return Result.Success();
+            return TypedResults.NoContent();
         }
     }
 }
