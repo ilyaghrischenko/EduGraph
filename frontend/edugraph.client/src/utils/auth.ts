@@ -1,4 +1,5 @@
 // src/utils/auth.ts
+import { clearCachedRootFolderLink } from './googleDriveRootFolderLinkCache';
 
 // .NET uses this URI as the default role claim type
 const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
@@ -22,11 +23,13 @@ export function getStoredToken(): string | null {
 }
 
 export function setStoredToken(token: string): void {
+    clearCachedRootFolderLink();
     localStorage.setItem(TOKEN_KEY, token);
     sessionStorage.removeItem(TOKEN_KEY);
 }
 
 export function clearStoredToken(): void {
+    clearCachedRootFolderLink();
     sessionStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(TOKEN_KEY);
 }

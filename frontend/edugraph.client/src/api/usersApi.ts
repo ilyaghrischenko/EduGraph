@@ -1,6 +1,9 @@
 // src/api/usersApi.ts
 import type { FolderResponse, SearchDocumentResponse } from '../types/api';
 import { apiFetch } from './apiClient';
+import { getCachedRootFolderLink, setCachedRootFolderLink } from '../utils/googleDriveRootFolderLinkCache';
+
+let rootFolderLinkRequest: Promise<string> | null = null;
 
 export const usersApi = {
     getFolders: (): Promise<FolderResponse[]> => {
@@ -8,7 +11,19 @@ export const usersApi = {
     },
 
     getRootFolderLink: (): Promise<string> => {
-        return apiFetch<string>('/api/google-drive/root-folder-link');
+        const cachedLink = getCachedRootFolderLink();
+        if (cachedLink) return Promise.resolve(cachedLink);
+
+        rootFolderLinkRequest ??= apiFetch<string>('/api/google-drive/root-folder-link')
+            .then((link) => {
+                setCachedRootFolderLink(link);
+                return link;
+            })
+            .finally(() => {
+                rootFolderLinkRequest = null;
+            });
+
+        return rootFolderLinkRequest;
     },
 
     searchDocuments: (query: string): Promise<SearchDocumentResponse[]> => {
