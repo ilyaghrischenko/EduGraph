@@ -14,7 +14,6 @@ internal static class QueryableExtensions
         PaginationParams paginationParams,
         Expression<Func<TSource, TDto>> selector,
         CancellationToken cancellationToken)
-        where TSource : BaseEntity
     {
         int totalItems = await source.CountAsync(cancellationToken);
 
