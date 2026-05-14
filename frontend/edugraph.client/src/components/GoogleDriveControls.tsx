@@ -56,16 +56,23 @@ export const GoogleDriveControls: React.FC = () => {
 
     return (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <div
-                aria-hidden="true"
+            <a
+                href={driveLink ?? undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Відкрити Google Drive"
+                title="Відкрити Google Drive"
+                onClick={(e) => { if (!driveLink) e.preventDefault(); }}
                 className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg"
                 style={{
                     background: 'rgba(255,255,255,0.04)',
                     border: `1px solid ${C.border}`,
+                    cursor: driveLink ? 'pointer' : 'not-allowed',
+                    opacity: driveLink ? 1 : 0.45,
                 }}
             >
                 <GoogleDriveIcon />
-            </div>
+            </a>
             <button
                 type="button"
                 onClick={handleSyncGoogleDrive}
@@ -86,28 +93,6 @@ export const GoogleDriveControls: React.FC = () => {
             >
                 {syncLabel}
             </button>
-            <a
-                href={driveLink ?? undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Відкрити Google Drive"
-                title="Відкрити Google Drive"
-                onClick={(e) => { if (!driveLink) e.preventDefault(); }}
-                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 text-sm"
-                style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${C.border}`,
-                    color: driveLink ? C.textPrimary : C.textMuted,
-                    cursor: driveLink ? 'pointer' : 'not-allowed',
-                    fontFamily: F.sans,
-                    fontWeight: 500,
-                    opacity: driveLink ? 1 : 0.45,
-                    textDecoration: 'none',
-                    whiteSpace: 'nowrap',
-                }}
-            >
-                Відкрити
-            </a>
         </div>
     );
 };
