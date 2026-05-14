@@ -260,7 +260,7 @@ export const TeachersPage: React.FC = () => {
                                             color: page === 1 ? C.textMuted : C.textPrimary,
                                             cursor: page === 1 ? 'not-allowed' : 'pointer',
                                             opacity: page === 1 ? 0.4 : 1,
-                                            transition: 'background 0.15s',
+                                            transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s, opacity 0.15s, transform 0.15s',
                                         }}
                                         onMouseEnter={(e) => { if (page !== 1) e.currentTarget.style.borderColor = C.borderHi; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
@@ -287,7 +287,7 @@ export const TeachersPage: React.FC = () => {
                                             color: (page === teachers!.totalPages || teachers!.totalPages === 0) ? C.textMuted : C.textPrimary,
                                             cursor: (page === teachers!.totalPages || teachers!.totalPages === 0) ? 'not-allowed' : 'pointer',
                                             opacity: (page === teachers!.totalPages || teachers!.totalPages === 0) ? 0.4 : 1,
-                                            transition: 'background 0.15s',
+                                            transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s, opacity 0.15s, transform 0.15s',
                                         }}
                                         onMouseEnter={(e) => { if (page !== teachers!.totalPages) e.currentTarget.style.borderColor = C.borderHi; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}

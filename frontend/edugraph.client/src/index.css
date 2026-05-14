@@ -33,6 +33,54 @@ video {
     display: block;
 }
 
+button,
+.interactive-button {
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        color 0.18s ease,
+        filter 0.18s ease,
+        opacity 0.18s ease,
+        transform 0.18s ease;
+}
+
+button:not(:disabled),
+.interactive-button:not([aria-disabled="true"]) {
+    cursor: pointer;
+}
+
+button:disabled,
+.interactive-button[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+button:not(:disabled):hover,
+.interactive-button:not([aria-disabled="true"]):hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.24),
+        0 0 0 1px rgba(79, 255, 176, 0.12),
+        0 0 22px rgba(79, 255, 176, 0.08);
+    filter: saturate(1.08);
+}
+
+button:not(:disabled):active,
+.interactive-button:not([aria-disabled="true"]):active {
+    transform: translateY(0);
+    box-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.22),
+        0 0 0 1px rgba(79, 255, 176, 0.08);
+    filter: saturate(1);
+}
+
+button:focus-visible,
+.interactive-button:focus-visible {
+    outline: 2px solid rgba(79, 255, 176, 0.7);
+    outline-offset: 3px;
+}
+
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }

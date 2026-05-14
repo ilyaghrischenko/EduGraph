@@ -772,7 +772,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
                 <button
                     type="button"
                     onClick={onClose}
-                    className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-colors"
+                    className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all"
                     style={{
                         background: 'rgba(255,255,255,0.04)',
                         border: '1px solid rgba(255,255,255,0.08)',
@@ -814,7 +814,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
                         href={document.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
+                        className="interactive-button flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium"
                         style={{
                             background: 'rgba(79,255,176,0.13)',
                             border: '1px solid rgba(79,255,176,0.32)',
@@ -1210,7 +1210,7 @@ export const StudentSearchPage: React.FC = () => {
                                         <li key={link.href}>
                                             <Link
                                                 to={link.href}
-                                                className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm"
+                                                className="interactive-button inline-flex min-h-11 items-center rounded-lg px-3 text-sm"
                                                 style={{
                                                     background: active ? 'rgba(79,255,176,0.12)' : 'rgba(255,255,255,0.04)',
                                                     border: `1px solid ${active ? 'rgba(79,255,176,0.3)' : 'rgba(255,255,255,0.08)'}`,
@@ -1350,7 +1350,7 @@ export const StudentSearchPage: React.FC = () => {
                         </div>
                         <button
                             onClick={pageState === 'foldersError' ? fetchFolders : handleSearch}
-                            className="min-h-11 min-w-11 rounded-lg px-4 text-sm transition-colors"
+                            className="min-h-11 min-w-11 rounded-lg px-4 text-sm transition-all"
                             style={{ color: '#4fffb0', background: 'rgba(79,255,176,0.08)', border: '1px solid rgba(79,255,176,0.2)' }}
                         >
                             Спробувати знову

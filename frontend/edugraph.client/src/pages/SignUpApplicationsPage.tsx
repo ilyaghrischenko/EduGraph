@@ -184,7 +184,7 @@ export const SignUpApplicationsPage: React.FC = () => {
                                     minHeight: '44px', minWidth: '44px',
                                     padding: '6px 16px', borderRadius: '8px', fontFamily: F.sans, fontSize: '0.82rem',
                                     background: C.surface, border: `1px solid ${C.border}`, color: page === 1 ? C.textMuted : C.textPrimary,
-                                    cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.4 : 1, transition: 'background 0.15s',
+                                    cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.4 : 1, transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s, opacity 0.15s, transform 0.15s',
                                 }}
                                 onMouseEnter={(e) => { if (page !== 1) e.currentTarget.style.borderColor = C.borderHi; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
@@ -202,7 +202,7 @@ export const SignUpApplicationsPage: React.FC = () => {
                                     background: C.surface, border: `1px solid ${C.border}`,
                                     color: (page === data!.totalPages || data!.totalPages === 0) ? C.textMuted : C.textPrimary,
                                     cursor: (page === data!.totalPages || data!.totalPages === 0) ? 'not-allowed' : 'pointer',
-                                    opacity: (page === data!.totalPages || data!.totalPages === 0) ? 0.4 : 1, transition: 'background 0.15s',
+                                    opacity: (page === data!.totalPages || data!.totalPages === 0) ? 0.4 : 1, transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s, opacity 0.15s, transform 0.15s',
                                 }}
                                 onMouseEnter={(e) => { if (page !== data!.totalPages) e.currentTarget.style.borderColor = C.borderHi; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}

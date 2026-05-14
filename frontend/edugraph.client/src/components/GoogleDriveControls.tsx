@@ -61,9 +61,10 @@ export const GoogleDriveControls: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Відкрити Google Drive"
+                aria-disabled={!driveLink}
                 title="Відкрити Google Drive"
                 onClick={(e) => { if (!driveLink) e.preventDefault(); }}
-                className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg"
+                className="interactive-button inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg"
                 style={{
                     background: 'rgba(255,255,255,0.04)',
                     border: `1px solid ${C.border}`,

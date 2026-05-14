@@ -59,6 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({ links, showGoogleDriveControls }
                                 <li key={link.href}>
                                     <Link
                                         to={link.href}
+                                        className="interactive-button"
                                         style={{
                                             display: 'inline-flex',
                                             minHeight: '44px',
@@ -132,7 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({ links, showGoogleDriveControls }
                                 <li key={link.href}>
                                     <Link
                                         to={link.href}
-                                        className="flex min-h-11 items-center rounded-lg px-3"
+                                        className="interactive-button flex min-h-11 items-center rounded-lg px-3"
                                         style={{
                                             fontFamily: F.sans,
                                             fontSize: '1rem',
