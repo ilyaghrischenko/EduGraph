@@ -7,22 +7,11 @@ import { Alert, GhostButton } from '../components/ui';
 import { adminsApi } from '../api/adminsApi';
 import type { PaginationResponse, SignUpApplicationResponse } from '../types/api';
 import { getStoredRole } from '../utils/auth';
+import { getPanelNavLinks } from '../utils/navigation';
 import { C, F } from '../styles/tokens';
 
-const ADMIN_NAV_LINKS = [
-    { label: 'Пошук', href: '/admin/search' },
-    { label: 'Заявки', href: '/admin/sign-up-applications' },
-    { label: 'Студенти', href: '/admin/add-user' },
-    { label: 'Викладачі', href: '/admin/teachers' },
-];
-const TEACHER_NAV_LINKS = [
-    { label: 'Пошук', href: '/teacher/search' },
-    { label: 'Заявки', href: '/teacher/sign-up-applications' },
-    { label: 'Студенти', href: '/teacher/add-user' },
-];
-
 export const SignUpApplicationsPage: React.FC = () => {
-    const navLinks = getStoredRole() === 'Teacher' ? TEACHER_NAV_LINKS : ADMIN_NAV_LINKS;
+    const navLinks = getPanelNavLinks(getStoredRole());
     const [searchParams, setSearchParams] = useSearchParams();
     const page        = parseInt(searchParams.get('page') || '1', 10);
 

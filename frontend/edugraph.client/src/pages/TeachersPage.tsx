@@ -5,14 +5,9 @@ import { Seo } from '../components/Seo';
 import { Alert, DarkInput, DarkLabel, Field, GhostButton, PrimaryButton } from '../components/ui';
 import { teachersApi } from '../api/teachersApi';
 import type { CreateTeacherRequest, PaginationResponse, TeacherResponse } from '../types/api';
+import { getStoredRole } from '../utils/auth';
+import { getAdminNavLinks } from '../utils/navigation';
 import { C, F } from '../styles/tokens';
-
-const NAV_LINKS = [
-    { label: 'Пошук', href: '/admin/search' },
-    { label: 'Заявки', href: '/admin/sign-up-applications' },
-    { label: 'Студенти', href: '/admin/add-user' },
-    { label: 'Викладачі', href: '/admin/teachers' },
-];
 
 const EMPTY_FORM = {
     login: '',
@@ -27,6 +22,7 @@ const formatLastLogin = (value: string | null): string => {
 };
 
 export const TeachersPage: React.FC = () => {
+    const navLinks = getAdminNavLinks(getStoredRole());
     const [searchParams, setSearchParams] = useSearchParams();
     const page = parseInt(searchParams.get('page') || '1', 10);
 
@@ -149,7 +145,7 @@ export const TeachersPage: React.FC = () => {
     };
 
     return (
-        <Layout navLinks={NAV_LINKS} showGoogleDriveControls>
+        <Layout navLinks={navLinks} showGoogleDriveControls>
             <Seo
                 title="Викладачі | EduGraph"
                 description="Адміністративна сторінка керування викладачами EduGraph."

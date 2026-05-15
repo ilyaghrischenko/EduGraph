@@ -15,7 +15,7 @@ const NAV_LINKS = [
 
 function getRedirectPath(token: string): string {
     const role = getRoleFromToken(token);
-    if (role === 'Admin') return '/admin/search';
+    if (role === 'Admin' || role === 'SuperAdmin') return '/admin/search';
     if (role === 'Teacher') return '/teacher/search';
     return '/student/search';
 }

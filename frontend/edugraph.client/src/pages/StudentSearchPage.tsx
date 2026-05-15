@@ -9,6 +9,7 @@ import { usersApi } from '../api/usersApi';
 import type { FolderResponse, SearchDocumentResponse } from '../types/api';
 import { getSafeGoogleDriveUrl } from '../utils/safeUrl';
 import { getStoredRole } from '../utils/auth';
+import { getPanelNavLinks } from '../utils/navigation';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -49,20 +50,9 @@ const LINK_COLOR = 'rgba(79, 255, 176, 0.18)';
 const BG_COLOR = '#0a0d14';
 const TABLET_WIDTH = 768;
 const DESKTOP_WIDTH = 1280;
-const ADMIN_NAV_LINKS = [
-    { label: 'Пошук', href: '/admin/search' },
-    { label: 'Заявки', href: '/admin/sign-up-applications' },
-    { label: 'Студенти', href: '/admin/add-user' },
-    { label: 'Викладачі', href: '/admin/teachers' },
-];
-const TEACHER_NAV_LINKS = [
-    { label: 'Пошук', href: '/teacher/search' },
-    { label: 'Заявки', href: '/teacher/sign-up-applications' },
-    { label: 'Студенти', href: '/teacher/add-user' },
-];
-
 const ROLE_LABELS: Record<string, string> = {
     Admin: 'Адміністратор',
+    SuperAdmin: 'Супер адміністратор',
     Teacher: 'Викладач',
     Student: 'Студент',
 };
@@ -841,7 +831,7 @@ export const StudentSearchPage: React.FC = () => {
     const { pathname } = useLocation();
     const role = getStoredRole();
     const roleLabel = ROLE_LABELS[role ?? ''] ?? 'Студент';
-    const panelNavLinks = role === 'Admin' ? ADMIN_NAV_LINKS : role === 'Teacher' ? TEACHER_NAV_LINKS : [];
+    const panelNavLinks = getPanelNavLinks(role);
     const [query, setQuery] = useState('');
     const [pageState, setPageState] = useState<PageState>('foldersLoading');
     const [loadingStep, setLoadingStep] = useState(0);

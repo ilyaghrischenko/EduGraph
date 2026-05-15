@@ -1,19 +1,16 @@
-// src/pages/AddUserPage.tsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { Seo } from '../components/Seo';
 import { Alert, DarkInput, DarkLabel, Field, GhostButton, PrimaryButton } from '../components/ui';
-import { studentsApi } from '../api/studentsApi';
-import type { CreateStudentRequest, PaginationResponse, StudentResponse } from '../types/api';
-import { getStoredRole } from '../utils/auth';
-import { getPanelNavLinks } from '../utils/navigation';
+import { adminsApi } from '../api/adminsApi';
+import type { AdminResponse, CreateAdminRequest, PaginationResponse } from '../types/api';
+import { SUPER_ADMIN_NAV_LINKS } from '../utils/navigation';
 import { C, F } from '../styles/tokens';
 
 const EMPTY_FORM = {
     login: '',
     fullName: '',
-    group: '',
     password: '',
     confirmPassword: '',
 };
@@ -23,42 +20,41 @@ const formatLastLogin = (value: string | null): string => {
     return new Intl.DateTimeFormat('uk-UA').format(new Date(value));
 };
 
-export const AddUserPage: React.FC = () => {
-    const navLinks = getPanelNavLinks(getStoredRole());
+export const AdminsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const page = parseInt(searchParams.get('page') || '1', 10);
 
     const [formData, setFormData] = useState(EMPTY_FORM);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-    const [students, setStudents] = useState<PaginationResponse<StudentResponse> | null>(null);
+    const [admins, setAdmins] = useState<PaginationResponse<AdminResponse> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [createLoading, setCreateLoading] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
-    const studentsRequestIdRef = useRef(0);
+    const adminsRequestIdRef = useRef(0);
 
-    const fetchStudents = useCallback(async () => {
-        const requestId = studentsRequestIdRef.current + 1;
-        studentsRequestIdRef.current = requestId;
+    const fetchAdmins = useCallback(async () => {
+        const requestId = adminsRequestIdRef.current + 1;
+        adminsRequestIdRef.current = requestId;
         setIsLoading(true);
         setError(null);
         try {
-            const res = await studentsApi.getStudents(page, 30);
-            if (studentsRequestIdRef.current !== requestId) return;
-            setStudents(res);
+            const res = await adminsApi.getAdmins(page, 30);
+            if (adminsRequestIdRef.current !== requestId) return;
+            setAdmins(res);
         } catch (err: unknown) {
-            if (studentsRequestIdRef.current !== requestId) return;
+            if (adminsRequestIdRef.current !== requestId) return;
             setError(err instanceof Error ? err.message : 'Помилка запиту');
         } finally {
-            if (studentsRequestIdRef.current === requestId) setIsLoading(false);
+            if (adminsRequestIdRef.current === requestId) setIsLoading(false);
         }
     }, [page]);
 
     useEffect(() => {
-        fetchStudents();
-        return () => { studentsRequestIdRef.current += 1; };
-    }, [fetchStudents]);
+        fetchAdmins();
+        return () => { adminsRequestIdRef.current += 1; };
+    }, [fetchAdmins]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -70,7 +66,6 @@ export const AddUserPage: React.FC = () => {
         const errors: Record<string, string> = {};
         if (!formData.login.trim()) errors.login = 'Обовʼязкове поле';
         if (!formData.fullName.trim()) errors.fullName = 'Обовʼязкове поле';
-        if (!formData.group.trim()) errors.group = 'Обовʼязкове поле';
         if (!formData.password) errors.password = 'Обовʼязкове поле';
         if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Паролі не збігаються';
         setValidationErrors(errors);
@@ -85,45 +80,44 @@ export const AddUserPage: React.FC = () => {
 
         setCreateLoading(true);
         try {
-            const payload: CreateStudentRequest = {
+            const payload: CreateAdminRequest = {
                 login: formData.login.trim(),
                 fullName: formData.fullName.trim(),
-                group: formData.group.trim(),
                 password: formData.password,
                 confirmPassword: formData.confirmPassword,
             };
-            const id = await studentsApi.createStudent(payload);
+            const id = await adminsApi.createAdmin(payload);
             setFormData(EMPTY_FORM);
-            setSuccessMsg(`Студента створено. ID: ${id}`);
+            setSuccessMsg(`Адміністратора створено. ID: ${id}`);
             if (page !== 1) setSearchParams({ page: '1' });
-            else await fetchStudents();
+            else await fetchAdmins();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Помилка створення студента');
+            setError(err instanceof Error ? err.message : 'Помилка створення адміністратора');
         } finally {
             setCreateLoading(false);
         }
     };
 
-    const handleDelete = async (student: StudentResponse) => {
-        const confirmed = window.confirm(`Видалити студента "${student.fullName}"?`);
+    const handleDelete = async (admin: AdminResponse) => {
+        const confirmed = window.confirm(`Видалити адміністратора "${admin.fullName}"?`);
         if (!confirmed) return;
 
-        setDeleteId(student.id);
+        setDeleteId(admin.id);
         setError(null);
         setSuccessMsg(null);
         try {
-            await studentsApi.deleteStudent(student.id);
-            setSuccessMsg('Студента видалено.');
-            await fetchStudents();
+            await adminsApi.deleteAdmin(admin.id);
+            setSuccessMsg('Адміністратора видалено.');
+            await fetchAdmins();
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Помилка видалення студента');
+            setError(err instanceof Error ? err.message : 'Помилка видалення адміністратора');
         } finally {
             setDeleteId(null);
         }
     };
 
     const changePage = (p: number) => setSearchParams({ page: p.toString() });
-    const hasStudents = students && students.items && students.items.length > 0;
+    const hasAdmins = admins && admins.items && admins.items.length > 0;
 
     const thStyle: React.CSSProperties = {
         padding: '12px 14px',
@@ -149,10 +143,10 @@ export const AddUserPage: React.FC = () => {
     };
 
     return (
-        <Layout navLinks={navLinks} showGoogleDriveControls>
+        <Layout navLinks={SUPER_ADMIN_NAV_LINKS} showGoogleDriveControls>
             <Seo
-                title="Студенти | EduGraph"
-                description="Адміністративна сторінка керування студентами EduGraph."
+                title="Адміністратори | EduGraph"
+                description="Сторінка керування адміністраторами EduGraph для супер адміністратора."
                 noindex
             />
             <div className="pt-6 md:pt-9">
@@ -161,7 +155,7 @@ export const AddUserPage: React.FC = () => {
                         Адміністрування
                     </p>
                     <h1 style={{ fontFamily: F.display, fontSize: 'clamp(1.35rem, 5vw, 1.6rem)', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
-                        Студенти
+                        Адміністратори
                     </h1>
                 </div>
 
@@ -171,7 +165,7 @@ export const AddUserPage: React.FC = () => {
                 <div className="grid min-w-0 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
                     <div className="px-5 py-6 md:px-7 md:py-8" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '16px' }}>
                         <h2 style={{ fontFamily: F.display, fontSize: '1rem', fontWeight: 700, color: C.textPrimary, margin: '0 0 18px' }}>
-                            Додати студента
+                            Додати адміністратора
                         </h2>
 
                         <form onSubmit={handleSubmit}>
@@ -185,11 +179,6 @@ export const AddUserPage: React.FC = () => {
                                 <DarkInput id="fullName" name="fullName" type="text" value={formData.fullName} onChange={handleChange} required placeholder="Іванов Іван Іванович" error={!!validationErrors.fullName} />
                             </Field>
 
-                            <Field error={validationErrors.group}>
-                                <DarkLabel htmlFor="group">Група</DarkLabel>
-                                <DarkInput id="group" name="group" type="text" value={formData.group} onChange={handleChange} required placeholder="ІО-21" error={!!validationErrors.group} />
-                            </Field>
-
                             <Field error={validationErrors.password}>
                                 <DarkLabel htmlFor="password">Пароль</DarkLabel>
                                 <DarkInput id="password" name="password" type="password" value={formData.password} onChange={handleChange} required placeholder="••••••••" error={!!validationErrors.password} />
@@ -201,46 +190,44 @@ export const AddUserPage: React.FC = () => {
                             </Field>
 
                             <PrimaryButton type="submit" loading={createLoading} full style={{ marginTop: '8px' }}>
-                                Створити студента
+                                Створити адміністратора
                             </PrimaryButton>
                         </form>
                     </div>
 
                     <div className="min-w-0">
-                        {isLoading && !students ? (
+                        {isLoading && !admins ? (
                             <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', padding: '32px', textAlign: 'center', fontFamily: F.sans, color: C.textMuted, fontSize: '0.85rem' }}>
                                 Завантаження…
                             </div>
-                        ) : !hasStudents ? (
-                            <Alert variant="info">Студентів ще немає.</Alert>
+                        ) : !hasAdmins ? (
+                            <Alert variant="info">Адміністраторів ще немає.</Alert>
                         ) : (
                             <>
                                 <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', overflow: 'hidden' }}>
                                     <div style={{ overflowX: 'auto' }}>
-                                        <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse' }}>
+                                        <table style={{ width: '100%', minWidth: '560px', borderCollapse: 'collapse' }}>
                                             <thead>
                                             <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                                                 <th style={thStyle}>ID</th>
                                                 <th style={thStyle}>ПІБ</th>
-                                                <th style={thStyle}>Група</th>
                                                 <th style={thStyle}>Останній вхід</th>
                                                 <th style={{ ...thStyle, width: '120px' }}>Дії</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {students!.items.map((student, idx) => (
+                                            {admins!.items.map((admin, idx) => (
                                                 <tr
-                                                    key={student.id}
+                                                    key={admin.id}
                                                     style={{ background: idx % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background 0.1s' }}
                                                     onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(79,255,176,0.04)')}
                                                     onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent')}
                                                 >
-                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{student.id}</td>
-                                                    <td style={tdStyle}>{student.fullName}</td>
-                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{student.group ?? '—'}</td>
-                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{formatLastLogin(student.lastLoginDate)}</td>
+                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{admin.id}</td>
+                                                    <td style={tdStyle}>{admin.fullName}</td>
+                                                    <td style={{ ...tdStyle, color: C.textMuted }}>{formatLastLogin(admin.lastLoginDate)}</td>
                                                     <td style={tdStyle}>
-                                                        <GhostButton danger onClick={() => handleDelete(student)} disabled={deleteId === student.id}>
+                                                        <GhostButton danger onClick={() => handleDelete(admin)} disabled={deleteId === admin.id}>
                                                             Видалити
                                                         </GhostButton>
                                                     </td>
@@ -276,12 +263,12 @@ export const AddUserPage: React.FC = () => {
                                     </button>
 
                                     <span style={{ fontFamily: F.sans, fontSize: '0.8rem', color: C.textMuted, padding: '0 8px' }}>
-                                        {students!.currentPage} / {students!.totalPages}
+                                        {admins!.currentPage} / {admins!.totalPages}
                                     </span>
 
                                     <button
                                         onClick={() => changePage(page + 1)}
-                                        disabled={page === students!.totalPages || students!.totalPages === 0}
+                                        disabled={page === admins!.totalPages || admins!.totalPages === 0}
                                         style={{
                                             minHeight: '44px',
                                             minWidth: '44px',
@@ -291,12 +278,12 @@ export const AddUserPage: React.FC = () => {
                                             fontSize: '0.82rem',
                                             background: C.surface,
                                             border: `1px solid ${C.border}`,
-                                            color: (page === students!.totalPages || students!.totalPages === 0) ? C.textMuted : C.textPrimary,
-                                            cursor: (page === students!.totalPages || students!.totalPages === 0) ? 'not-allowed' : 'pointer',
-                                            opacity: (page === students!.totalPages || students!.totalPages === 0) ? 0.4 : 1,
+                                            color: (page === admins!.totalPages || admins!.totalPages === 0) ? C.textMuted : C.textPrimary,
+                                            cursor: (page === admins!.totalPages || admins!.totalPages === 0) ? 'not-allowed' : 'pointer',
+                                            opacity: (page === admins!.totalPages || admins!.totalPages === 0) ? 0.4 : 1,
                                             transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s, opacity 0.15s, transform 0.15s',
                                         }}
-                                        onMouseEnter={(e) => { if (page !== students!.totalPages) e.currentTarget.style.borderColor = C.borderHi; }}
+                                        onMouseEnter={(e) => { if (page !== admins!.totalPages) e.currentTarget.style.borderColor = C.borderHi; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
                                     >
                                         Наступна →

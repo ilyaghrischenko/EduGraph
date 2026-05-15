@@ -1,9 +1,32 @@
 // src/api/adminsApi.ts
-// src/api/adminsApi.ts
-import type {PaginationResponse, SignUpApplicationResponse} from '../types/api';
+import type {AdminResponse, CreateAdminRequest, PaginationResponse, SignUpApplicationResponse} from '../types/api';
 import { apiFetch } from './apiClient';
 
 export const adminsApi = {
+    getAdmins: (
+        page: number = 1,
+        pageSize: number = 30
+    ): Promise<PaginationResponse<AdminResponse>> => {
+        const params = new URLSearchParams({
+            Page: page.toString(),
+            PageSize: pageSize.toString(),
+        });
+        return apiFetch<PaginationResponse<AdminResponse>>(`/api/admins?${params.toString()}`);
+    },
+
+    createAdmin: (data: CreateAdminRequest): Promise<number> => {
+        return apiFetch<number>('/api/admins', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    },
+
+    deleteAdmin: (id: number): Promise<void> => {
+        return apiFetch<void>(`/api/admins/${id}`, {
+            method: 'DELETE',
+        });
+    },
+
     getApplications: (
         page: number = 1,
         pageSize: number = 30,
