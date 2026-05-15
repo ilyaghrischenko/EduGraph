@@ -3,4 +3,5 @@ Disallow: /login
 Disallow: /signup
 Disallow: /admin/
 Disallow: /student/
+Disallow: /teacher/
 Allow: /privacy

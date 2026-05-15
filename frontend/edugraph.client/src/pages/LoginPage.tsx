@@ -6,6 +6,7 @@ import { Seo } from '../components/Seo';
 import { DarkInput, DarkLabel, Field, PrimaryButton, Alert } from '../components/ui';
 import { authApi } from '../api/authApi';
 import { getRoleFromToken, setStoredToken } from '../utils/auth';
+import { getDefaultPath } from '../utils/roles';
 import { C, F } from '../styles/tokens';
 
 const NAV_LINKS = [
@@ -15,9 +16,7 @@ const NAV_LINKS = [
 
 function getRedirectPath(token: string): string {
     const role = getRoleFromToken(token);
-    if (role === 'Admin' || role === 'SuperAdmin') return '/admin/search';
-    if (role === 'Teacher') return '/teacher/search';
-    return '/student/search';
+    return getDefaultPath(role);
 }
 
 export const LoginPage: React.FC = () => {

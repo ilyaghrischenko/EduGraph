@@ -1,5 +1,5 @@
 import type {ProblemDetails} from '../types/api';
-import { getStoredToken } from '../utils/auth';
+import { clearStoredToken, getStoredToken } from '../utils/auth';
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
@@ -24,6 +24,13 @@ async function handleResponse<T>(response: Response): Promise<T> {
             return JSON.parse(body) as T;
         }
         return body as T; // Для JWT токена, который возвращается как строка
+    }
+
+    if (response.status === 401) {
+        clearStoredToken();
+        if (window.location.pathname !== '/login') {
+            window.location.assign('/login');
+        }
     }
 
     let errorMsg = 'Сталася невідома помилка';

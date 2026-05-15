@@ -1,4 +1,5 @@
 import type { NavLinkDef } from '../components/Navbar';
+import type { UserRole } from './roles';
 
 export const ADMIN_NAV_LINKS: NavLinkDef[] = [
     { label: 'Пошук', href: '/admin/search' },
@@ -18,11 +19,11 @@ export const TEACHER_NAV_LINKS: NavLinkDef[] = [
     { label: 'Студенти', href: '/teacher/add-user' },
 ];
 
-export const getAdminNavLinks = (role: string | null): NavLinkDef[] => (
+export const getAdminNavLinks = (role: UserRole | null): NavLinkDef[] => (
     role === 'SuperAdmin' ? SUPER_ADMIN_NAV_LINKS : ADMIN_NAV_LINKS
 );
 
-export const getPanelNavLinks = (role: string | null): NavLinkDef[] => {
+export const getPanelNavLinks = (role: UserRole | null): NavLinkDef[] => {
     if (role === 'Teacher') return TEACHER_NAV_LINKS;
     if (role === 'Admin' || role === 'SuperAdmin') return getAdminNavLinks(role);
     return [];

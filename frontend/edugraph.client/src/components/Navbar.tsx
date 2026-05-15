@@ -20,6 +20,21 @@ export const Navbar: React.FC<NavbarProps> = ({ links, showGoogleDriveControls }
     const mobileMenuId = 'mobile-navigation-menu';
 
     useEffect(() => {
+        const timeoutId = window.setTimeout(() => setMenuOpen(false), 0);
+        return () => window.clearTimeout(timeoutId);
+    }, [pathname]);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(min-width: 768px)');
+        const closeOnDesktop = (event: MediaQueryListEvent) => {
+            if (event.matches) setMenuOpen(false);
+        };
+
+        mediaQuery.addEventListener('change', closeOnDesktop);
+        return () => mediaQuery.removeEventListener('change', closeOnDesktop);
+    }, []);
+
+    useEffect(() => {
         if (!menuOpen) return;
 
         const previousOverflow = document.body.style.overflow;

@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { PageHeading } from '../components/PageHeading';
 import { Seo } from '../components/Seo';
 import { Alert, DarkInput, DarkLabel, Field, GhostButton, PrimaryButton } from '../components/ui';
+import { ListLoading, ListPagination, ListRow, ListTable, tdStyle, thStyle } from '../components/list';
 import { adminsApi } from '../api/adminsApi';
 import type { AdminResponse, CreateAdminRequest, PaginationResponse } from '../types/api';
+import { usePageSearchParam } from '../hooks/usePageSearchParam';
 import { SUPER_ADMIN_NAV_LINKS } from '../utils/navigation';
 import { C, F } from '../styles/tokens';
 
@@ -21,8 +23,7 @@ const formatLastLogin = (value: string | null): string => {
 };
 
 export const AdminsPage: React.FC = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const page = parseInt(searchParams.get('page') || '1', 10);
+    const { page, setPage } = usePageSearchParam();
 
     const [formData, setFormData] = useState(EMPTY_FORM);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -89,7 +90,7 @@ export const AdminsPage: React.FC = () => {
             const id = await adminsApi.createAdmin(payload);
             setFormData(EMPTY_FORM);
             setSuccessMsg(`Адміністратора створено. ID: ${id}`);
-            if (page !== 1) setSearchParams({ page: '1' });
+            if (page !== 1) setPage(1);
             else await fetchAdmins();
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Помилка створення адміністратора');
@@ -116,31 +117,7 @@ export const AdminsPage: React.FC = () => {
         }
     };
 
-    const changePage = (p: number) => setSearchParams({ page: p.toString() });
     const hasAdmins = admins && admins.items && admins.items.length > 0;
-
-    const thStyle: React.CSSProperties = {
-        padding: '12px 14px',
-        fontFamily: F.sans,
-        fontSize: '0.72rem',
-        fontWeight: 600,
-        color: C.textMuted,
-        textTransform: 'uppercase',
-        letterSpacing: '0.08em',
-        textAlign: 'center',
-        borderBottom: `1px solid ${C.border}`,
-        whiteSpace: 'nowrap',
-    };
-
-    const tdStyle: React.CSSProperties = {
-        padding: '11px 14px',
-        fontFamily: F.sans,
-        fontSize: '0.84rem',
-        color: C.textPrimary,
-        textAlign: 'center',
-        borderBottom: `1px solid rgba(255,255,255,0.04)`,
-        whiteSpace: 'nowrap',
-    };
 
     return (
         <Layout navLinks={SUPER_ADMIN_NAV_LINKS} showGoogleDriveControls>
@@ -150,14 +127,7 @@ export const AdminsPage: React.FC = () => {
                 noindex
             />
             <div className="pt-6 md:pt-9">
-                <div style={{ marginBottom: '24px' }}>
-                    <p style={{ fontFamily: F.display, fontSize: '0.7rem', letterSpacing: '0.15em', color: 'rgba(79,255,176,0.5)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                        Адміністрування
-                    </p>
-                    <h1 style={{ fontFamily: F.display, fontSize: 'clamp(1.35rem, 5vw, 1.6rem)', fontWeight: 700, color: C.textPrimary, margin: 0 }}>
-                        Адміністратори
-                    </h1>
-                </div>
+                <PageHeading eyebrow="Адміністрування" title="Адміністратори" />
 
                 {error && <Alert variant="error">{error}</Alert>}
                 {successMsg && <Alert variant="success">{successMsg}</Alert>}
@@ -197,32 +167,23 @@ export const AdminsPage: React.FC = () => {
 
                     <div className="min-w-0">
                         {isLoading && !admins ? (
-                            <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', padding: '32px', textAlign: 'center', fontFamily: F.sans, color: C.textMuted, fontSize: '0.85rem' }}>
-                                Завантаження…
-                            </div>
+                            <ListLoading />
                         ) : !hasAdmins ? (
                             <Alert variant="info">Адміністраторів ще немає.</Alert>
                         ) : (
                             <>
-                                <div style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`, borderRadius: '14px', overflow: 'hidden' }}>
-                                    <div style={{ overflowX: 'auto' }}>
-                                        <table style={{ width: '100%', minWidth: '560px', borderCollapse: 'collapse' }}>
-                                            <thead>
-                                            <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                                <th style={thStyle}>ID</th>
-                                                <th style={thStyle}>ПІБ</th>
-                                                <th style={thStyle}>Останній вхід</th>
-                                                <th style={{ ...thStyle, width: '120px' }}>Дії</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {admins!.items.map((admin, idx) => (
-                                                <tr
-                                                    key={admin.id}
-                                                    style={{ background: idx % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent', transition: 'background 0.1s' }}
-                                                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(79,255,176,0.04)')}
-                                                    onMouseLeave={(e) => (e.currentTarget.style.background = idx % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent')}
-                                                >
+                                <ListTable minWidth={560}>
+                                    <thead>
+                                    <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                                        <th style={thStyle}>ID</th>
+                                        <th style={thStyle}>ПІБ</th>
+                                        <th style={thStyle}>Останній вхід</th>
+                                        <th style={{ ...thStyle, width: '120px' }}>Дії</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {admins!.items.map((admin, idx) => (
+                                        <ListRow key={admin.id} index={idx}>
                                                     <td style={{ ...tdStyle, color: C.textMuted }}>{admin.id}</td>
                                                     <td style={tdStyle}>{admin.fullName}</td>
                                                     <td style={{ ...tdStyle, color: C.textMuted }}>{formatLastLogin(admin.lastLoginDate)}</td>
@@ -231,64 +192,12 @@ export const AdminsPage: React.FC = () => {
                                                             Видалити
                                                         </GhostButton>
                                                     </td>
-                                                </tr>
-                                            ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                                        </ListRow>
+                                    ))}
+                                    </tbody>
+                                </ListTable>
 
-                                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '24px' }}>
-                                    <button
-                                        onClick={() => changePage(page - 1)}
-                                        disabled={page === 1}
-                                        style={{
-                                            minHeight: '44px',
-                                            minWidth: '44px',
-                                            padding: '6px 16px',
-                                            borderRadius: '8px',
-                                            fontFamily: F.sans,
-                                            fontSize: '0.82rem',
-                                            background: C.surface,
-                                            border: `1px solid ${C.border}`,
-                                            color: page === 1 ? C.textMuted : C.textPrimary,
-                                            cursor: page === 1 ? 'not-allowed' : 'pointer',
-                                            opacity: page === 1 ? 0.4 : 1,
-                                            transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s, opacity 0.15s, transform 0.15s',
-                                        }}
-                                        onMouseEnter={(e) => { if (page !== 1) e.currentTarget.style.borderColor = C.borderHi; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
-                                    >
-                                        ← Попередня
-                                    </button>
-
-                                    <span style={{ fontFamily: F.sans, fontSize: '0.8rem', color: C.textMuted, padding: '0 8px' }}>
-                                        {admins!.currentPage} / {admins!.totalPages}
-                                    </span>
-
-                                    <button
-                                        onClick={() => changePage(page + 1)}
-                                        disabled={page === admins!.totalPages || admins!.totalPages === 0}
-                                        style={{
-                                            minHeight: '44px',
-                                            minWidth: '44px',
-                                            padding: '6px 16px',
-                                            borderRadius: '8px',
-                                            fontFamily: F.sans,
-                                            fontSize: '0.82rem',
-                                            background: C.surface,
-                                            border: `1px solid ${C.border}`,
-                                            color: (page === admins!.totalPages || admins!.totalPages === 0) ? C.textMuted : C.textPrimary,
-                                            cursor: (page === admins!.totalPages || admins!.totalPages === 0) ? 'not-allowed' : 'pointer',
-                                            opacity: (page === admins!.totalPages || admins!.totalPages === 0) ? 0.4 : 1,
-                                            transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s, filter 0.15s, opacity 0.15s, transform 0.15s',
-                                        }}
-                                        onMouseEnter={(e) => { if (page !== admins!.totalPages) e.currentTarget.style.borderColor = C.borderHi; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
-                                    >
-                                        Наступна →
-                                    </button>
-                                </div>
+                                <ListPagination currentPage={admins!.currentPage} totalPages={admins!.totalPages} onPageChange={setPage} />
                             </>
                         )}
                     </div>

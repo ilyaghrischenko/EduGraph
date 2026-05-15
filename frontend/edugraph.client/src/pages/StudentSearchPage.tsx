@@ -10,39 +10,12 @@ import type { FolderResponse, SearchDocumentResponse } from '../types/api';
 import { getSafeGoogleDriveUrl } from '../utils/safeUrl';
 import { getStoredRole } from '../utils/auth';
 import { getPanelNavLinks } from '../utils/navigation';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface GraphNode extends NodeObject {
-    id: string;
-    title: string;
-    url?: string;
-    content?: string;
-    folderName?: string | null;
-    parentId?: string;
-    type: 'root' | 'folder' | 'document' | 'trunk';
-}
-
-interface GraphLink {
-    source: string | GraphNode;
-    target: string | GraphNode;
-}
-
-interface GraphData {
-    nodes: GraphNode[];
-    links: GraphLink[];
-}
-
-type PageState = 'foldersLoading' | 'folders' | 'loading' | 'results' | 'empty' | 'error' | 'foldersError';
+import { DocumentModal } from './studentSearch/DocumentModal';
+import { LoadingOverlay } from './studentSearch/LoadingOverlay';
+import { LOADING_STEPS } from './studentSearch/loadingSteps';
+import type { GraphData, GraphLink, GraphNode, PageState } from './studentSearch/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-
-const LOADING_STEPS = [
-    { label: 'Отримуємо матеріали', duration: 3000 },
-    { label: 'Аналізуємо зміст', duration: 5000 },
-    { label: 'Знаходимо релевантні документи', duration: 5000 },
-    { label: 'Будуємо граф', duration: 99999 },
-];
 
 const NODE_COLOR = '#4fffb0';
 const NODE_HOVER_COLOR = '#67e8f9';
@@ -606,225 +579,6 @@ function applyGraphLayout(graph: GraphData, width: number, height: number): Grap
     };
 }
 
-// ─── Loading Overlay ─────────────────────────────────────────────────────────
-
-interface LoadingOverlayProps {
-    currentStep: number;
-}
-
-const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ currentStep }) => (
-    <div className="absolute inset-0 flex flex-col items-center justify-center z-10"
-         style={{ background: 'radial-gradient(ellipse at center, #0f1520 0%, #0a0d14 70%)' }}>
-
-        {/* Orbital spinner */}
-        <div className="relative w-24 h-24 mb-10">
-            <div className="absolute inset-0 rounded-full"
-                 style={{ border: '1px solid rgba(79,255,176,0.15)' }} />
-            <div className="absolute inset-0 rounded-full animate-spin"
-                 style={{
-                     border: '2px solid transparent',
-                     borderTopColor: '#4fffb0',
-                     animationDuration: '1.4s',
-                 }} />
-            <div className="absolute inset-3 rounded-full animate-spin"
-                 style={{
-                     border: '1.5px solid transparent',
-                     borderTopColor: '#67e8f9',
-                     animationDuration: '2.1s',
-                     animationDirection: 'reverse',
-                 }} />
-            <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full"
-                     style={{
-                         background: '#4fffb0',
-                         boxShadow: '0 0 12px 4px rgba(79,255,176,0.6)',
-                         animation: 'pulse 1.5s ease-in-out infinite',
-                     }} />
-            </div>
-        </div>
-
-        {/* Step list */}
-        <div className="flex w-[calc(100vw-2rem)] max-w-[280px] flex-col gap-3">
-            {LOADING_STEPS.map((step, i) => {
-                const isDone = i < currentStep;
-                const isActive = i === currentStep;
-                const isPending = i > currentStep;
-
-                return (
-                    <div key={i} className="flex items-center gap-3 transition-all duration-500"
-                         style={{ opacity: isPending ? 0.3 : 1 }}>
-                        {/* Icon */}
-                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                            {isDone ? (
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <circle cx="8" cy="8" r="7" stroke="#4fffb0" strokeWidth="1.5" />
-                                    <path d="M5 8l2 2 4-4" stroke="#4fffb0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            ) : isActive ? (
-                                <div className="w-2 h-2 rounded-full"
-                                     style={{
-                                         background: '#4fffb0',
-                                         boxShadow: '0 0 6px 2px rgba(79,255,176,0.5)',
-                                         animation: 'pulse 1s ease-in-out infinite',
-                                     }} />
-                            ) : (
-                                <div className="w-2 h-2 rounded-full"
-                                     style={{ background: 'rgba(255,255,255,0.2)' }} />
-                            )}
-                        </div>
-
-                        {/* Label */}
-                        <span className="text-sm"
-                              style={{
-                                  fontFamily: "'DM Sans', sans-serif",
-                                  color: isDone ? '#4fffb0' : isActive ? '#e2e8f0' : '#64748b',
-                                  letterSpacing: '0.01em',
-                              }}>
-              {step.label}
-                            {isActive && (
-                                <span style={{ color: '#4fffb0' }}>
-                  <DotDotDot />
-                </span>
-                            )}
-            </span>
-                    </div>
-                );
-            })}
-        </div>
-
-        <p className="mt-8 text-xs" style={{ color: '#334155', fontFamily: "'DM Sans', sans-serif" }}>
-            це може зайняти певний час
-        </p>
-    </div>
-);
-
-// Animated ellipsis
-const DotDotDot: React.FC = () => {
-    const [dots, setDots] = useState(0);
-    useEffect(() => {
-        const id = setInterval(() => setDots(d => (d + 1) % 4), 400);
-        return () => clearInterval(id);
-    }, []);
-    return <span>{'.'.repeat(dots)}&nbsp;</span>;
-};
-
-interface DocumentModalProps {
-    document: GraphNode;
-    onClose: () => void;
-}
-
-const DocumentModal: React.FC<DocumentModalProps> = ({ document, onClose }) => (
-    <div
-        className="document-modal-backdrop fixed inset-0 z-30 flex items-center justify-center px-4 py-4 md:py-6"
-        style={{
-            background: 'rgba(3,7,18,0.72)',
-            backdropFilter: 'blur(12px)',
-            fontFamily: "'DM Sans', sans-serif",
-        }}
-        onMouseDown={onClose}
-    >
-        <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="document-modal-title"
-            className="document-modal flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl md:max-h-[80vh]"
-            style={{
-                background: 'linear-gradient(180deg, rgba(15,23,42,0.97) 0%, rgba(10,13,20,0.98) 100%)',
-                border: '1px solid rgba(79,255,176,0.24)',
-                boxShadow: '0 34px 110px rgba(0,0,0,0.58), 0 0 0 1px rgba(255,255,255,0.04), 0 0 64px rgba(79,255,176,0.08)',
-            }}
-            onMouseDown={(event) => event.stopPropagation()}
-        >
-            <div
-                className="flex items-start justify-between gap-3 px-4 py-4 md:gap-5 md:px-6 md:py-5"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
-            >
-                <div className="min-w-0">
-                    <p
-                        className="mb-2 text-xs uppercase"
-                        style={{ color: 'rgba(79,255,176,0.55)', fontFamily: "'Syne', sans-serif", letterSpacing: '0.12em' }}
-                    >
-                        Фрагмент документа
-                    </p>
-                    <h2
-                        id="document-modal-title"
-                        className="text-base font-medium leading-snug"
-                        style={{ color: '#e2e8f0', overflowWrap: 'anywhere' }}
-                    >
-                        {document.title}
-                    </h2>
-                    {document.folderName && (
-                        <p className="mt-2 text-xs" style={{ color: 'rgba(226,232,240,0.45)' }}>
-                            {document.folderName}
-                        </p>
-                    )}
-                </div>
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all"
-                    style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        color: 'rgba(226,232,240,0.72)',
-                        cursor: 'pointer',
-                    }}
-                    aria-label="Закрити панель"
-                >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                        <path d="M18 6 6 18" />
-                        <path d="m6 6 12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-5">
-                <div
-                    className="rounded-2xl px-4 py-4 md:px-5"
-                    style={{
-                        background: 'rgba(255,255,255,0.035)',
-                        border: '1px solid rgba(255,255,255,0.07)',
-                    }}
-                >
-                    <p
-                        className="whitespace-pre-wrap text-sm leading-6"
-                        style={{ color: 'rgba(226,232,240,0.88)', overflowWrap: 'anywhere' }}
-                    >
-                        ...{document.content}...
-                    </p>
-                </div>
-            </div>
-
-            <div
-                className="px-4 py-4 md:px-6 md:py-5"
-                style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-            >
-                {document.url && (
-                    <a
-                        href={document.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="interactive-button flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium"
-                        style={{
-                            background: 'rgba(79,255,176,0.13)',
-                            border: '1px solid rgba(79,255,176,0.32)',
-                            color: '#4fffb0',
-                            textDecoration: 'none',
-                        }}
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14 3h7v7" />
-                            <path d="M10 14 21 3" />
-                            <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
-                        </svg>
-                        Відкрити оригінал у Google Drive
-                    </a>
-                )}
-            </div>
-        </section>
-    </div>
-);
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export const StudentSearchPage: React.FC = () => {
@@ -845,9 +599,12 @@ export const StudentSearchPage: React.FC = () => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const hoveredNodeRef = useRef<GraphNode | null>(null);
     const stepTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const foldersRequestIdRef = useRef(0);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<any>(null);
     const graphMetrics = useMemo(() => getGraphMetrics(dimensions.width), [dimensions.width]);
+    const isSearchReady = pageState === 'folders' || pageState === 'results' || pageState === 'empty' || pageState === 'error';
+    const isSearchDisabled = !query.trim() || !isSearchReady;
     const visibleGraphData = useMemo(() => {
         if (!graphData || dimensions.width <= 0 || dimensions.height <= 0) {
             return graphData;
@@ -890,22 +647,27 @@ export const StudentSearchPage: React.FC = () => {
     }, [clearStepTimers]);
 
     const fetchFolders = useCallback(async () => {
+        const requestId = foldersRequestIdRef.current + 1;
+        foldersRequestIdRef.current = requestId;
         setPageState('foldersLoading');
         setError(null);
         setSelectedDocument(null);
         try {
             const loadedFolders = await usersApi.getFolders();
+            if (foldersRequestIdRef.current !== requestId) return;
             setFolders(loadedFolders);
             setGraphData(buildGraph(loadedFolders));
             setPageState('folders');
         } catch (err: unknown) {
+            if (foldersRequestIdRef.current !== requestId) return;
             setError(err instanceof Error ? err.message : 'Помилка запиту');
             setPageState('foldersError');
         }
     }, []);
 
     const handleSearch = useCallback(async () => {
-        if (!query.trim() || pageState === 'loading') return;
+        const canSearch = pageState === 'folders' || pageState === 'results' || pageState === 'empty' || pageState === 'error';
+        if (!query.trim() || !canSearch) return;
 
         setPageState('loading');
         setError(null);
@@ -931,23 +693,13 @@ export const StudentSearchPage: React.FC = () => {
 
     useEffect(() => () => clearStepTimers(), [clearStepTimers]);
     useEffect(() => {
-        let ignore = false;
+        const timeoutId = window.setTimeout(() => void fetchFolders(), 0);
 
-        usersApi.getFolders()
-            .then((loadedFolders) => {
-                if (ignore) return;
-                setFolders(loadedFolders);
-                setGraphData(buildGraph(loadedFolders));
-                setPageState('folders');
-            })
-            .catch((err: unknown) => {
-                if (ignore) return;
-                setError(err instanceof Error ? err.message : 'Помилка запиту');
-                setPageState('foldersError');
-            });
-
-        return () => { ignore = true; };
-    }, []);
+        return () => {
+            window.clearTimeout(timeoutId);
+            foldersRequestIdRef.current += 1;
+        };
+    }, [fetchFolders]);
 
     // Spread nodes out: increase repulsion and link distance
     useEffect(() => {
@@ -1262,7 +1014,7 @@ export const StudentSearchPage: React.FC = () => {
                                 onChange={(e) => setQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                 placeholder="Що хочете знайти? Наприклад: алгоритми сортування..."
-                                disabled={pageState === 'loading'}
+                                disabled={pageState === 'loading' || pageState === 'foldersLoading' || pageState === 'foldersError'}
                                 className="min-h-11 w-full rounded-xl px-4 py-3 text-base outline-none disabled:opacity-50 md:text-sm"
                                 style={{
                                     background: 'rgba(255,255,255,0.04)',
@@ -1275,7 +1027,7 @@ export const StudentSearchPage: React.FC = () => {
                         </div>
                         <button
                             onClick={handleSearch}
-                            disabled={!query.trim() || pageState === 'loading'}
+                            disabled={isSearchDisabled}
                             className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 md:w-auto"
                             style={{
                                 background: 'rgba(79,255,176,0.12)',

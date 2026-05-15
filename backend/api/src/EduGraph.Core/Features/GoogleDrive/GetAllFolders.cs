@@ -33,6 +33,7 @@ public static class GetAllFolders
         {
             List<Response> response = await db.UniversityFolders
                 .AsNoTracking()
+                .Where(folder => folder.IsMain == false)
                 .Select(folder => new Response(folder.GoogleDriveId, folder.Name, folder.Link))
                 .ToListAsync(cancellationToken);
             
