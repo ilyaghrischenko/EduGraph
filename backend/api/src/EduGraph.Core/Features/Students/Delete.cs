@@ -37,12 +37,7 @@ internal static class Delete
             User? user = await userManager.FindByIdAsync(id.ToString());
 #pragma warning restore CA1305
 
-            if (user is null)
-            {
-                return TypedResults.NotFound($"Студента з id: {id} не знайдено");
-            }
-
-            if (user.Type != UserType.Student)
+            if (user is null || user.Type != UserType.Student)
             {
                 return TypedResults.NotFound($"Студента з id: {id} не знайдено");
             }
