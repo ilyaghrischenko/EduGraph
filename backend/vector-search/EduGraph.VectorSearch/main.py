@@ -335,6 +335,22 @@ def search(request: SearchRequest):
             if len(results) >= request.top_k:
                 break
 
+        logger.info(
+            "Final search results for query='%s': %s",
+            query,
+            [
+                {
+                    "title": result.title,
+                    "chunk_id": result.chunk_id,
+                    "chunk_index": result.chunk_index,
+                    "score": result.score,
+                    "rerank_score": result.rerank_score,
+                    "content_preview": result.content[:250],
+                }
+                for result in results
+            ]
+        )
+
         return results
     except Exception as e:
         logger.error(f"Search endpoint error: {e}\n{traceback.format_exc()}")

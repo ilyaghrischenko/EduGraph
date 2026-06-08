@@ -215,8 +215,8 @@ const textWidthCache = new Map<string, number>();
 
 function buildGraph(folders: FolderResponse[], docs: SearchDocumentResponse[] = []): GraphData {
     const root: GraphNode = {
-        id: 'root:g7',
-        title: 'G7',
+        id: 'root:f7',
+        title: 'F7',
         type: 'root',
     };
     const folderNodeIdByName = new Map(folders.map((folder) => [folder.name, `folder:${folder.id}`]));
@@ -383,7 +383,7 @@ function resolveDocumentGroupCenters(
             const height = nodes.length * metrics.documentNodeHeight + Math.max(0, nodes.length - 1) * metrics.documentNodeGap;
 
             return parentPosition
-                ? { parentId, centerY: parentPosition.y + (parentId === 'root:g7' ? metrics.rootDocumentCenterOffsetY : metrics.folderDocumentCenterOffsetY), height }
+                ? { parentId, centerY: parentPosition.y + (parentId === 'root:f7' ? metrics.rootDocumentCenterOffsetY : metrics.folderDocumentCenterOffsetY), height }
                 : null;
         })
         .filter((group): group is { parentId: string; centerY: number; height: number } => group !== null)

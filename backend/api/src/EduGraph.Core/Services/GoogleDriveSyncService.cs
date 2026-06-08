@@ -53,7 +53,7 @@ public sealed class GoogleDriveSyncService(
             {
                 Result<UniversityFolder> createUniversityFolderResult = UniversityFolder.Create(
                     googleDriveId: Guid.CreateVersion7().ToString(),
-                    name: "G7",
+                    name: "F7",
                     link: getRootFolderLinkResult.Value!,
                     isMain: true
                 );
